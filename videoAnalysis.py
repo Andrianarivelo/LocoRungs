@@ -50,7 +50,7 @@ class videoAnalysis:
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         
-        im = ax.imshow(transpose(self.frames[0]),cmap='viridis',interpolation='nearest')
+        im = ax.imshow(np.transpose(self.frames[0]),cmap='viridis',interpolation='nearest')
         #im = ax.imshow(rand(300,300),cmap='gray',interpolation='nearest')
         #im.set_clim([0,1]) # set maximal value
         fig.set_size_inches([3.73,2.8])
@@ -59,7 +59,7 @@ class videoAnalysis:
 
         def update_img(n):
             tmp = self.frames[n]
-            im.set_data(transpose(tmp))
+            im.set_data(np.transpose(tmp))
             #tmp = rand(300,300)
             #im.set_data(tmp)
             return im
