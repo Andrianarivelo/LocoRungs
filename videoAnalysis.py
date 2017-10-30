@@ -37,7 +37,7 @@ class videoAnalysis:
         else:
             tiff.imsave(path+'%s-%s_mouseImageStack.tif' % (self.exptDay,self.trial), self.frames)
 
-    def storeAsVideoFile(self,path,framesPerSec=100,dpi=200):
+    def storeAsVideoFile(self,path,framesPerSec=100,dpi=400):
         
         fileName = path+'%s-%s_video.mp4' % (self.exptDay,self.trial) 
         Nframes = np.shape(self.frames)[0]
@@ -50,7 +50,7 @@ class videoAnalysis:
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         
-        im = ax.imshow(np.transpose(self.frames[0]),cmap='viridis',interpolation='nearest')
+        im = ax.imshow(np.transpose(self.frames[0]),cmap='gray',interpolation='nearest')
         #im = ax.imshow(rand(300,300),cmap='gray',interpolation='nearest')
         #im.set_clim([0,1]) # set maximal value
         fig.set_size_inches([3.73,2.8])
