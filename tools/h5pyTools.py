@@ -1,4 +1,4 @@
-import ezodf
+#import ezodf
 import numpy as np
 
 class h5pyTools:

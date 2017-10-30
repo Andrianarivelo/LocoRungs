@@ -201,7 +201,7 @@ if __name__=="__main__":
         laptop = True
         dataBase     = '/media/invivodata/'
         analysisBase = '/media/HDnyc_data/'
-    elif platform.node() == 'michael-server':
+    elif platform.node() == 'otillo':
         laptop = False
         dataBase = '/media/mgraupe/nyc_data/'
     elif platform.node() == 'bs-analysis':
