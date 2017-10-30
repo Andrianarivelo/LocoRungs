@@ -42,8 +42,6 @@ class videoAnalysis:
         fileName = path+'%s-%s_video.mp4' % (self.exptDay,self.trial) 
         Nframes = np.shape(self.frames)[0]
         
-        dpi = 200 #self.config['videoParameter']['dpi']
-        
         fig = plt.figure(111)
         ax = fig.add_subplot(111)
         ax.set_aspect('equal')
