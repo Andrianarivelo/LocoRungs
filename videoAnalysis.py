@@ -12,6 +12,7 @@ import pdb
 #from scipy.signal import butter, lfilter, filtfilt, iirfilter, lfilter, remez, convolve, get_window
 import sys
 import tifffile as tiff
+import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import h5py
 import numpy as np
