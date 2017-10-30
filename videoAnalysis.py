@@ -37,7 +37,7 @@ class videoAnalysis:
         else:
             tiff.imsave(path+'%s-%s_mouseImageStack.tif' % (self.exptDay,self.trial), self.frames)
 
-    def storeAsVideoFile(self,path,fps=100,dpi=200):
+    def storeAsVideoFile(self,path,framesPerSec=100,dpi=200):
         
         fileName = path+'%s-%s_video.mp4' % (self.exptDay,self.trial) 
         Nframes = np.shape(self.frames)[0]
@@ -55,7 +55,7 @@ class videoAnalysis:
         #im.set_clim([0,1]) # set maximal value
         fig.set_size_inches([3.73,2.8])
         
-        tight_layout()
+        plt.tight_layout()
 
         def update_img(n):
             tmp = self.frames[n]
@@ -67,6 +67,5 @@ class videoAnalysis:
         ani = animation.FuncAnimation(fig,update_img,Nframes)
         writer = animation.writers['ffmpeg'](fps=framesPerSec)
         ani.save(fileName,writer=writer,dpi=dpi)
-        clf()
         
     
