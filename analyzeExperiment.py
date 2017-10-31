@@ -17,9 +17,15 @@ from videoAnalysis import *
 # default parameter , please note that changes here don't take effect
 # if config file already exists
 params= OrderedDict([
-    ('ivCurveParameters',{ # iv-curve analysis
-        'tGap': 0.010,     # leave gap in sec
-        'tAverage': 0.02,  # duration in sec to average voltage
+    ('f49_170829',{
+        ('171009',{
+            'RotaryEncoder': 0,     # leave gap in sec
+            'behaving_MLI': 0,1,2,3,4,  # duration in sec to average voltage
+            }),
+        ('171010',{
+            'RotaryEncoder': 3,     # leave gap in sec
+            'behaving_MLI': 0,1,2,3,4,  # duration in sec to average voltage
+            }),
         }),
     ('artifactRemovalParameters', {    # artifact removal 
         'artifactJumpThreshold' : 20., # in mV
@@ -175,7 +181,7 @@ if __name__=="__main__":
     start_time = time.time()
     
     ExptDay = '2017.10.12_000'
-    trials = ['behavingMLI_012']
+    trials = ['behavingMLI_006']
     
     ##########################################################
     # read in all the input arguments

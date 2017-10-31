@@ -33,9 +33,9 @@ class videoAnalysis:
     
     def storeAsTiffFile(self,path,Nframes=None):
         if Nframes :
-            tiff.imsave(path+'%s-%s_mouseImageStack.tif' % (self.exptDay,self.trial), self.frames[:Nframes])
+            tiff.imsave(path+'%s-%s_mouseImageStack.tif' % (self.exptDay,self.trial), np.transpose(self.frames[:Nframes]))
         else:
-            tiff.imsave(path+'%s-%s_mouseImageStack.tif' % (self.exptDay,self.trial), self.frames)
+            tiff.imsave(path+'%s-%s_mouseImageStack.tif' % (self.exptDay,self.trial), np.transpose(self.frames))
 
     def storeAsVideoFile(self,path,framesPerSec=100,dpi=400):
         
