@@ -24,7 +24,7 @@ params= OrderedDict([
             }),
         ('171010',{
             'RotaryEncoder': 3,     # leave gap in sec
-            'behaving_MLI': 0,1,2,3,4,  # duration in sec to average voltage
+            'behaving_MLI': [0,1,2,3,4],  # duration in sec to average voltage
             }),
         }),
     ('artifactRemovalParameters', {    # artifact removal 
