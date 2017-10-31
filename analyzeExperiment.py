@@ -174,8 +174,8 @@ if __name__=="__main__":
     # start time of the analysis script
     start_time = time.time()
     
-    ExptDay = '2017.10.09_000'
-    trials = ['behavingMLI_000']
+    ExptDay = '2017.10.12_000'
+    trials = ['behavingMLI_012']
     
     ##########################################################
     # read in all the input arguments
