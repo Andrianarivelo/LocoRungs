@@ -20,7 +20,7 @@ params= OrderedDict([
     ('f49_170829',{
         ('171009',{
             'RotaryEncoder': 0,     # leave gap in sec
-            'behaving_MLI': 0,1,2,3,4,  # duration in sec to average voltage
+            'behaving_MLI': [0,1,2,3,4],  # duration in sec to average voltage
             }),
         ('171010',{
             'RotaryEncoder': 3,     # leave gap in sec
