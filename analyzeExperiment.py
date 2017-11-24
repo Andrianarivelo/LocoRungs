@@ -20,41 +20,12 @@ params= OrderedDict([
     ('f49_170829',{
         ('171009',{
             'RotaryEncoder': 0,     # leave gap in sec
-            'behaving_MLI': [0,1,2,3,4],  # duration in sec to average voltage
+            'behaving_MLI': (0,1,2,3,4),  # duration in sec to average voltage
             }),
         ('171010',{
             'RotaryEncoder': 3,     # leave gap in sec
-            'behaving_MLI': [0,1,2,3,4],  # duration in sec to average voltage
+            'behaving_MLI': (0,1,2,3,4),  # duration in sec to average voltage
             }),
-        }),
-    ('artifactRemovalParameters', {    # artifact removal 
-        'artifactJumpThreshold' : 20., # in mV
-        'maxartifactDuration' : 0.1 ,  # period in sec before artifact used to determine mean and STD for the inserted white noise
-        }),
-    ('detrendingFilteringParameters', { # detrending and filtering
-        'detrend' : 'new',              # 'new' for re-calculating, 'read' for reading formerly calculated traces
-        'normalizationRange' : 0.05,    # in sec
-        'normalizationRangeSlow' : 0.8, # in sec
-        'cutoff_freq' : 150.,           # low-pass frequency in Hz, remove high-frequency noise by low-pass filtering recording
-        }),
-    ('extractSoundOnAndOffsetParameters', { # extract sound on- and offset
-        'tBefore' : 0.15,                # extract time in sec before sound
-        'tAfter' : 0.15,                 # extrac time in sec after sound
-        'extractionCriterion' : None, # criterion deciding how the trigger signal is encodes sound stimuli presentations
-        }),
-    ('crossCorrelationParameters', { # calculate cross-correlation
-        'correlationRange' : 2.,      # in sec +/-
-        'fast' : True,                # if true, corrrelations are not calculated; speeds up script enormously
-        }),
-    ('fitIndividualResponsesParameters', { # fitting individual responses
-        'timeFit' : 0.020 ,       # in sec, time before onset and after maximum to be included in fit
-        'pThreshold' : 0.5,       # correlation threshold : above -> response, below -> faliure
-        }),
-    ('maxMinWindowAverageResponseParameters', { # determine maximum and mininum window of average response
-        # average in [maximum +/- maxWindow] will be used to extract tone-evoked response in single recordings
-        'maxWindow' : 0.004 ,     # in sec
-        'minWindow' : 0.004,       # in sec
-        'nDurationMult' : 2,        # look for maximum in window of n*toneDuration
         }),
     ])
     
