@@ -125,7 +125,7 @@ class extractData:
                                         ])
                 # save days of experiments
                 j = n
-                while ((not values[j][0]) or (j==n) ) and j < len(values):
+                while (j < len(values)) and ((not values[j][0]) or (j==n) ) :
                     if values[j][5]:
                         print values[j][5]
                         exDict[values[n][0]]['dates'].update( OrderedDict([
