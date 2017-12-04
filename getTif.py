@@ -1,4 +1,4 @@
-import tools.extractData as extData
+import tools.extractData as extractData
 import tifffile as tiff
 import numpy as np
 import pdb
@@ -6,9 +6,8 @@ import pdb
 experiment = '2017.11.14_002'
 rec  = '2pScan_2.0umPix_Behavior_006'
 
-eD = extData.extractData(experiment)
+eD = extractData.extractData(experiment)
 rL = eD.getRecordingsList()
-pdb.set_trace()
 if rec in rL:
     data = eD.readData(rec,'Imaging')
 
