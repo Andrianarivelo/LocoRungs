@@ -41,7 +41,7 @@ class extractData:
         else:
             print 'Run this script on a server or laptop. Otherwise, adapt directory locations.'
             sys.exit(1)
-            
+
         dataBase     = '/media/invivodata/'
         # check if directory is mounted
         if not os.listdir(dataBase):
@@ -120,8 +120,8 @@ class extractData:
                                             'mouse': values[n][2],
                                             'lineage': values[n][3],
                                             'DOB': values[n][4],
-                                        },
-                                        'dates', {})
+                                        }),
+                                        ('dates', {})
                                         ])
                 # save days of experiments
                 j = n
