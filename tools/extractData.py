@@ -144,7 +144,13 @@ class extractData:
                         else:
                             exDict[values[n][0]]['dates'][values[j][5]]['folder'] = values[j][10]
                             exDict[values[n][0]]['dates'][values[j][5]]['recordings'].update( OrderedDict([(values[j][11], {
-                                                                                                        'comment': values[j][12],} )]))
+                                                                                                        'comment': {}, } )]))
+                            try :
+                                values[j][12]
+                            except:
+                                pass
+                            else:
+                                exDict[values[n][0]]['dates'][values[j][5]]['recordings'][values[j][11]]['comment'] = values[j][12]
                     j+=1
         return exDict
 
