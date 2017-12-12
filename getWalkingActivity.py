@@ -1,35 +1,24 @@
-import tools.extractData as extractData
+import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
-import tifffile as tiff
-import numpy as np
-import matplotlib.pyplot as plt
-import pdb
-import sys
 
 mouse = '170927_m68'
-expDate = '171115'
+expDate = '171117'
+wheelCircumsphere = 79.796 # in cm
 
-eD      = extractData.extractData()
-expList = eD.getExperimentSpreadsheet()
+eSD         = extractSaveData.extractSaveData(mouse)
+(recordings,dataFolder) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
 
-dA      = dataAnalysis.dataAnalysis()
-
-if mouse in expList:
-    if expDate in expList[mouse]['dates']:
-        recordings = eD.getRecordingsList(expList[mouse]['dates'][expDate]['folder'])
-        print  expList[mouse]['dates'][expDate]
-        print expList[mouse]['dates'][expDate]['folder']
+#dA      = dataAnalysis.dataAnalysis()
 
 tracks = []
 for rec in recordings:
-    data = eD.readData(rec,'RotaryEncoder')
-    if data:
-        (angles,aTimes) = eD.extractData(data,'RotaryEncoder')
-        (speed, sTimes) = dA.getSpeed(angles,aTimes)
-        tracks.append([rec,sTimes,speed])
-        #plt.plot(sTimes,speed)
+    (existence, fileHandle) = eSD.checkIfDeviceWasRecorded(rec,'RotaryEncoder')
+    if existence:
+        (angles, aTimes,timeStamp,monitor) = eSD.readRawData(rec,'RotaryEncoder',fileHandle)
+        (angularSpeed, linearSpeed, sTimes)  = dataAnalysis.getSpeed(angles,aTimes,wheelCircumsphere)
+        eSD.saveWalkingActivity(angularSpeed, linearSpeed, sTimes,timeStamp,monitor, [dataFolder,rec,'walking_activity'])  # save motion corrected image stack
 
-
+del eSD
 
 
 

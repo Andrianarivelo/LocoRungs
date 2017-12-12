@@ -1,5 +1,5 @@
 import tools.extractSaveData as extractSaveData
-import tools.dataAnalysis as dataAnalysis
+#import tools.dataAnalysis as dataAnalysis
 import tools.createVisualizations as createVisualizations
 
 import numpy as np
@@ -12,11 +12,11 @@ expDate = '171115'
 eSD      = extractSaveData.extractSaveData(mouse)
 (recordings,dataFolder) = eSD.getRecordingsList(mouse,expDate)
 
-dA      = dataAnalysis.dataAnalysis()
-print eSD.figureLocation
+#dA      = dataAnalysis.dataAnalysis()
+#print eSD.figureLocation
 cV      = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
-for rec in recordings[1:]:
+for rec in recordings[8:]:
     (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(rec,'Imaging')  # check if specific data was recorded
     if existence:
         (frames,fTimes,imageMetaInfo) = eSD.readRawData(rec,'Imaging',fileHandle)  # read raw data from experiment
@@ -27,3 +27,4 @@ for rec in recordings[1:]:
         cV.generateROIImage(dataFolder,rec,np.average(imStack,axis=0),fTimes,rois,rawSignals,imageMetaInfo,motionCoordinates) # plot fluorescent traces of rois
         #break
 
+del eSD, cV

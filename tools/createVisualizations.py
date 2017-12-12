@@ -64,9 +64,35 @@ class createVisualizations:
 
 
     ##########################################################################################
-    def determineFileName(self,date,rec,what):
-        ff = self.figureDirectory + '%s_%s_%s' % (date,rec,what)
+    def determineFileName(self,date,what,rec=None):
+        if rec == None:
+            ff = self.figureDirectory + '%s_%s' % (date,what)
+        else:
+            ff = self.figureDirectory + '%s_%s_%s' % (date,rec,what)
         return ff
+
+    ##########################################################################################
+    def layoutOfPanel(self, ax,xLabel=None,yLabel=None,Leg=None):
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_position(('outward', 10))
+        ax.spines['left'].set_position(('outward', 10))
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+
+        if xLabel != None :
+            ax.set_xlabel(xLabel)
+
+        if yLabel != None :
+            ax.set_ylabel(yLabel)
+
+        if Leg != None :
+            ax.legend(loc=Leg[0], frameon=False)
+            if len(Leg)>1 :
+                legend = ax.get_legend()  # plt.gca().get_legend()
+                ltext = legend.get_texts()
+                plt.setp(ltext, fontsize=Leg[1])
 
     ##########################################################################################
     def generateVideoFromImageStack(self,data,fName,framesPerSec=8):
@@ -330,7 +356,215 @@ class createVisualizations:
         
         plt.savefig(fname+'.png')
         plt.savefig(fname+'.pdf')
-        
+
+    ##########################################################################################
+    def generateWalkingFigure(self,mouse, date,tracks):
+
+        nRecs = len(tracks)
+
+        tracksN = []
+        highResRecs = 0
+        maxSpeed = 0.
+        minSpeed = 0.
+        for i in range(nRecs):
+            if tracks[i][4]:
+                tracksN.append([i,tracks[i][3],True])
+            else:
+                highResRecs+=1
+                tracksN.append([i,tracks[i][3],False])
+                if max(tracks[i][1])>maxSpeed:
+                    maxSpeed =max(tracks[i][1])
+                if min(tracks[i][1])<minSpeed:
+                    minSpeed = min(tracks[i][1])
+        plotsPerFig = 3
+        nFigs = int(highResRecs / (plotsPerFig))
+
+        # sort according to earliest experiment
+        tracksN.sort(key=lambda x: x[1])
+        #pdb.set_trace()
+        startTime = tracksN[0][1]
+        print 'monitor N : ', tracksN
+
+        # figure #################################
+        fig_width = 12  # width in inches
+        fig_height = 4 * (nFigs+2)  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi': 600,
+                  'axes.linewidth': 1.3,
+                  'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(2 + nFigs, 1 # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.1, right=0.95, top=0.96, bottom=0.05)
+
+        # sub-panel enumerations
+        plt.figtext(0.1, 0.97, 'mouse : %s, recording : %s' % (mouse,date),clip_on=False,color='black',size=18)
+
+        # first overview plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax0 = plt.subplot(gs[0])
+        ax0.axhline(y=0,ls='--',c='0.5')
+        for i in range(nRecs):
+            colors = plt.cm.jet(float(i) / float(nRecs - 1))
+            if tracks[i][4]:
+                timeDiff = np.diff(tracks[i][2])
+                pausesIndex = np.where(timeDiff>30.)[0]
+                #print np.shape(pausesIndex)
+                #pdb.set_trace()
+                pausesIndex = np.concatenate((np.array([-1]),pausesIndex))
+                for n in range(len(pausesIndex)-1):
+                    start = pausesIndex[n]+1
+                    end   = pausesIndex[n+1]
+                    print start, end, pausesIndex
+                    ax0.plot((tracks[i][2][start:end]+(tracks[i][3]-startTime))/60.,tracks[i][1][start:end],color=colors)
+            else:
+                timeDiff = np.diff(tracks[i][2])
+                ax0.plot((tracks[i][2]+(tracks[i][3]-startTime))/60.,tracks[i][1],color=colors)
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax0,xLabel='time (min)',yLabel='speed (cm/s)')
+
+        print nFigs, nRecs
+
+        # high-res panels #############################################
+        gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1], hspace=0.2)
+        ax10 = plt.subplot(gssub1[0])
+        ax11 = plt.subplot(gssub1[1])
+        ax10.axhline(y=0,ls='--',c='0.5')
+        if nFigs > 1:
+            gssub2 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[2], hspace=0.2)
+            ax20 = plt.subplot(gssub2[0])
+            ax21 = plt.subplot(gssub2[1])
+            #ax11 = plt.subplot(gs[2])
+            ax20.axhline(y=0,ls='--',c='0.5')
+        if nFigs > 2:
+            gssub3 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[3], hspace=0.2)
+            ax30 = plt.subplot(gssub3[0])
+            ax31 = plt.subplot(gssub3[1])
+            ax30.axhline(y=0,ls='--',c='0.5')
+        if nFigs > 3:
+            gssub4 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[4], hspace=0.2)
+            ax40 = plt.subplot(gssub4[0])
+            ax41 = plt.subplot(gssub4[1])
+            ax40.axhline(y=0,ls='--',c='0.5')
+        if nFigs > 4:
+            gssub5 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[5], hspace=0.2)
+            ax50 = plt.subplot(gssub5[0])
+            ax51 = plt.subplot(gssub5[1])
+            ax50.axhline(y=0,ls='--',c='0.5')
+        if nFigs > 5:
+            gssub6 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[6], hspace=0.2)
+            ax60 = plt.subplot(gssub6[0])
+            ax61 = plt.subplot(gssub6[1])
+            ax60.axhline(y=0,ls='--',c='0.5')
+        for n in range(nRecs):
+            if not tracks[n][4]:
+                fff = int(n / (plotsPerFig))
+                colors = plt.cm.jet(float(n) / float(nRecs - 1))
+                print n, fff, nFigs
+                w = np.concatenate((np.array([tracks[n][2][0]]), np.diff(tracks[n][2])))
+                if fff == 0:
+                    ax10.plot(tracks[n][2],tracks[n][1],label='%s' % tracks[n][5])
+                    ax11.hist(tracks[n][1],bins=40,range=[minSpeed,maxSpeed],histtype='step',weights=w)
+                elif fff == 1:
+                    ax20.plot(tracks[n][2], tracks[n][1],label='%s' % tracks[n][5])
+                    ax21.hist(tracks[n][1],bins=40,range=[minSpeed,maxSpeed],histtype='step',weights=w)
+                elif fff == 2:
+                    ax30.plot(tracks[n][2], tracks[n][1], label='%s' % tracks[n][5])
+                    ax31.hist(tracks[n][1],bins=40,range=[minSpeed,maxSpeed],histtype='step',weights=w)
+                elif fff == 3:
+                    ax40.plot(tracks[n][2], tracks[n][1], label='%s' % tracks[n][5])
+                    ax41.hist(tracks[n][1],bins=40,range=[minSpeed,maxSpeed],histtype='step',weights=w)
+                elif fff == 4:
+                    ax50.plot(tracks[n][2], tracks[n][1], label='%s' % tracks[n][5])
+                    ax51.hist(tracks[n][1],bins=40,range=[minSpeed,maxSpeed],histtype='step',weights=w)
+                elif fff == 5:
+                    ax60.plot(tracks[n][2], tracks[n][1], label='%s' % tracks[n][5])
+                    ax61.hist(tracks[n][1],bins=40,range=[minSpeed,maxSpeed],histtype='step',weights=w)
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax10,yLabel='speed (cm/s)',Leg=[1,8])
+        self.layoutOfPanel(ax11, xLabel='speed (cm/s)')
+        if nFigs > 1:
+            self.layoutOfPanel(ax20, yLabel='speed (cm/s)', Leg=[1, 8])
+            self.layoutOfPanel(ax21, xLabel='speed (cm/s)')
+        if nFigs > 2:
+            self.layoutOfPanel(ax30, yLabel='speed (cm/s)', Leg=[1, 8])
+            self.layoutOfPanel(ax31, xLabel='speed (cm/s)')
+        if nFigs > 3:
+            self.layoutOfPanel(ax40, yLabel='speed (cm/s)', Leg=[1, 8])
+            self.layoutOfPanel(ax41, xLabel='speed (cm/s)')
+        if nFigs > 4:
+            self.layoutOfPanel(ax50, yLabel='speed (cm/s)', Leg=[1, 8])
+            self.layoutOfPanel(ax51, xLabel='speed (cm/s)')
+        if nFigs > 5:
+            self.layoutOfPanel(ax60, yLabel='speed (cm/s)')#, Leg=[1, 8])
+            self.layoutOfPanel(ax61, xLabel='speed (cm/s)')
+        ## summaray ############################################################
+        gssubSum = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[nFigs+1], hspace=0.2)
+
+        axS0 = plt.subplot(gssubSum[0])
+        axS1 = plt.subplot(gssubSum[1])
+        width = 0.35
+        ax0.axhline(y=0, ls='--', c='0.5')
+        for i in range(nRecs):
+            colors = plt.cm.jet(float(i) / float(nRecs - 1))
+            if not tracks[i][4]:
+                w = np.concatenate((np.array([tracks[i][2][0]]), np.diff(tracks[i][2])))
+                restingWalkingMask = tracks[i][1] > 5.
+                resting = np.sum(w[np.invert(restingWalkingMask)])
+                walking = np.sum(w[restingWalkingMask])
+                if sum(w[restingWalkingMask])!=0.:
+                    avgSpeed = np.average(tracks[i][1][restingWalkingMask],weights=w[restingWalkingMask])
+                else:
+                    avgSpeed = 0.
+                axS0.bar(i,resting/walking,color=colors)
+                #axS0.bar(i+width,walking,width,color=colors,hatch='/')
+                #(tracks[i][2] + (tracks[i][3] - startTime)) / 60., tracks[i][1], color=colors)
+                axS1.bar(i,avgSpeed, color=colors)
+
+        #axS1.set_ylim(8,13)
+        self.layoutOfPanel(axS0,xLabel='recording',yLabel='fraction of time resting/running')#, yLabel='speed (cm/s)', Leg=[1, 8])
+        self.layoutOfPanel(axS1,xLabel='recording',yLabel='average max. speed (cm/s)')#, xLabel='speed (cm/s)')
+        #plt.xlabel('time (s)')
+        #plt.ylabel('speed (cm/s)')
+
+        # change tick spacing
+        # majorLocator_x = MultipleLocator(10)
+        # ax1.xaxis.set_major_locator(majorLocator_x)
+
+        ## save figure ############################################################
+        fname = self.determineFileName(date,'walking_activity')
+
+        plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+
     ##########################################################################################
     def generateROIAndEphysImage(self,data,fileName,stim=False):
         '''

@@ -6,7 +6,9 @@ import numpy as np
 import glob
 import sima
 import sima.segment
+import time
 import pdb
+import cv2
 
 from tools.h5pyTools import h5pyTools
 import tools.googleDocsAccess as googleDocsAccess
@@ -53,6 +55,12 @@ class extractSaveData:
         #if os.path.isfile(fName):
         self.f = h5py.File(fName,'a')
         self.mouse = mouse
+
+    ############################################################
+    def __del__(self):
+        self.f.flush()
+        self.f.close()
+        print 'on exit'
 
     ############################################################
     def getMotioncorrectedStack(self,folder,rec,suffix):
@@ -128,13 +136,16 @@ class extractSaveData:
     def getRecordingsList(self,mouse,expDate):
 
         if mouse in self.listOfAllExpts:
+            print mouse
+            print expDate, self.listOfAllExpts[mouse]['dates']
             if expDate in self.listOfAllExpts[mouse]['dates']:
                 dataFolder = self.listOfAllExpts[mouse]['dates'][expDate]['folder']
+                print expDate, dataFolder
 
         self.dataLocation = self.dataBase + 'altair_data/dataMichael/' + dataFolder + '/'
 
         if os.path.exists(self.dataLocation):
-            print 'experiment exists'
+            print 'experiment %s exists' % dataFolder
         else:
             print 'Problem, experiment does not exist'
         #recList = OrderedDict()
@@ -148,7 +159,7 @@ class extractSaveData:
         recLocation = self.dataLocation + '/' + recording + '/'
         
         if os.path.exists(self.dataLocation):
-            print 'recording exists'
+            print '%s exists' % recording
         else:
             print 'Problem, recording does not exist'
             
@@ -177,8 +188,20 @@ class extractSaveData:
             else:
                 angles = fData['data'][4]
             times  = fData['info/1/values'].value
-            return (angles,times)
+            try :
+                startTime = fData['info/2/DAQ/ChannelA'].attrs['startTime']
+            except :
+                startTime = os.path.getctime(recLocation)
+                monitor = True
+            else:
+                monitor = False
+            return (angles,times,startTime,monitor)
         elif device == 'Imaging':
+            frames     = fData['data'].value
+            frameTimes = fData['info/0/values'].value
+            imageMetaInfo = self.readMetaInformation(recLocation)
+            return (frames,frameTimes,imageMetaInfo)
+        elif device == 'CameraGigEBehavior':
             frames     = fData['data'].value
             frameTimes = fData['info/0/values'].value
             imageMetaInfo = self.readMetaInformation(recLocation)
@@ -213,6 +236,68 @@ class extractSaveData:
             self.h5pyTools.createOverwriteDS(grp_name,'motionCoordinates', motionCorrection)
 
     ############################################################
+    def saveWalkingActivity(self,angularSpeed,linearSpeed,wTimes,startTime,monitor,groupNames):
+        (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
+        self.h5pyTools.createOverwriteDS(grpHandle,'angularSpeed',angularSpeed,['monitor',monitor])
+        self.h5pyTools.createOverwriteDS(grpHandle,'linearSpeed', linearSpeed)
+        self.h5pyTools.createOverwriteDS(grpHandle,'walkingTimes', wTimes, ['startTime',startTime])
+
+    ############################################################
+    def getWalkingActivity(self,groupNames):
+        (grpName,test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+        print grpName
+        angularSpeed = self.f[grpName+'/angularSpeed'].value
+        monitor = self.f[grpName+'/angularSpeed'].attrs['monitor']
+        linearSpeed = self.f[grpName+'/linearSpeed'].value
+        wTimes = self.f[grpName+'/walkingTimes'].value
+        startTime = self.f[grpName+'/walkingTimes'].attrs['startTime']
+        return (angularSpeed,linearSpeed,wTimes,startTime,monitor)
+
+
+    ############################################################
     def saveTif(self,frames,mouse,date,rec):
         img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
         tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
+
+    ############################################################
+    def saveTif(self, framesRaw, mouse, date, rec):
+
+
+        #img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
+        #tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
+        videoFileName = self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec)
+        #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
+
+        width  = shape(framesRaw)[1]
+        heigth = shape(framesRaw)[2]
+        fps    = 20.
+        #w = 480
+        #h = 640
+
+        # Define the codec and create VideoWriter object
+        fourcc = cv2.VideoWriter_fourcc(*'DIVX')  # (*'XVID')
+        out = cv2.VideoWriter(videoFileName, fourcc, fps, (height, width))
+
+        ret = True
+        for i in range(len(framesRaw)):
+            #frameRaw = np.random.rand(w, h) * 255.
+
+            frame8bit = np.array(framesRaw, dtype=np.uint8)
+            # ret, frame = cap.read()
+            frame = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2RGB)
+            #if ret == True:
+                # frame = cv2.flip(frame,0)
+
+                # write the flipped frame
+            out.write(frame)
+
+            #   cv2.imshow('frame', frame)
+            #    if cv2.waitKey(1) & 0xFF == ord('q'):
+            #        break
+            #else:
+            #    break
+
+        # Release everything if job is finished
+        #cap.release()
+        out.release()
+        cv2.destroyAllWindows()
