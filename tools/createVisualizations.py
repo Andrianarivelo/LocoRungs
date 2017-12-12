@@ -1,0 +1,1236 @@
+'''
+        Class to provide images and videos
+        
+'''
+
+import numpy as np
+#import matplotlib
+#matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import pdb
+import scipy
+#from pylab import *
+import tifffile as tiff
+from matplotlib import rcParams
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from collections import OrderedDict
+#import sima
+#import sima.motion
+#import sima.segment
+from scipy.stats.stats import pearsonr
+
+#from tools.analysisTools import analysisTools
+from tools.pyqtgraph.configfile import *
+
+# default parameter , please note that changes here don't take effect
+# if config file already exists
+params= OrderedDict([
+    ('videoParameter',{
+        'dpi': 500,
+        }),
+    ('projectionInTimeParameters', {
+        'horizontalCuts' : [5,8,9,10,12] ,
+        'verticalCut' : 50. ,
+        'stimStart': 5. ,
+        'stimLength' : 0.2 ,
+        'fitStart' : 5. ,
+        'baseLinePeriod' : 5. ,
+        'threeDAspectRatio' : 3,
+        'stimulationBarLocation' : -0.1,
+        }),
+    ('caEphysParameters', {
+        'leaveOut' : 0.1,
+        }),
+    ])
+
+class createVisualizations:
+    
+    ##########################################################################################
+    def __init__(self,figureDir,mouse):
+
+        self.mouse = mouse
+        self.figureDirectory = figureDir
+        if not os.path.isdir(self.figureDirectory):
+            os.system('mkdir %s' % self.figureDirectory)
+
+        configFile = self.figureDirectory + '%s.config' % mouse
+        if os.path.isfile(configFile):
+            self.config = readConfigFile(configFile)
+        else:
+            self.config = params
+            writeConfigFile(self.config,configFile)
+
+
+    ##########################################################################################
+    def determineFileName(self,date,rec,what):
+        ff = self.figureDirectory + '%s_%s_%s' % (date,rec,what)
+        return ff
+
+    ##########################################################################################
+    def generateVideoFromImageStack(self,data,fName,framesPerSec=8):
+        
+        fileName = fName + '_video.mp4'
+        Nframes = shape(data)[0]
+        
+        dpi = self.config['videoParameter']['dpi']
+        
+        fig = plt.figure(111)
+        ax = fig.add_subplot(111)
+        ax.set_aspect('equal')
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        
+        im = ax.imshow(data[0],cmap='gray',interpolation='nearest')
+        #im.set_clim([0,1]) # set maximal value
+        fig.set_size_inches([5,5])
+        
+        tight_layout()
+
+        def update_img(n):
+            tmp = data[n]
+            im.set_data(rot90(transpose(tmp)))
+            return im
+        
+        ani = animation.FuncAnimation(fig,update_img,Nframes)
+        writer = animation.writers['ffmpeg'](fps=framesPerSec)
+
+        ani.save(fileName,writer=writer,dpi=dpi)
+        
+    
+    ##########################################################################################
+    def saveProjectionsAsTiff(self,projo,fileName):
+        
+        dataTypeForTiff = uint8
+        maxValue = 255
+        
+        
+        xyFile = fileName + '_xyProjection.tiff'
+        xzFile = fileName + '_xzProjection.tiff'
+        yzFile = fileName + '_yzProjection.tiff'
+        
+        def projectToDTypeRange(dd):
+            ma = dd.max()
+            mi = dd.min()
+            return (dd-mi)*maxValue/(ma-mi) 
+        
+        xyimgStackUint16 = array(projectToDTypeRange(projo['xyProjection'].value)+0.5,dtype=dataTypeForTiff)
+        tiff.imsave(xyFile,xyimgStackUint16)
+
+        xzimgStackUint16 = array(projectToDTypeRange(projo['xzProjection'].value)+0.5,dtype=dataTypeForTiff)
+        tiff.imsave(xzFile,xzimgStackUint16)
+        
+        yzimgStackUint16 = array(projectToDTypeRange(projo['yzProjection'].value)+0.5,dtype=dataTypeForTiff)
+        tiff.imsave(yzFile,yzimgStackUint16)
+        
+    ##########################################################################################
+    def generateROIImage(self,date,rec,img,ttime,rois,raw_signals,imageMetaInfo,motionCoordinates):
+        '''
+            test
+        '''
+        #img = data['analyzed_data/motionCorrectedImages/timeAverage'].value
+        #ttime = data['raw_data/caImagingTime'].value
+        
+        #dataSet = sima.ImagingDataset.load(self.sima_path)
+        #rois = dataSet.ROIs['stica_ROIs']
+        
+        nRois = len(rois)
+        
+        plotsPerFig = 5
+        nFigs = int(nRois/(plotsPerFig+1) + 1.)
+        # Extract the signals.
+        #dataSet.extract(rois,signal_channel='GCaMP6F', label='GCaMP6F_signals')
+        
+        #raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
+        deltaX= imageMetaInfo[2]
+        #deltaX = (data['raw_data/caImagingField'].value)[2]
+        print 'deltaX ' , deltaX
+        
+        # figure #################################
+        fig_width = 7 # width in inches
+        fig_height = 4*nFigs+8  # height in inches
+        fig_size =  [fig_width,fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi' : 600,
+                  'axes.linewidth' : 1.3,
+                  'ytick.major.size' : 4,      # major tick size in points
+                  'xtick.major.size' : 4      # major tick size in points
+                  #'edgecolor' : None
+                  #'xtick.major.size' : 2,
+                  #'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+        
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+        
+        # create figure instance
+        fig = plt.figure()
+        
+        
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(2+nFigs, 1#,
+                               #width_ratios=[1.2,1]
+                               #height_ratios=[1,1]
+                               )
+        
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3,hspace=0.4)
+        
+        # possibly change outer margins of the figure
+        #plt.subplots_adjust(left=0.14, right=0.92, top=0.92, bottom=0.18)
+        
+        # sub-panel enumerations
+        #plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+        
+        
+        # first sub-plot #######################################################
+        gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0],hspace=0.2)
+        ax0 = plt.subplot(gssub[0])
+        
+        # title
+        #ax0.set_title('sub-plot 1')
+        
+        ax0.imshow(img,cmap=plt.cm.gray,extent=[0,np.shape(img)[1]*deltaX,0,np.shape(img)[0]*deltaX])
+        #pdb.set_trace()
+        for n in range(len(rois)):
+            x,y = rois[n].polygons[0].exterior.xy
+            colors = plt.cm.jet(float(n)/float(nRois-1))
+            ax0.plot(np.array(x)*deltaX,(np.shape(img)[0]-np.array(y))*deltaX,'-',c=colors,zorder=1)
+        
+        # removes upper and right axes 
+        # and moves left and bottom axes away
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+        ax0.xaxis.set_ticks_position('bottom')
+        
+        ax0.set_xlim(0,np.shape(img)[1]*deltaX)
+        ax0.set_ylim(0,np.shape(img)[0]*deltaX)
+        #ax0.set_xlim()
+        #ax0.set_ylim()
+        # legends and labels
+        #plt.legend(loc=1,frameon=False)
+        
+        plt.xlabel(r'x ($\mu$m)')
+        plt.ylabel(r'y ($\mu$m)')
+        
+        print nFigs, nRois
+        # third sub-plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(nFigs, 1, subplot_spec=gs[1],hspace=0.2)
+        # sub-panel 1 #############################################
+        ax01 = plt.subplot(gs[1])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+
+        ax01.plot(ttime,motionCoordinates[:,1]*deltaX,label='x')
+        ax01.plot(ttime,motionCoordinates[:,2]*deltaX,label='y')
+
+        # pdb.set_trace()
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        ax01.spines['top'].set_visible(False)
+        ax01.spines['right'].set_visible(False)
+        ax01.spines['bottom'].set_position(('outward', 10))
+        ax01.spines['left'].set_position(('outward', 10))
+        ax01.yaxis.set_ticks_position('left')
+        ax01.xaxis.set_ticks_position('bottom')
+
+        # ax0.set_xlim()
+        # ax0.set_ylim()
+        # legends and labels
+        plt.legend(loc=1,frameon=False)
+
+        plt.xlabel('time (sec)')
+        plt.ylabel('displacement ($\mu$m)')
+
+
+        # sub-panel 1 #############################################
+        ax10 = plt.subplot(gs[2])
+        if nFigs > 1:
+            ax11= plt.subplot(gs[3])
+        if nFigs > 2:
+            ax12= plt.subplot(gs[4])
+        if nFigs > 3:
+            ax13= plt.subplot(gs[5])
+        
+        for n in range(len(rois)):
+            fff = int(n/(plotsPerFig))
+            colors = plt.cm.jet(float(n)/float(nRois-1))
+            print n, fff, nFigs
+            if fff == 0:
+                ax10.plot(ttime,raw_signals[0][n],c=colors,label=str(rois[n].label + ' %.3f' % pearsonr(motionCoordinates[:,2],raw_signals[0][n])[0]))
+            elif fff == 1:
+                ax11.plot(ttime,raw_signals[0][n],c=colors,label=str(rois[n].label + ' %.3f' % pearsonr(motionCoordinates[:,2],raw_signals[0][n])[0]))
+            elif fff == 2:
+                ax12.plot(ttime,raw_signals[0][n],c=colors,label=str(rois[n].label + ' %3f' % pearsonr(motionCoordinates[:,2],raw_signals[0][n])[0]))
+            elif fff == 2:
+                ax13.plot(ttime,raw_signals[0][n],c=colors,label=str(rois[n].label + ' %3f' % pearsonr(motionCoordinates[:,2],raw_signals[0][n])[0]))
+        
+        # and moves left and bottom axes away
+        ax10.spines['top'].set_visible(False)
+        ax10.spines['right'].set_visible(False)
+        ax10.spines['bottom'].set_position(('outward', 10))
+        ax10.spines['left'].set_position(('outward', 10))
+        ax10.yaxis.set_ticks_position('left')
+        ax10.xaxis.set_ticks_position('bottom')
+        ax10.legend(loc=1,frameon=False)
+        if nFigs > 1:
+            ax11.spines['top'].set_visible(False)
+            ax11.spines['right'].set_visible(False)
+            ax11.spines['bottom'].set_position(('outward', 10))
+            ax11.spines['left'].set_position(('outward', 10))
+            ax11.yaxis.set_ticks_position('left')
+            ax11.xaxis.set_ticks_position('bottom')
+            ax11.legend(loc=1,frameon=False)
+        if nFigs > 2:
+            ax12.spines['top'].set_visible(False)
+            ax12.spines['right'].set_visible(False)
+            ax12.spines['bottom'].set_position(('outward', 10))
+            ax12.spines['left'].set_position(('outward', 10))
+            ax12.yaxis.set_ticks_position('left')
+            ax12.xaxis.set_ticks_position('bottom')
+            ax12.legend(loc=1,frameon=False)
+        if nFigs > 3:
+            ax13.spines['top'].set_visible(False)
+            ax13.spines['right'].set_visible(False)
+            ax13.spines['bottom'].set_position(('outward', 10))
+            ax13.spines['left'].set_position(('outward', 10))
+            ax13.yaxis.set_ticks_position('left')
+            ax13.xaxis.set_ticks_position('bottom')
+            ax13.legend(loc=1,frameon=False)
+        
+        # legends and labels
+        #plt.legend(loc=3,frameon=False)
+        
+        plt.xlabel('time (sec)')
+        plt.ylabel('Fluorescence')
+        
+        # change tick spacing 
+        #majorLocator_x = MultipleLocator(10)
+        #ax1.xaxis.set_major_locator(majorLocator_x)
+        
+        # change legend text size 
+        #leg = plt.gca().get_legend()
+        #ltext  = leg.get_texts()
+        #plt.setp(ltext, fontsize=11)
+        
+        ## save figure ############################################################
+        fname = self.determineFileName(date,rec,'roi_traces')
+        
+        plt.savefig(fname+'.png')
+        plt.savefig(fname+'.pdf')
+        
+    ##########################################################################################
+    def generateROIAndEphysImage(self,data,fileName,stim=False):
+        '''
+            Overview image of an experiment with:
+            - average flurescent image
+            - outline of rois
+            - temporal evolution of fluorescent signal of rois
+            - extracellular recording trace, after high-pass filtering
+            - extracted spikes and firing rate evolution (after convolution with Gaussian kernel)
+            
+        '''
+        
+        img = data['analyzed_data/motionCorrectedImages/timeAverage'].value
+        caTime = data['raw_data/caImagingTime'].value
+        deltaX = (data['raw_data/caImagingField'].value)[2]
+        print 'deltaX ' , deltaX
+        
+        ephysHP = data['analyzed_data/spiking_data/ephys_data_high-pass'].value
+        ephysTime = data['raw_data/ephysTime'].value
+        
+        
+        leaveOut = self.config['caEphysParameters']['leaveOut'] # in sec 
+        leaveOutN = int(leaveOut/mean(ephysTime[1:]-ephysTime[:-1])+0.5)
+        
+        ephysMask = arange(len(ephysTime)) > leaveOutN
+        
+        #pdb.set_trace()
+        
+        firingRate= data['analyzed_data/spiking_data/firing_rate_evolution'].value
+        fRDt = data['analyzed_data/spiking_data/firing_rate_evolution'].attrs['dt']
+        firingRateTime = linspace(0,(len(firingRate)-1)*fRDt,len(firingRate))
+        
+        spikeTimes = data['analyzed_data/spiking_data/spikes'].value
+        
+        firingRateMask = arange(len(firingRateTime)) > int(leaveOut/fRDt + 0.5)
+        
+        fr = data['analyzed_data/spiking_data/firing_rate'].value[0]
+        CV = data['analyzed_data/spiking_data/CV'].value[0]
+        
+        dataSet = sima.ImagingDataset.load(self.sima_path)
+        rois = dataSet.ROIs['stica_ROIs']
+        
+        nRois = len(rois)
+        
+        # Extract the signals.
+        dataSet.extract(rois,signal_channel='GCaMP6F', label='GCaMP6F_signals')
+        
+        raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
+        
+        roiLabels = []
+        for n in range(nRois):
+            roiLabels.append(rois[n].label)
+        
+        # read in the time of the stimuli in case of external stimulation
+        if stim:
+            stimRinging = 0.0015
+            stimuli = data['analyzed_data/stimulation_data/stimulus_times'].value
+            dt = data['analyzed_data/stimulation_data/stimulus_times'].attrs['dt']
+            startStim = stimuli[0]
+            endStim   = stimuli[-1] + stimRinging
+        
+        # figure #################################
+        fig_width = 7 # width in inches
+        fig_height = 15  # height in inches
+        fig_size =  [fig_width,fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi' : 600,
+                  'axes.linewidth' : 1.3,
+                  'ytick.major.size' : 4,      # major tick size in points
+                  'xtick.major.size' : 4     # major tick size in points
+                  #'edgecolor' : None
+                  #'xtick.major.size' : 2,
+                  #'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+        
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+        
+        # create figure instance
+        fig = plt.figure()
+        
+        
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(5, 1,
+                               #width_ratios=[1.2,1]
+                               height_ratios=[1,1,1,0.1,1]
+                               )
+        
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3,hspace=0.4)
+        
+        # possibly change outer margins of the figure
+        #plt.subplots_adjust(left=0.14, right=0.92, top=0.92, bottom=0.18)
+        
+        # sub-panel enumerations
+        #plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.47, 0.92, 'B',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.06, 0.47, 'C',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.47, 0.47, 'D',clip_on=False,color='black', weight='bold',size=22)
+        
+        
+        # first sub-plot #######################################################
+        ax0 = plt.subplot(gs[0])
+        
+        # title
+        #ax0.set_title('sub-plot 1')
+        
+        ax0.imshow(img,cmap=cm.gray,extent=[0,shape(img)[1]*deltaX,0,shape(img)[0]*deltaX])
+        #pdb.set_trace()
+        for n in range(len(rois)):
+            x,y = rois[n].polygons[0].exterior.xy
+            colors = cm.jet(float(n)/float(nRois-1))
+            ax0.plot(array(x)*deltaX,(shape(img)[0]-array(y))*deltaX,'-',c=colors,zorder=1)
+        
+        # removes upper and right axes 
+        # and moves left and bottom axes away
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+        ax0.xaxis.set_ticks_position('bottom')
+        
+        ax0.set_xlim(0,shape(img)[1]*deltaX)
+        ax0.set_ylim(0,shape(img)[0]*deltaX)
+        #ax0.set_xlim()
+        #ax0.set_ylim()
+        # legends and labels
+        #plt.legend(loc=1,frameon=False)
+        
+        plt.xlabel(r'x ($\mu$m)')
+        plt.ylabel(r'y ($\mu$m)')
+        
+        
+        # sub-panel 0 #############################################
+        ax10 = plt.subplot(gs[1])
+
+        for n in range(len(rois)):
+            colors = cm.jet(float(n)/float(nRois-1))
+            if rois[n].label == 'cell':
+                ax10.plot(caTime,raw_signals[0][n],c=colors,label=str(rois[n].label))
+            else:
+                ax10.plot(caTime,raw_signals[0][n],c=colors,alpha=0.5,label=str(rois[n].label))
+        
+        #ax10.plot(caTime,caTrace,c='k',label='rec trace')
+        
+        # and moves left and bottom axes away
+        ax10.spines['top'].set_visible(False)
+        ax10.spines['right'].set_visible(False)
+        ax10.spines['bottom'].set_position(('outward', 10))
+        ax10.spines['left'].set_position(('outward', 10))
+        ax10.yaxis.set_ticks_position('left')
+        ax10.xaxis.set_ticks_position('bottom')
+        ax10.legend(loc=1,frameon=False)
+        
+        ax10.set_ylabel(r'$F/F_0$')
+        
+        # sub-panel 1 #############################################
+        ax11 = plt.subplot(gs[2])
+
+        ax11.plot(ephysTime[ephysMask],ephysHP[ephysMask])
+        # and moves left and bottom axes away
+        ax11.spines['top'].set_visible(False)
+        ax11.spines['right'].set_visible(False)
+        ax11.spines['bottom'].set_position(('outward', 10))
+        ax11.spines['left'].set_position(('outward', 10))
+        ax11.yaxis.set_ticks_position('left')
+        ax11.xaxis.set_ticks_position('bottom')
+        #ax11.legend(loc=1,frameon=False)
+        #pdb.set_trace()
+        if stim:
+            stimMask = (ephysTime[ephysMask] < startStim) | (ephysTime[ephysMask] > endStim) # elementwise or 
+            maxY = np.max(ephysHP[ephysMask][stimMask])
+            minY = np.min(ephysHP[ephysMask][stimMask])
+            ax11.set_ylim(1.1*maxY,1.1*minY)
+        
+        # legends and labels
+        #plt.legend(loc=3,frameon=False)
+        
+        ax11.set_ylabel('current')
+        
+        # sub-panel 1 #############################################
+        ax12 = plt.subplot(gs[3])
+
+        ax12.vlines(spikeTimes,  0, 1,lw=0.2)
+        if stim:
+            ax12.vlines(stimuli,1,2,lw=0.2,color='red')
+        
+        ax12.spines['top'].set_visible(False)
+        ax12.spines['right'].set_visible(False)
+        ax12.spines['bottom'].set_visible(False)
+        ax12.spines['left'].set_visible(False)
+        ax12.yaxis.set_visible(False)
+        ax12.xaxis.set_visible(False)
+        ax12.set_xlim(ephysTime[0],ephysTime[-1])
+            
+        # sub-panel 1 #############################################
+        ax11 = plt.subplot(gs[4])
+
+        ax11.plot(firingRateTime[firingRateMask],firingRate[firingRateMask],label='firing rate= '+str(round(fr,2))+', CV='+str(round(CV,3)))
+        
+        # and moves left and bottom axes away
+        ax11.spines['top'].set_visible(False)
+        ax11.spines['right'].set_visible(False)
+        ax11.spines['bottom'].set_position(('outward', 10))
+        ax11.spines['left'].set_position(('outward', 10))
+        ax11.yaxis.set_ticks_position('left')
+        ax11.xaxis.set_ticks_position('bottom')
+        ax11.legend(loc=1,frameon=False)
+        
+        
+        # legends and labels
+        #plt.legend(loc=3,frameon=False)
+        
+        ax11.set_xlabel('time (sec)')
+        ax11.set_ylabel('firing rate (spk/sec)')
+        # change tick spacing 
+        #majorLocator_x = MultipleLocator(10)
+        #ax1.xaxis.set_major_locator(majorLocator_x)
+        
+        # change legend text size 
+        #leg = plt.gca().get_legend()
+        #ltext  = leg.get_texts()
+        #plt.setp(ltext, fontsize=11)
+        #pdb.set_trace()
+        ## save figure ############################################################
+        fname = fileName + '_roi_ephys_traces'
+        
+        #savefig(fname+'.png')
+        savefig(fname+'.pdf')
+        #pdb.set_trace()
+    ##########################################################################################
+    def generateCaSpikesImage(self,data,fileName,stim=False):
+        '''
+            Connection between calcium signal and spikes
+            - average flurescent image
+            - outline of rois
+            - temporal evolution of fluorescent signal of rois
+            - extracellular recording trace, after high-pass filtering
+            - extracted spikes 
+            - spikes from deconvolution 
+            
+        '''
+        
+        img = data['analyzed_data/motionCorrectedImages/timeAverage'].value
+        caTime = data['raw_data/caImagingTime'].value
+        deltaX = (data['raw_data/caImagingField'].value)[2]
+        print 'deltaX ' , deltaX
+        
+        ephysHP = data['analyzed_data/spiking_data/ephys_data_high-pass'].value
+        ephysTime = data['raw_data/ephysTime'].value
+        
+        
+        leaveOut = self.config['caEphysParameters']['leaveOut'] # in sec 
+        leaveOutN = int(leaveOut/mean(ephysTime[1:]-ephysTime[:-1])+0.5)
+        
+        ephysMask = arange(len(ephysTime)) > leaveOutN
+        
+        #pdb.set_trace()
+        
+        firingRate= data['analyzed_data/spiking_data/firing_rate_evolution'].value
+        fRDt = data['analyzed_data/spiking_data/firing_rate_evolution'].attrs['dt']
+        firingRateTime = linspace(0,(len(firingRate)-1)*fRDt,len(firingRate))
+        
+        spikeTimes = data['analyzed_data/spiking_data/spikes'].value
+        
+        firingRateMask = arange(len(firingRateTime)) > int(leaveOut/fRDt + 0.5)
+        
+        fr = data['analyzed_data/spiking_data/firing_rate'].value[0]
+        CV = data['analyzed_data/spiking_data/CV'].value[0]
+        
+        dataSet = sima.ImagingDataset.load(self.sima_path)
+        rois = dataSet.ROIs['stica_ROIs']
+        
+        nRois = len(rois)
+        
+        # Extract the signals.
+        dataSet.extract(rois,signal_channel='GCaMP6F', label='GCaMP6F_signals')
+        
+        raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
+        
+        roiLabels = []
+        for n in range(nRois):
+            roiLabels.append(rois[n].label)
+        
+        # read in the time of the stimuli in case of external stimulation
+        if stim:
+            stimRinging = 0.0015
+            stimuli = data['analyzed_data/stimulation_data/stimulus_times'].value
+            dt = data['analyzed_data/stimulation_data/stimulus_times'].attrs['dt']
+            startStim = stimuli[0]
+            endStim   = stimuli[-1] + stimRinging
+        
+        # extract data from deconvolution
+        n_best = data['analyzed_data/deconvolution/spike_train'].value
+        tDeconv = data['analyzed_data/roi_fluorescence_traces/rawTracesTime']
+        
+        
+        # figure #################################
+        fig_width = 7 # width in inches
+        fig_height = 15  # height in inches
+        fig_size =  [fig_width,fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi' : 600,
+                  'axes.linewidth' : 1.3,
+                  'ytick.major.size' : 4,      # major tick size in points
+                  'xtick.major.size' : 4     # major tick size in points
+                  #'edgecolor' : None
+                  #'xtick.major.size' : 2,
+                  #'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+        
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+        
+        # create figure instance
+        fig = plt.figure()
+        
+        
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(5, 1,
+                               #width_ratios=[1.2,1]
+                               height_ratios=[1,1,1,1,0.1]
+                               )
+        
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3,hspace=0.4)
+        
+        # possibly change outer margins of the figure
+        #plt.subplots_adjust(left=0.14, right=0.92, top=0.92, bottom=0.18)
+        
+        # sub-panel enumerations
+        #plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.47, 0.92, 'B',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.06, 0.47, 'C',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.47, 0.47, 'D',clip_on=False,color='black', weight='bold',size=22)
+        
+        
+        # first sub-plot #######################################################
+        ax0 = plt.subplot(gs[0])
+        
+        # title
+        #ax0.set_title('sub-plot 1')
+        
+        ax0.imshow(img,cmap=cm.gray,extent=[0,shape(img)[1]*deltaX,0,shape(img)[0]*deltaX])
+        #pdb.set_trace()
+        for n in range(len(rois)):
+            x,y = rois[n].polygons[0].exterior.xy
+            colors = cm.jet(float(n)/float(nRois-1))
+            ax0.plot(array(x)*deltaX,(shape(img)[0]-array(y))*deltaX,'-',c=colors,zorder=1)
+        
+        # removes upper and right axes 
+        # and moves left and bottom axes away
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+        ax0.xaxis.set_ticks_position('bottom')
+        
+        ax0.set_xlim(0,shape(img)[1]*deltaX)
+        ax0.set_ylim(0,shape(img)[0]*deltaX)
+        #ax0.set_xlim()
+        #ax0.set_ylim()
+        # legends and labels
+        #plt.legend(loc=1,frameon=False)
+        
+        plt.xlabel(r'x ($\mu$m)')
+        plt.ylabel(r'y ($\mu$m)')
+        
+        
+        # sub-panel 0 #############################################
+        ax10 = plt.subplot(gs[1])
+
+        for n in range(len(rois)):
+            colors = cm.jet(float(n)/float(nRois-1))
+            ax10.plot(caTime,raw_signals[0][n],c=colors,label=str(rois[n].label))
+        
+        #ax10.plot(caTime,caTrace,c='k',label='rec trace')
+        
+        # and moves left and bottom axes away
+        ax10.spines['top'].set_visible(False)
+        ax10.spines['right'].set_visible(False)
+        ax10.spines['bottom'].set_position(('outward', 10))
+        ax10.spines['left'].set_position(('outward', 10))
+        ax10.yaxis.set_ticks_position('left')
+        ax10.xaxis.set_ticks_position('bottom')
+        ax10.legend(loc=1,frameon=False)
+        
+        ax10.set_ylabel(r'$\Delta F/F$')
+        
+        # sub-panel 1 #############################################
+        ax11 = plt.subplot(gs[2])
+
+        ax11.plot(ephysTime[ephysMask],ephysHP[ephysMask])
+        # and moves left and bottom axes away
+        ax11.spines['top'].set_visible(False)
+        ax11.spines['right'].set_visible(False)
+        ax11.spines['bottom'].set_position(('outward', 10))
+        ax11.spines['left'].set_position(('outward', 10))
+        ax11.yaxis.set_ticks_position('left')
+        ax11.xaxis.set_ticks_position('bottom')
+        #ax11.legend(loc=1,frameon=False)
+        #pdb.set_trace()
+        if stim:
+            stimMask = (ephysTime[ephysMask] < startStim) | (ephysTime[ephysMask] > endStim) # elementwise or 
+            maxY = np.max(ephysHP[ephysMask][stimMask])
+            minY = np.min(ephysHP[ephysMask][stimMask])
+            ax11.set_ylim(1.1*maxY,1.1*minY)
+        
+        # legends and labels
+        #plt.legend(loc=3,frameon=False)
+        
+        ax11.set_ylabel('current')
+        
+        # sub-panel 1 #############################################
+        ax11 = plt.subplot(gs[3])
+    
+        for n in range(len(rois)):
+            colors = cm.jet(float(n)/float(nRois-1))
+            if n==1:
+                ax11.plot(tDeconv,n_best[n],c=colors,label=str(rois[n].label))
+        
+        # and moves left and bottom axes away
+        ax11.spines['top'].set_visible(False)
+        ax11.spines['right'].set_visible(False)
+        ax11.spines['bottom'].set_position(('outward', 10))
+        ax11.spines['left'].set_position(('outward', 10))
+        ax11.yaxis.set_ticks_position('left')
+        ax11.xaxis.set_ticks_position('bottom')
+        ax11.legend(loc=1,frameon=False)
+        
+        
+        # legends and labels
+        #plt.legend(loc=3,frameon=False)
+        
+        ax11.set_xlabel('time (sec)')
+        ax11.set_ylabel(r'$\hat{n}$')
+        # change tick spacing 
+        #majorLocator_x = MultipleLocator(10)
+        #ax1.xaxis.set_major_locator(majorLocator_x)
+        
+        # change legend text size 
+        #leg = plt.gca().get_legend()
+        #ltext  = leg.get_texts()
+        #plt.setp(ltext, fontsize=11)
+        
+        # sub-panel 1 #############################################
+        ax12 = plt.subplot(gs[4])
+
+        ax12.vlines(spikeTimes,  0, 1,lw=0.2)
+        if stim:
+            ax12.vlines(stimuli,1,2,lw=0.2,color='red')
+        
+        ax12.spines['top'].set_visible(False)
+        ax12.spines['right'].set_visible(False)
+        ax12.spines['bottom'].set_visible(False)
+        ax12.spines['left'].set_visible(False)
+        ax12.yaxis.set_visible(False)
+        ax12.xaxis.set_visible(False)
+        ax12.set_xlim(ephysTime[0],ephysTime[-1])
+            
+        
+        
+        ## save figure ############################################################
+        fname = fileName + '_ca-spikes'
+        
+        #savefig(fname+'.png')
+        savefig(fname+'.pdf')
+        
+    ##########################################################################################
+    def checkConnectionBtwCaAndEphys(self,data,fileName):
+        
+        leaveOut = self.config['caEphysParameters']['leaveOut'] # in sec 
+        
+        caTime = data['raw_data/caImagingTime'].value
+        
+        firingRate= data['analyzed_data/spiking_data/firing_rate_evolution'].value
+        fRDt = data['analyzed_data/spiking_data/firing_rate_evolution'].attrs['dt']
+        firingRateTime = linspace(0,(len(firingRate)-1)*fRDt,len(firingRate))
+        
+        spikeTimes = data['analyzed_data/spiking_data/spikes'].value
+        
+        pdb.set_trace()
+        firingRateMask = arange(len(firingRateTime)) > int(leaveOut/fRDt + 0.5)
+        
+        dataSet = sima.ImagingDataset.load(self.sima_path)
+        rois = dataSet.ROIs['stica_ROIs']
+        
+        nRois = len(rois)
+        
+        # Extract the signals.
+        dataSet.extract(rois,signal_channel='GCaMP6F', label='GCaMP6F_signals')
+        
+        raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
+        
+        roiLabels = []
+        for n in range(nRois):
+            roiLabels.append(rois[n].label)
+        
+        
+        # figure #################################
+        fig_width = 7 # width in inches
+        fig_height = 15  # height in inches
+        fig_size =  [fig_width,fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi' : 600,
+                  'axes.linewidth' : 1.3,
+                  'ytick.major.size' : 4,      # major tick size in points
+                  'xtick.major.size' : 4     # major tick size in points
+                  #'edgecolor' : None
+                  #'xtick.major.size' : 2,
+                  #'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+        
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+        
+        # create figure instance
+        fig = plt.figure()
+        
+        
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(4, 1#,
+                               #width_ratios=[1.2,1]
+                               #height_ratios=[1,1,1,0.1,1]
+                               )
+        
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3,hspace=0.4)
+        
+        # possibly change outer margins of the figure
+        #plt.subplots_adjust(left=0.14, right=0.92, top=0.92, bottom=0.18)
+        
+        # sub-panel enumerations
+        #plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.47, 0.92, 'B',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.06, 0.47, 'C',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.47, 0.47, 'D',clip_on=False,color='black', weight='bold',size=22)
+        
+        
+        # first sub-plot #######################################################
+        ax0 = plt.subplot(gs[0])
+        
+        #pdb.set_trace()
+        
+        for n in range(len(rois)):
+            colors = cm.jet(float(n)/float(nRois-1))
+            ax0.plot(caTime,(raw_signals[0][n]-min(raw_signals[0][n]))/(max(raw_signals[0][n])-min(raw_signals[0][n])),c=colors,label=str(rois[n].label))
+            
+        ax0.plot(firingRateTime[firingRateMask],(firingRate[firingRateMask]-min(firingRate[firingRateMask]))/(max(firingRate[firingRateMask])-min(firingRate[firingRateMask])),c='k')
+        
+        # removes upper and right axes 
+        # and moves left and bottom axes away
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+        ax0.xaxis.set_ticks_position('bottom')
+        
+        #ax0.set_xlim(0,shape(img)[1]*deltaX)
+        #ax0.set_ylim(0,shape(img)[0]*deltaX)
+        #ax0.set_xlim()
+        #ax0.set_ylim()
+        # legends and labels
+        #plt.legend(loc=1,frameon=False)
+        
+        #plt.xlabel(r'x ($\mu$m)')
+        plt.ylabel(r'normalized')
+        
+        # first sub-plot #######################################################
+        ax0 = plt.subplot(gs[1])
+        
+        fInterpol = scipy.interpolate.interp1d(firingRateTime,firingRate)
+        #rrr = scipy.signal.resample(firingRate,len(raw_signals[0][n]),t=firingRateTime)
+        firingRateInt = fInterpol(caTime)
+        
+        for n in range(len(rois)):
+            colors = cm.jet(float(n)/float(nRois-1))
+            ax0.plot(caTime,(raw_signals[0][n]-min(raw_signals[0][n]))/(max(raw_signals[0][n])-min(raw_signals[0][n])),c=colors,label=str(rois[n].label))
+            
+        ax0.plot(firingRateTime[firingRateMask],(firingRate[firingRateMask]-min(firingRate[firingRateMask]))/(max(firingRate[firingRateMask])-min(firingRate[firingRateMask])),c='k')
+        ax0.plot(caTime,(firingRateInt-min(firingRate[firingRateMask]))/(max(firingRate[firingRateMask])-min(firingRate[firingRateMask])),c='magenta')
+        
+        # removes upper and right axes 
+        # and moves left and bottom axes away
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+        ax0.xaxis.set_ticks_position('bottom')
+        
+        ax0.set_xlim(22,26)
+        ax0.set_ylim(0,1)
+        #ax0.set_ylim(0,shape(img)[0]*deltaX)
+        #ax0.set_xlim()
+        #ax0.set_ylim()
+        # legends and labels
+        #plt.legend(loc=1,frameon=False)
+        
+        plt.xlabel(r'time (sec)')
+        plt.ylabel(r'normalized')
+        
+        
+        # first sub-plot #######################################################
+        ax0 = plt.subplot(gs[2])
+        
+        deltaTCa = mean(caTime[1:]-caTime[:-1])
+        
+        ax0.axhline(y=0,c='0.6',ls='--')
+        ax0.axvline(x=0,c='0.6',ls='--')
+        
+        for n in range(len(rois)):
+            #
+            pear = scipy.stats.pearsonr(raw_signals[0][n], firingRateInt)
+            #
+            cc = self.analysisTools.crosscorr(deltaTCa,firingRateInt,raw_signals[0][n],correlationRange=3)
+            colors = cm.jet(float(n)/float(nRois-1))
+            ax0.plot(cc[:,0],cc[:,1],c=colors,label='pearson = '+str(round(pear[0],4)))
+        
+        #cc = self.analysisTools.crosscorr(deltaTCa,raw_signals[0][1],raw_signals[0][1],correlationRange=5)
+        #ax0.plot(cc[:,0],cc[:,1],c='k')
+        #ax0.plot(firingRateTime[firingRateMask],(firingRate[firingRateMask]-min(firingRate[firingRateMask]))/(max(firingRate[firingRateMask])-min(firingRate[firingRateMask])),c='k')
+        #ax0.plot(caTime,(firingRateInt-min(firingRate[firingRateMask]))/(max(firingRate[firingRateMask])-min(firingRate[firingRateMask])),c='magenta')
+        
+        # removes upper and right axes 
+        # and moves left and bottom axes away
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+        ax0.xaxis.set_ticks_position('bottom')
+        ax0.legend(frameon=False)
+        
+        ax0.set_xlim(-3,3)
+        
+        plt.xlabel(r'time lag (sec)')
+        plt.ylabel(r'correlation')
+        
+        # first sub-plot #######################################################
+        ax0 = plt.subplot(gs[3])
+        
+        
+        
+        ax0.axvline(x=0,c='0.5',ls='--')
+        for n in range(len(rois)):
+            ##
+            ##
+            #sta = self.analysisTools.spikeTriggeredAverage(fRDt,spikeTimes,caTime,raw_signals[0][n],0.2,0.5)
+            [pta,pauseDuration] = self.analysisTools.pauseTriggeredAverage(fRDt,spikeTimes,caTime,raw_signals[0][n])
+            colors = cm.jet(float(n)/float(nRois-1))
+            ax0.plot(pta[:,0],pta[:,1],c=colors)
+            #ax0.plot(sta[:,0],sta[:,1],c=colors,ls='--')
+        
+        ax0.axvline(x=pauseDuration,c='0.5',ls='--')
+        
+        #cc = self.analysisTools.crosscorr(deltaTCa,raw_signals[0][1],raw_signals[0][1],correlationRange=5)
+        #ax0.plot(cc[:,0],cc[:,1],c='k')
+        #ax0.plot(firingRateTime[firingRateMask],(firingRate[firingRateMask]-min(firingRate[firingRateMask]))/(max(firingRate[firingRateMask])-min(firingRate[firingRateMask])),c='k')
+        #ax0.plot(caTime,(firingRateInt-min(firingRate[firingRateMask]))/(max(firingRate[firingRateMask])-min(firingRate[firingRateMask])),c='magenta')
+        
+        # removes upper and right axes 
+        # and moves left and bottom axes away
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+        ax0.xaxis.set_ticks_position('bottom')
+        ax0.legend(frameon=False)
+        
+        #ax0.set_xlim(-3,3)
+        
+        plt.xlabel(r'time lag (sec)')
+        plt.ylabel(r'$\Delta F/F$')
+        
+        ## save figure ############################################################
+        fname = fileName + '_ca_ephys'
+        
+        #savefig(fname+'.png')
+        savefig(fname+'.pdf')
+        
+    ##########################################################################################
+    def generateProjectionInTime(self,rawData,fileName):
+        '''
+            Visualization of beam stimulation :
+            - image is projected onto the y-axis and the temperal evolution of the projected 1d image is shown 
+            - this visualization allows to examine spatial spread (along the rostal-caudal axis) and time course the parallel fiber stimulation induced fluorescent signal
+        '''
+        images =  rawData['raw_data/caImaging'].value #rawData['analyzed_data/motion_corrected_images/motionCorrectedStack'].value
+        imgTimes = rawData['raw_data/caImagingTime'].value
+        
+        deltaT = average(imgTimes[1:]-imgTimes[:-1])
+        
+        deltaX = (rawData['raw_data/caImagingField'].value)[2]
+        
+        print 'delta T , X: ', deltaT, deltaX
+        #pdb.set_trace()
+        imgYProj = average(images,axis=2)
+        
+        baseLine = average(imgYProj[:int(self.config['projectionInTimeParameters']['baseLinePeriod']/deltaT+0.5),:],axis=0)
+        
+        imgYProjNorm = (imgYProj-baseLine)/baseLine
+        
+        horizontalCuts = self.config['projectionInTimeParameters']['horizontalCuts']
+        verticalCut = self.config['projectionInTimeParameters']['verticalCut']
+        verticalCutN = int(verticalCut/deltaX+0.5)
+        
+        stimStart = self.config['projectionInTimeParameters']['stimStart'] #5
+        stimLength = self.config['projectionInTimeParameters']['stimLength'] #0.2
+        fitStart = self.config['projectionInTimeParameters']['fitStart'] # 5
+        
+        # double exponential fit-function
+        fitfunc = lambda p, x: p[0]*(exp(-x/p[1]) - exp(-x/p[2]))
+        errfunc = lambda p, x, y: fitfunc(p,x)-y
+        
+        p0 = array([10.,0.3,0.1])
+        # fit a gaussian to the correlation function
+        y = imgYProjNorm[int(fitStart/deltaT):,verticalCutN]
+        x = arange(len(y))*deltaT
+        p1, success = scipy.optimize.leastsq(errfunc, p0.copy(),args=(x,y))
+        print 'fit parameter : ', p1
+        yFit = fitfunc(p1, x)
+        
+        ################################################################
+        # set plot attributes
+        
+        fig_width = 10 # width in inches
+        fig_height = 8  # height in inches
+        fig_size =  [fig_width,fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi' : 600,
+                  'axes.linewidth' : 1.3,
+                  'ytick.major.size' : 4,      # major tick size in points
+                  'xtick.major.size' : 4      # major tick size in points
+                  #'edgecolor' : None
+                  #'xtick.major.size' : 2,
+                  #'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+        
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+        
+        # create figure instance
+        fig = plt.figure()
+        
+        
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(2, 2#,
+                               #width_ratios=[1,1.2],
+                               #height_ratios=[1,1]
+                               )
+        
+        # define vertical and horizontal spacing between panels
+        gs.update(hspace=0.3,wspace=0.4)
+        
+        # possibly change outer margins of the figure
+        #plt.subplots_adjust(left=0.14, right=0.92, top=0.92, bottom=0.18)
+        
+        # sub-panel enumerations
+        #plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.47, 0.92, 'B',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.06, 0.47, 'C',clip_on=False,color='black', weight='bold',size=22)
+        #plt.figtext(0.47, 0.47, 'D',clip_on=False,color='black', weight='bold',size=22)
+        
+        
+        # first sub-plot #######################################################
+        ax0 = plt.subplot(gs[0])
+        
+        # title
+        #ax0.set_title('sub-plot 1')
+        
+        # diplay of data
+        ii = ax0.imshow(imgYProjNorm,aspect=self.config['projectionInTimeParameters']['threeDAspectRatio'],extent=[0,shape(imgYProjNorm)[1]*deltaX,0,shape(imgYProjNorm)[0]*deltaT],origin='lower')
+        cb = colorbar(ii)
+        ax0.plot([0,0],[stimStart,stimStart+stimLength],'-',c='magenta',lw=20,solid_capstyle='butt')
+        for i in range(len(horizontalCuts)):
+            ax0.axhline(y=horizontalCuts[i],c='white',ls='--')
+        ax0.axvline(x=verticalCut,ls='--',c='white')
+        
+        # removes upper and right axes 
+        # and moves left and bottom axes away
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+        ax0.xaxis.set_ticks_position('bottom')
+        
+        ax0.set_xlim(0,shape(imgYProjNorm)[1]*deltaX)
+        ax0.set_ylim(0,shape(imgYProjNorm)[0]*deltaT)
+        # legends and labels
+        #plt.legend(loc=1,frameon=False)
+        
+        plt.xlabel(r'location ($\mu$m)')
+        plt.ylabel('time (sec)')
+        
+        
+        # third sub-plot #######################################################
+        ax1 = plt.subplot(gs[2])
+        
+        
+        #pdb.set_trace()
+        # diplay of data
+        for i in range(len(horizontalCuts)):
+            fwhm = self.analysisTools.calcFWHM(arange(shape(imgYProjNorm)[1])*deltaX,imgYProjNorm[int(horizontalCuts[i]/deltaT)])
+            ax1.plot(arange(shape(imgYProjNorm)[1])*deltaX,imgYProjNorm[int(horizontalCuts[i]/deltaT)],label=str(horizontalCuts[i])+' sec, '+str(fwhm[0])+r'$\mu$m')
+        
+        # removes upper and right axes 
+        # and moves left and bottom axes away
+        ax1.spines['top'].set_visible(False)
+        ax1.spines['right'].set_visible(False)
+        ax1.spines['bottom'].set_position(('outward', 10))
+        ax1.spines['left'].set_position(('outward', 10))
+        ax1.yaxis.set_ticks_position('left')
+        ax1.xaxis.set_ticks_position('bottom')
+        
+        ax1.set_xlim(0,shape(imgYProjNorm)[1]*deltaX)
+        # legends and labels
+        plt.legend(loc=(0.8,0.5),frameon=False)
+        
+        plt.xlabel(r'distance ($\mu$m)')
+        plt.ylabel(r'$\Delta$F/F')
+        
+        # change tick spacing 
+        #majorLocator_x = MultipleLocator(10)
+        #ax1.xaxis.set_major_locator(majorLocator_x)
+        leg = plt.gca().get_legend()
+        ltext  = leg.get_texts()
+        plt.setp(ltext, fontsize=11)
+        
+        # third sub-plot #######################################################
+        ax2 = plt.subplot(gs[1])
+        
+        ax2.plot(arange(shape(imgYProjNorm)[0])*deltaT,imgYProjNorm[:,verticalCutN],lw=2)
+        ax2.plot(x+fitStart,yFit,lw=2,label=r'$\tau_{\rm rise} = %8.2f$ sec, $\tau_{\rm decay} = %8.2f$ sec' % (p1[2],p1[1]))
+        
+        ax2.plot([stimStart,stimStart+1],[self.config['projectionInTimeParameters']['stimulationBarLocation'],self.config['projectionInTimeParameters']['stimulationBarLocation']],'-',c='red',lw=20,solid_capstyle='butt')
+        #ax2.annotate('', xy=(stimStart, 1), xytext=(stimStart, 3), annotation_clip=False,
+        #    arrowprops=dict(arrowstyle="->",color='red',lw=2),
+        #    )
+        
+        # removes upper and right axes 
+        # and moves left and bottom axes away
+        ax2.spines['top'].set_visible(False)
+        ax2.spines['right'].set_visible(False)
+        ax2.spines['bottom'].set_position(('outward', 10))
+        ax2.spines['left'].set_position(('outward', 10))
+        ax2.yaxis.set_ticks_position('left')
+        ax2.xaxis.set_ticks_position('bottom')
+        
+        
+        # legends and labels
+        plt.legend(loc=1,frameon=False)
+        
+        plt.xlabel('time (sec)')
+        plt.ylabel(r'$\Delta$F/F')
+        
+        # change tick spacing 
+        #majorLocator_x = MultipleLocator(10)
+        #ax2.xaxis.set_major_locator(majorLocator_x)
+        leg = plt.gca().get_legend()
+        ltext  = leg.get_texts()
+        plt.setp(ltext, fontsize=11)
+        
+        
+        ## save figure ############################################################
+        fname = fileName + '_temporal_profile_stimulation'
+        
+        #pdb.set_trace()
+        
+        savefig(fname+'.png')
+        savefig(fname+'.pdf')
+        
+        
+        
