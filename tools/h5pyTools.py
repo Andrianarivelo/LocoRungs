@@ -1,4 +1,4 @@
-import ezodf
+#import ezodf
 import numpy as np
 
 class h5pyTools:
@@ -25,3 +25,13 @@ class h5pyTools:
         if at:
             grp[dsname].attrs[at[0]]=at[1]
 
+    def getH5GroupName(self,f,groupNames):
+
+        current_group = ''
+        for i in range(len(groupNames)):
+            if i == 0:
+                grpHandle = f.require_group(groupNames[i])
+            else:
+                grpHandle = f[current_group].require_group(groupNames[i])
+            current_group += groupNames[i] + '/'
+        return (current_group[:-1],grpHandle)
