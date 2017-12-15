@@ -69,7 +69,7 @@ class extractSaveData:
             allFiles.append(file)
             print(file)
         if len(allFiles)>1:
-            print 'more than one matching image file'
+            print('more than one matching image file')
             sys.exit(1)
         else:
             motionCoor = np.loadtxt(allFiles[0][:-3]+'csv',delimiter=',',skiprows=1)
@@ -202,9 +202,11 @@ class extractSaveData:
             imageMetaInfo = self.readMetaInformation(recLocation)
             return (frames,frameTimes,imageMetaInfo)
         elif device == 'CameraGigEBehavior':
+            print 'reading raw GigE data ...',
             frames     = fData['data'].value
             frameTimes = fData['info/0/values'].value
             imageMetaInfo = self.readMetaInformation(recLocation)
+            print 'done'
             return (frames,frameTimes,imageMetaInfo)
 
     ############################################################
@@ -260,29 +262,29 @@ class extractSaveData:
         tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
 
     ############################################################
-    def saveTif(self, framesRaw, mouse, date, rec):
+    def saveBehaviorVideo(self, mouse, date, rec, framesRaw, frameTimes, metaInfo):
 
-
+        #pdb.set_trace()
         #img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
         #tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
-        videoFileName = self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec)
+        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
 
-        width  = shape(framesRaw)[1]
-        heigth = shape(framesRaw)[2]
-        fps    = 20.
+        width  = np.shape(framesRaw)[1]
+        heigth = np.shape(framesRaw)[2]
+        fps    = 40.
         #w = 480
         #h = 640
-
+        #pdb.set_trace()
         # Define the codec and create VideoWriter object
         fourcc = cv2.VideoWriter_fourcc(*'DIVX')  # (*'XVID')
-        out = cv2.VideoWriter(videoFileName, fourcc, fps, (height, width))
+        out = cv2.VideoWriter(videoFileName, fourcc, fps, (width, heigth))
 
         ret = True
         for i in range(len(framesRaw)):
             #frameRaw = np.random.rand(w, h) * 255.
 
-            frame8bit = np.array(framesRaw, dtype=np.uint8)
+            frame8bit = np.array(np.transpose(framesRaw[i]), dtype=np.uint8)
             # ret, frame = cap.read()
             frame = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2RGB)
             #if ret == True:
