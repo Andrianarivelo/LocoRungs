@@ -27,8 +27,9 @@ for rec in recordings:
         eSD.saveImageStack(imStack, fTimes, imageMetaInfo, 'motion_corrected',motionCorrection=motionCoordinates) # save motion corrected image stack
         (img,rois,rawSignals) = eSD.extractRoiSignals(dataFolder,rec,tifFile) # determine/read rois, and get traces
 
-        cV.generateWalkCaImage(dataFolder, rec, np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
-        cV.generateWalkCaCorrelationsImage(dataFolder, rec, np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
+        #cV.generateWalkCaImage(dataFolder, rec, np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
+        #cV.generateWalkCaCorrelationsImage(dataFolder, rec, np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
+        cV.generateWalkCaSpectralAnalysis(dataFolder, rec, np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
         #break
 
 
