@@ -20,8 +20,9 @@ from collections import OrderedDict
 #import sima.motion
 #import sima.segment
 from scipy.stats.stats import pearsonr
+from scipy.interpolate import interp1d
 
-#from tools.analysisTools import analysisTools
+import tools.dataAnalysis as dataAnalysis
 from tools.pyqtgraph.configfile import *
 
 # default parameter , please note that changes here don't take effect
@@ -349,6 +350,463 @@ class createVisualizations:
         
         plt.savefig(fname+'.png')
         plt.savefig(fname+'.pdf')
+
+    ##########################################################################################
+    def generateWalkCaImage(self, date, rec, img, ttime, rois, raw_signals, imageMetaInfo, motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor):
+        '''
+            test
+        '''
+        # img = data['analyzed_data/motionCorrectedImages/timeAverage'].value
+        # ttime = data['raw_data/caImagingTime'].value
+
+        # dataSet = sima.ImagingDataset.load(self.sima_path)
+        # rois = dataSet.ROIs['stica_ROIs']
+
+        nRois = len(rois)
+
+        plotsPerFig = 5
+        nFigs = int(nRois / (plotsPerFig + 1) + 1.)
+        # Extract the signals.
+        # dataSet.extract(rois,signal_channel='GCaMP6F', label='GCaMP6F_signals')
+
+        # raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
+        deltaX = imageMetaInfo[2]
+        # deltaX = (data['raw_data/caImagingField'].value)[2]
+        print 'deltaX ', deltaX
+
+        # figure #################################
+        fig_width = 7  # width in inches
+        fig_height = 4 * nFigs + 8  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi': 600,
+                  'axes.linewidth': 1.3,
+                  'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(3 + nFigs, 1  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        # plt.subplots_adjust(left=0.14, right=0.92, top=0.92, bottom=0.18)
+
+        # sub-panel enumerations
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+        # first sub-plot #######################################################
+        gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax0 = plt.subplot(gssub[0])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+
+        ax0.imshow(np.transpose(img),origin='lower',cmap=plt.cm.gray, extent=[0, np.shape(img)[0] * deltaX, 0, np.shape(img)[1] * deltaX])
+        # pdb.set_trace()
+        for n in range(len(rois)):
+            x, y = rois[n].polygons[0].exterior.xy
+            colors = plt.cm.jet(float(n) / float(nRois - 1))
+            ax0.plot( np.array(y) * deltaX, np.array(x) * deltaX, '-', c=colors, zorder=1)
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+        ax0.xaxis.set_ticks_position('bottom')
+
+        ax0.set_xlim(0, np.shape(img)[0] * deltaX)
+        ax0.set_ylim(0, np.shape(img)[1] * deltaX)
+        # ax0.set_xlim()
+        # ax0.set_ylim()
+        # legends and labels
+        # plt.legend(loc=1,frameon=False)
+
+        plt.xlabel(r'x ($\mu$m)')
+        plt.ylabel(r'y ($\mu$m)')
+
+        print nFigs, nRois
+        # third sub-plot #######################################################
+        #gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1], hspace=0.2)
+        # sub-panel 1 #############################################
+        ax01 = plt.subplot(gs[1])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+        #pdb.set_trace()
+        walk_interp = interp1d(sTimes,linearSpeed)
+
+        mask = (ttime>sTimes[0]) & (ttime<sTimes[-1])
+        newWalking = walk_interp(ttime[mask])
+        # sTimes, ttime
+        ax01.plot(sTimes,linearSpeed)
+        ax01.plot(ttime[mask],newWalking)
+        #ax01.plot(ttime, motionCoordinates[:, 2] * deltaX, label='y')
+
+        self.layoutOfPanel(ax01, xLabel='time (sec)', yLabel='speed (cm/s)')
+
+        # sub-panel 1 #############################################
+        ax02 = plt.subplot(gs[2])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+
+
+        #ax01.plot(ttime, motionCoordinates[:, 2] * deltaX, label='y')
+
+        self.layoutOfPanel(ax02, xLabel='time (sec)', yLabel='speed (cm/s)')
+        ax02.set_xlim(8,12)
+        ax02.set_ylim(0,4)
+
+        # sub-panel 1 #############################################
+        ax10 = plt.subplot(gs[3])
+        if nFigs > 1:
+            ax11 = plt.subplot(gs[4])
+        if nFigs > 2:
+            ax12 = plt.subplot(gs[5])
+        if nFigs > 3:
+            ax13 = plt.subplot(gs[6])
+
+        for n in range(len(rois)):
+            fff = int(n / (plotsPerFig))
+            colors = plt.cm.jet(float(n) / float(nRois - 1))
+            print n, fff, nFigs
+            if n >2 and n<5:
+                ax02.plot(ttime, raw_signals[0][n], c=colors)
+            if fff == 0:
+                ax10.plot(ttime, raw_signals[0][n], c=colors, label=str(
+                    rois[n].label + ' %.3f' % pearsonr(motionCoordinates[:, 2], raw_signals[0][n])[0]))
+            elif fff == 1:
+                ax11.plot(ttime, raw_signals[0][n], c=colors, label=str(
+                    rois[n].label + ' %.3f' % pearsonr(motionCoordinates[:, 2], raw_signals[0][n])[0]))
+            elif fff == 2:
+                ax12.plot(ttime, raw_signals[0][n], c=colors, label=str(
+                    rois[n].label + ' %3f' % pearsonr(motionCoordinates[:, 2], raw_signals[0][n])[0]))
+            elif fff == 2:
+                ax13.plot(ttime, raw_signals[0][n], c=colors, label=str(
+                    rois[n].label + ' %3f' % pearsonr(motionCoordinates[:, 2], raw_signals[0][n])[0]))
+        ax02.plot(sTimes,linearSpeed/8.,c='k')
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax10, Leg=[1, 10])
+        if nFigs > 1:
+            self.layoutOfPanel(ax11, Leg=[1, 10])
+        if nFigs > 2:
+            self.layoutOfPanel(ax12, Leg=[1, 10])
+        if nFigs > 3:
+            self.layoutOfPanel(ax13, Leg=[1, 10])
+
+        # legends and labels
+        # plt.legend(loc=3,frameon=False)
+
+        plt.xlabel('time (sec)')
+        plt.ylabel('Fluorescence')
+
+        # change tick spacing
+        # majorLocator_x = MultipleLocator(10)
+        # ax1.xaxis.set_major_locator(majorLocator_x)
+
+        # change legend text size
+        # leg = plt.gca().get_legend()
+        # ltext  = leg.get_texts()
+        # plt.setp(ltext, fontsize=11)
+
+        ## save figure ############################################################
+        fname = self.determineFileName(date, 'ca-walk_traces', reco=rec)
+
+        plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+
+    ##########################################################################################
+    def generateWalkCaCorrelationsImage(self, date, rec, img, ttime, rois, raw_signals, imageMetaInfo, motionCoordinates,angluarSpeed, linearSpeed, sTimes, timeStamp, monitor):
+        '''
+            test
+        '''
+        # img = data['analyzed_data/motionCorrectedImages/timeAverage'].value
+        # ttime = data['raw_data/caImagingTime'].value
+
+        # dataSet = sima.ImagingDataset.load(self.sima_path)
+        # rois = dataSet.ROIs['stica_ROIs']
+
+        dt = np.mean(np.diff(ttime))
+
+        nRois = len(rois)
+
+        plotsPerFig = 5
+        nFigs = nRois + 2
+        # Extract the signals.
+        # dataSet.extract(rois,signal_channel='GCaMP6F', label='GCaMP6F_signals')
+
+        # raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
+        deltaX = imageMetaInfo[2]
+        # deltaX = (data['raw_data/caImagingField'].value)[2]
+        print 'deltaX ', deltaX
+
+        # figure #################################
+        fig_width = 7  # width in inches
+        fig_height = 4 * nFigs + 8  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi': 600,
+                  'axes.linewidth': 1.3,
+                  'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(nFigs, 1  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.14, right=0.92, top=0.98, bottom=0.05)
+
+        # sub-panel enumerations
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+
+        # third sub-plot #######################################################
+        # gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1], hspace=0.2)
+        # sub-panel 1 #############################################
+        gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax0 = plt.subplot(gssub[0])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+
+        ax0.imshow(np.transpose(img), origin='lower', cmap=plt.cm.gray,
+                   extent=[0, np.shape(img)[0] * deltaX, 0, np.shape(img)[1] * deltaX])
+        # pdb.set_trace()
+        for n in range(len(rois)):
+            x, y = rois[n].polygons[0].exterior.xy
+            colors = plt.cm.jet(float(n) / float(nRois - 1))
+            ax0.plot(np.array(y) * deltaX, np.array(x) * deltaX, '-', c=colors, zorder=1)
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+        ax0.xaxis.set_ticks_position('bottom')
+
+        ax0.set_xlim(0, np.shape(img)[0] * deltaX)
+        ax0.set_ylim(0, np.shape(img)[1] * deltaX)
+        # ax0.set_xlim()
+        # ax0.set_ylim()
+        # legends and labels
+        # plt.legend(loc=1,frameon=False)
+
+        plt.xlabel(r'x ($\mu$m)')
+        plt.ylabel(r'y ($\mu$m)')
+
+        #######################################################
+        ax01 = plt.subplot(gs[1])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+        walk_interp = interp1d(sTimes,linearSpeed)
+
+        mask = (ttime>sTimes[0]) & (ttime<sTimes[-1])
+        newWalking = walk_interp(ttime[mask])
+
+
+        for n in range(len(rois)):
+            colors = plt.cm.jet(float(n) / float(nRois - 1))
+            #print n, fff, nFigs
+            ccW = dataAnalysis.crosscorr(dt,raw_signals[0][n][mask],newWalking)
+            ax01.plot(ccW[:,0],ccW[:,1], c=colors, label=str(n)+ ' , ' + str(rois[n].label))
+
+        self.layoutOfPanel(ax01, xLabel='time (sec)', yLabel='correlation', Leg=[1, 10])
+
+        # sub-panel 1 #############################################
+        for n in range(len(rois)):
+            ax2 = plt.subplot(gs[n+2])
+            ax2.set_title('roi %s ID %s' % (n,rois[n].label))
+            for m in range(len(rois)):
+                colors = plt.cm.jet(float(m) / float(nRois - 1))
+                ccW = dataAnalysis.crosscorr(dt,raw_signals[0][n],raw_signals[0][m])
+                ax2.plot(ccW[:,0],ccW[:,1], c=colors, label=str(m)+' , '+str(rois[m].label))
+            self.layoutOfPanel(ax2,xLabel='time (sec)', yLabel='correlation', Leg=[1, 10])
+
+        ## save figure ############################################################
+        fname = self.determineFileName(date, 'ca-walk_correlations', reco=rec)
+
+        plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+
+    ##########################################################################################
+    def generateWalkCaSpectralAnalysis(self, date, rec, img, ttime, rois, raw_signals, imageMetaInfo,
+                                        motionCoordinates, angluarSpeed, linearSpeed, sTimes, timeStamp, monitor):
+        '''
+            test
+        '''
+        # img = data['analyzed_data/motionCorrectedImages/timeAverage'].value
+        # ttime = data['raw_data/caImagingTime'].value
+
+        # dataSet = sima.ImagingDataset.load(self.sima_path)
+        # rois = dataSet.ROIs['stica_ROIs']
+
+        dt = np.mean(np.diff(ttime))
+
+        nRois = len(rois)
+
+        plotsPerFig = 5
+        nFigs = nRois + 2
+        # Extract the signals.
+        # dataSet.extract(rois,signal_channel='GCaMP6F', label='GCaMP6F_signals')
+
+        # raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
+        deltaX = imageMetaInfo[2]
+        # deltaX = (data['raw_data/caImagingField'].value)[2]
+        print 'deltaX ', deltaX
+
+        # figure #################################
+        fig_width = 6  # width in inches
+        fig_height = 24 # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi': 600,
+                  'axes.linewidth': 1.3,
+                  'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(4, 1  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.14, right=0.92, top=0.98, bottom=0.05)
+
+        # sub-panel enumerations
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+        # third sub-plot #######################################################
+        # gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1], hspace=0.2)
+        # sub-panel 1 #############################################
+        gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax0 = plt.subplot(gssub[0])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+
+        ax0.imshow(np.transpose(img), origin='lower', cmap=plt.cm.gray,
+                   extent=[0, np.shape(img)[0] * deltaX, 0, np.shape(img)[1] * deltaX])
+        # pdb.set_trace()
+        for n in range(len(rois)):
+            x, y = rois[n].polygons[0].exterior.xy
+            colors = plt.cm.jet(float(n) / float(nRois - 1))
+            ax0.plot(np.array(y) * deltaX, np.array(x) * deltaX, '-', c=colors, zorder=1)
+
+        self.layoutOfPanel(ax0, xLabel=r'x ($\mu$m)', yLabel=r'y ($\mu$m)')
+
+        ax0.set_xlim(0, np.shape(img)[0] * deltaX)
+        ax0.set_ylim(0, np.shape(img)[1] * deltaX)
+
+        #######################################################
+        ax01 = plt.subplot(gs[1])
+        ax02 = plt.subplot(gs[2])
+        ax03 = plt.subplot(gs[3])
+        # title
+        # ax0.set_title('sub-plot 1')
+        walk_interp = interp1d(sTimes, linearSpeed)
+
+        mask = (ttime > sTimes[0]) & (ttime < sTimes[-1])
+        newWalking = walk_interp(ttime[mask])
+        # float Time-bandwidth product. Common values are 2, 3, 4 and numbers in between.
+        tbp = 3.5
+        # integer, optional Number of tapers to use. Defaults to int(2*time_bandwidth) - 1. This is maximum senseful amount. More tapers will have no great influence on the final spectrum but increase the calculation time. Use fewer tapers for a faster calculation.
+        kspec = 7
+        # float; confidence for null hypothesis test, e.g. .95
+        p = 0.95
+
+        for n in range(len(rois)):
+            colors = plt.cm.jet(float(n) / float(nRois - 1))
+            # print n, fff, nFigs
+            nf = len(raw_signals[0][n][mask])/2 + 1
+            out[n][m][0] = mt_coherence(dt, raw_signals[0][n][mask], newWalking, tbp, kspec, nf, p, freq=True,
+                                        cohe=True, phase=True, speci=True, specj=True, iadapt=1)
+            max_freq = 100.
+            f_mask = out['freq'] <= max_freq
+            frequency = out['freq'][f_mask]
+
+            ax01.plot(frequency, out['speci'][f_mask], c=colors, label=str(n) + ' , ' + str(rois[n].label))
+            ax02.plot(frequency, out['specj'][f_mask], c=colors, label=str(n) + ' , ' + str(rois[n].label))
+            ax03.plot(frequency, out['cohe'][f_mask], c=colors, label=str(n) + ' , ' + str(rois[n].label))
+
+        self.layoutOfPanel(ax01, xLabel='frequency (Hz)', yLabel='PSD (dB/Hz)', Leg=[1, 10])
+        self.layoutOfPanel(ax02, xLabel='frequency (Hz)', yLabel='PSD (dB/Hz)', Leg=[1, 10])
+        self.layoutOfPanel(ax03, xLabel='frequency (Hz)', yLabel='PSD (dB/Hz)', Leg=[1, 10])
+
+
+        ## save figure ############################################################
+        fname = self.determineFileName(date, 'ca-walk_spectral', reco=rec)
+
+        plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
 
     ##########################################################################################
     def generateWalkingFigure(self,mouse, date,tracks):

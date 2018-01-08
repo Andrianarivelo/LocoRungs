@@ -3,7 +3,7 @@ import tools.dataAnalysis as dataAnalysis
 import tools.createVisualizations as createVisualizations
 
 mouse = '170927_m68'
-expDate = '171116'
+expDate = '171115'
 wheelCircumsphere = 79.796 # in cm
 
 eSD         = extractSaveData.extractSaveData(mouse)

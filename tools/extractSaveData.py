@@ -208,7 +208,7 @@ class extractSaveData:
             print 'reading raw GigE data ...',
             frames     = fData['data'].value
             frameTimes = fData['info/0/values'].value
-            imageMetaInfo = self.readMetaInformation(recLocation)
+            imageMetaInfo = [None] #self.readMetaInformation(recLocation)
             print 'done'
             return (frames,frameTimes,imageMetaInfo)
 
@@ -265,6 +265,11 @@ class extractSaveData:
         tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
 
     ############################################################
+    def readTif(self,frames,mouse,date,rec):
+        img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
+        tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
+
+    ############################################################
     def saveBehaviorVideo(self, mouse, date, rec, framesRaw, frameTimes, metaInfo):
 
         #pdb.set_trace()
@@ -275,7 +280,7 @@ class extractSaveData:
 
         width  = np.shape(framesRaw)[1]
         heigth = np.shape(framesRaw)[2]
-        fps    = 40.
+        fps    = 80.
         #w = 480
         #h = 640
         #pdb.set_trace()
