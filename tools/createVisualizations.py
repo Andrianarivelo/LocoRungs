@@ -796,12 +796,12 @@ class createVisualizations:
             f_mask = out['freq'] <= max_freq
             frequency = out['freq'][f_mask]
             if n<4:
-                ax11.plot(frequency, 10.*np.log10(out['speci'][f_mask]), c=colors, label=str(n) + ' , ' + str(rois[n].label))
-                ax03.plot(frequency, out['cohe'][f_mask], c=colors, label=str(n) + ' , ' + str(rois[n].label))
+                ax11.plot(frequency[1:-1], np.convolve(10.*np.log10(out['speci'][f_mask]),np.ones((3,))/3, mode='valid'), c=colors, label=str(n) + ' , ' + str(rois[n].label))
+                ax03.plot(frequency[1:-1], np.convolve(out['cohe'][f_mask],np.ones((3,))/3, mode='valid'), c=colors, label=str(n) + ' , ' + str(rois[n].label))
             else:
-                ax12.plot(frequency, 10.*np.log10(out['speci'][f_mask]), c=colors, label=str(n) + ' , ' + str(rois[n].label))
-                ax04.plot(frequency, out['cohe'][f_mask], c=colors, label=str(n) + ' , ' + str(rois[n].label))
-            ax02.plot(frequency, 10.*np.log10(out['specj'][f_mask]), c=colors, label=str(n) + ' , ' + str(rois[n].label))
+                ax12.plot(frequency[1:-1], np.convolve(10.*np.log10(out['speci'][f_mask]),np.ones((3,))/3, mode='valid'), c=colors, label=str(n) + ' , ' + str(rois[n].label))
+                ax04.plot(frequency[1:-1], np.convolve(out['cohe'][f_mask],np.ones((3,))/3, mode='valid'), c=colors, label=str(n) + ' , ' + str(rois[n].label))
+            ax02.plot(frequency[1:-1], np.convolve(10.*np.log10(out['specj'][f_mask]),np.ones((3,))/3, mode='valid'), c=colors, label=str(n) + ' , ' + str(rois[n].label))
 
 
         self.layoutOfPanel(ax11, xLabel='frequency (Hz)', yLabel='PSD (dB/Hz)', Leg=[1, 10])
