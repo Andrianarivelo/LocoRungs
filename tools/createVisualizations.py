@@ -21,6 +21,7 @@ from collections import OrderedDict
 #import sima.segment
 from scipy.stats.stats import pearsonr
 from scipy.interpolate import interp1d
+from mtspec import mt_coherence
 
 import tools.dataAnalysis as dataAnalysis
 from tools.pyqtgraph.configfile import *
