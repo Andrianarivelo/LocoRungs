@@ -731,7 +731,7 @@ class createVisualizations:
         fig = plt.figure()
 
         # define sub-panel grid and possibly width and height ratios
-        gs = gridspec.GridSpec(5, 1  # ,
+        gs = gridspec.GridSpec(6, 1  # ,
                                # width_ratios=[1.2,1]
                                # height_ratios=[1,1]
                                )
