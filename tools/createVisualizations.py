@@ -780,7 +780,7 @@ class createVisualizations:
         mask = (ttime > sTimes[0]) & (ttime < sTimes[-1])
         newWalking = walk_interp(ttime[mask])
         # float Time-bandwidth product. Common values are 2, 3, 4 and numbers in between.
-        tbp = 3.5
+        tbp = 2
         # integer, optional Number of tapers to use. Defaults to int(2*time_bandwidth) - 1. This is maximum senseful amount. More tapers will have no great influence on the final spectrum but increase the calculation time. Use fewer tapers for a faster calculation.
         kspec = 7
         # float; confidence for null hypothesis test, e.g. .95
