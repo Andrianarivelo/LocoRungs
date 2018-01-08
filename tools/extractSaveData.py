@@ -142,7 +142,10 @@ class extractSaveData:
                 dataFolder = self.listOfAllExpts[mouse]['dates'][expDate]['folder']
                 print expDate, dataFolder
 
-        self.dataLocation = self.dataBase + 'altair_data/dataMichael/' + dataFolder + '/'
+        if int(expDate) >= 170914:
+            self.dataLocation = self.dataBase + 'altair_data/dataMichael/' + dataFolder + '/'
+        else:
+            self.dataLocation = self.dataBase + 'altair_data/experiments/data_Michael/acq4/' + dataFolder + '/'
 
         if os.path.exists(self.dataLocation):
             print 'experiment %s exists' % dataFolder

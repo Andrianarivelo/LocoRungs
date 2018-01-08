@@ -16,7 +16,7 @@ eSD      = extractSaveData.extractSaveData(mouse)
 #print eSD.figureLocation
 cV      = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
-for rec in recordings[8:]:
+for rec in recordings[:2]:
     (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(rec,'Imaging')  # check if specific data was recorded
     if existence:
         (frames,fTimes,imageMetaInfo) = eSD.readRawData(rec,'Imaging',fileHandle)  # read raw data from experiment

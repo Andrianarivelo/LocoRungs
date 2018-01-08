@@ -2,8 +2,10 @@ import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import pdb
 
-mouse = '170927_m68'
-expDate = '171115'
+#mouse = '170927_m68'
+#expDate = '171115'
+mouse = '170606_f37'
+expDate = '170712'
 
 eSD         = extractSaveData.extractSaveData(mouse)
 (recordings,dataFolder) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date

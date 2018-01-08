@@ -64,11 +64,11 @@ class createVisualizations:
 
 
     ##########################################################################################
-    def determineFileName(self,date,what,rec=None):
-        if rec == None:
+    def determineFileName(self,date,what,reco=None):
+        if reco is None:
             ff = self.figureDirectory + '%s_%s' % (date,what)
         else:
-            ff = self.figureDirectory + '%s_%s_%s' % (date,rec,what)
+            ff = self.figureDirectory + '%s_%s_%s' % (date,reco,what)
         return ff
 
     ##########################################################################################
@@ -251,9 +251,9 @@ class createVisualizations:
         
         print nFigs, nRois
         # third sub-plot #######################################################
-        #gssub = gridspec.GridSpecFromSubplotSpec(nFigs, 1, subplot_spec=gs[1],hspace=0.2)
+        gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1],hspace=0.2)
         # sub-panel 1 #############################################
-        ax01 = plt.subplot(gs[1])
+        ax01 = plt.subplot(gssub1[0])
 
         # title
         # ax0.set_title('sub-plot 1')
@@ -261,24 +261,17 @@ class createVisualizations:
         ax01.plot(ttime,motionCoordinates[:,1]*deltaX,label='x')
         ax01.plot(ttime,motionCoordinates[:,2]*deltaX,label='y')
 
-        # pdb.set_trace()
+        self.layoutOfPanel(ax01,xLabel='time (sec)',yLabel='displacement ($\mu$m)',Leg=[1,10])
 
-        # removes upper and right axes
-        # and moves left and bottom axes away
-        ax01.spines['top'].set_visible(False)
-        ax01.spines['right'].set_visible(False)
-        ax01.spines['bottom'].set_position(('outward', 10))
-        ax01.spines['left'].set_position(('outward', 10))
-        ax01.yaxis.set_ticks_position('left')
-        ax01.xaxis.set_ticks_position('bottom')
+        ax011 = plt.subplot(gssub1[1])
 
-        # ax0.set_xlim()
-        # ax0.set_ylim()
-        # legends and labels
-        plt.legend(loc=1,frameon=False)
+        # title
+        # ax0.set_title('sub-plot 1')
+        mask = motionCoordinates[:,1]*deltaX < 30.
+        ax011.plot(motionCoordinates[:,1][mask]*deltaX,motionCoordinates[:,2][mask]*deltaX,label='x')
+        #ax011.plot(time,motionCoordinates[:,2]*deltaX,label='y')
 
-        plt.xlabel('time (sec)')
-        plt.ylabel('displacement ($\mu$m)')
+        self.layoutOfPanel(ax011,xLabel='x displacement ($\mu$m)',yLabel='y displacement ($\mu$m)',Leg=[1,10])
 
 
         # sub-panel 1 #############################################
@@ -352,7 +345,7 @@ class createVisualizations:
         #plt.setp(ltext, fontsize=11)
         
         ## save figure ############################################################
-        fname = self.determineFileName(date,rec,'roi_traces')
+        fname = self.determineFileName(date,'roi_traces',reco=rec)
         
         plt.savefig(fname+'.png')
         plt.savefig(fname+'.pdf')
