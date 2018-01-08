@@ -706,7 +706,7 @@ class createVisualizations:
 
         # figure #################################
         fig_width = 6  # width in inches
-        fig_height = 24 # height in inches
+        fig_height = 20 # height in inches
         fig_size = [fig_width, fig_height]
         params = {'axes.labelsize': 14,
                   'axes.titlesize': 13,
@@ -731,7 +731,7 @@ class createVisualizations:
         fig = plt.figure()
 
         # define sub-panel grid and possibly width and height ratios
-        gs = gridspec.GridSpec(4, 1  # ,
+        gs = gridspec.GridSpec(5, 1  # ,
                                # width_ratios=[1.2,1]
                                # height_ratios=[1,1]
                                )
@@ -768,9 +768,11 @@ class createVisualizations:
         ax0.set_ylim(0, np.shape(img)[1] * deltaX)
 
         #######################################################
-        ax01 = plt.subplot(gs[1])
-        ax02 = plt.subplot(gs[2])
-        ax03 = plt.subplot(gs[3])
+        ax11 = plt.subplot(gs[1])
+        ax12 = plt.subplot(gs[2])
+        ax02 = plt.subplot(gs[3])
+        ax03 = plt.subplot(gs[4])
+        ax04 = plt.subplot(gs[5])
         # title
         # ax0.set_title('sub-plot 1')
         walk_interp = interp1d(sTimes, linearSpeed)
@@ -793,14 +795,20 @@ class createVisualizations:
             max_freq = 100.
             f_mask = out['freq'] <= max_freq
             frequency = out['freq'][f_mask]
+            if n<4:
+                ax11.plot(frequency, 10.*np.log10(out['speci'][f_mask]), c=colors, label=str(n) + ' , ' + str(rois[n].label))
+                ax03.plot(frequency, out['cohe'][f_mask], c=colors, label=str(n) + ' , ' + str(rois[n].label))
+            else:
+                ax12.plot(frequency, 10.*np.log10(out['speci'][f_mask]), c=colors, label=str(n) + ' , ' + str(rois[n].label))
+                ax04.plot(frequency, out['cohe'][f_mask], c=colors, label=str(n) + ' , ' + str(rois[n].label))
+            ax02.plot(frequency, 10.*np.log10(out['specj'][f_mask]), c=colors, label=str(n) + ' , ' + str(rois[n].label))
 
-            ax01.plot(frequency, out['speci'][f_mask], c=colors, label=str(n) + ' , ' + str(rois[n].label))
-            ax02.plot(frequency, out['specj'][f_mask], c=colors, label=str(n) + ' , ' + str(rois[n].label))
-            ax03.plot(frequency, out['cohe'][f_mask], c=colors, label=str(n) + ' , ' + str(rois[n].label))
 
-        self.layoutOfPanel(ax01, xLabel='frequency (Hz)', yLabel='PSD (dB/Hz)', Leg=[1, 10])
+        self.layoutOfPanel(ax11, xLabel='frequency (Hz)', yLabel='PSD (dB/Hz)', Leg=[1, 10])
+        self.layoutOfPanel(ax12, xLabel='frequency (Hz)', yLabel='PSD (dB/Hz)', Leg=[1, 10])
         self.layoutOfPanel(ax02, xLabel='frequency (Hz)', yLabel='PSD (dB/Hz)', Leg=[1, 10])
         self.layoutOfPanel(ax03, xLabel='frequency (Hz)', yLabel='PSD (dB/Hz)', Leg=[1, 10])
+        self.layoutOfPanel(ax04, xLabel='frequency (Hz)', yLabel='PSD (dB/Hz)', Leg=[1, 10])
 
 
         ## save figure ############################################################
