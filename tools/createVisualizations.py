@@ -788,7 +788,7 @@ class createVisualizations:
             colors = plt.cm.jet(float(n) / float(nRois - 1))
             # print n, fff, nFigs
             nf = len(raw_signals[0][n][mask])/2 + 1
-            out[n][m][0] = mt_coherence(dt, raw_signals[0][n][mask], newWalking, tbp, kspec, nf, p, freq=True,
+            out = mt_coherence(dt, raw_signals[0][n][mask], newWalking, tbp, kspec, nf, p, freq=True,
                                         cohe=True, phase=True, speci=True, specj=True, iadapt=1)
             max_freq = 100.
             f_mask = out['freq'] <= max_freq
