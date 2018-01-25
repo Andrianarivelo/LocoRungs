@@ -6,8 +6,8 @@ import numpy as np
 import pdb
 
 
-mouse = '170927_m68'
-expDate = '171115'
+mouse = '171218_f8'
+expDate = '180123'
 
 eSD      = extractSaveData.extractSaveData(mouse)
 (recordings,dataFolder) = eSD.getRecordingsList(mouse,expDate)
@@ -16,7 +16,7 @@ eSD      = extractSaveData.extractSaveData(mouse)
 #print eSD.figureLocation
 cV      = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
-for rec in recordings[:2]:
+for rec in recordings[20:]:
     (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(rec,'Imaging')  # check if specific data was recorded
     if existence:
         (frames,fTimes,imageMetaInfo) = eSD.readRawData(rec,'Imaging',fileHandle)  # read raw data from experiment

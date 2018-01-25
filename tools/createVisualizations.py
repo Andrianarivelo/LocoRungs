@@ -659,7 +659,8 @@ class createVisualizations:
             #print n, fff, nFigs
             ccW = dataAnalysis.crosscorr(dt,raw_signals[0][n][mask],newWalking)
             ax01.plot(ccW[:,0],ccW[:,1], c=colors, label=str(n)+ ' , ' + str(rois[n].label))
-
+        ccW = dataAnalysis.crosscorr(dt,raw_signals[0][n][mask],motionCoordinates[:,2][mask]*deltaX)
+        ax01.plot(ccW[:,0],ccW[:,1], c='k', label='motion')
         self.layoutOfPanel(ax01, xLabel='time (sec)', yLabel='correlation', Leg=[1, 10])
 
         # sub-panel 1 #############################################

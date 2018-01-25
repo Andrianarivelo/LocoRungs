@@ -1,8 +1,9 @@
 import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 
-mouse = '170927_m68'
-expDate = '171117'
+mouse = '171218_f8'
+expDate = '180123'
+
 wheelCircumsphere = 79.796 # in cm
 
 eSD         = extractSaveData.extractSaveData(mouse)
