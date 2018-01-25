@@ -4,8 +4,9 @@ import tools.createVisualizations as createVisualizations
 
 import numpy as np
 
-mouse = '170927_m68'
-expDate = '171115'
+mouse = '171218_f8'
+expDate = '180123'
+
 wheelCircumsphere = 79.796 # in cm
 
 eSD         = extractSaveData.extractSaveData(mouse)
@@ -14,7 +15,7 @@ eSD         = extractSaveData.extractSaveData(mouse)
 cV      = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
 tracks = []
-for rec in recordings:
+for rec in recordings[20:]:
     (WalkExistence, fileHandle) = eSD.checkIfDeviceWasRecorded(rec,'RotaryEncoder')
     (CaExistence,fileHandle) = eSD.checkIfDeviceWasRecorded(rec,'Imaging')
     if CaExistence and WalkExistence:
@@ -27,9 +28,9 @@ for rec in recordings:
         eSD.saveImageStack(imStack, fTimes, imageMetaInfo, 'motion_corrected',motionCorrection=motionCoordinates) # save motion corrected image stack
         (img,rois,rawSignals) = eSD.extractRoiSignals(dataFolder,rec,tifFile) # determine/read rois, and get traces
 
-        #cV.generateWalkCaImage(dataFolder, rec, np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
+        cV.generateWalkCaImage(dataFolder, rec, np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
         #cV.generateWalkCaCorrelationsImage(dataFolder, rec, np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
-        cV.generateWalkCaSpectralAnalysis(dataFolder, rec, np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
+        #cV.generateWalkCaSpectralAnalysis(dataFolder, rec, np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
         #break
 
 

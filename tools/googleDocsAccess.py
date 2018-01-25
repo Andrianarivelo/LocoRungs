@@ -88,7 +88,7 @@ def convertListToDict(values):
                         exDict[values[n][0]]['dates'][values[j][5]]['folder'] = values[j][10]
                         m = j
                         # read out recordings
-                        while (not values[m][5]) or (j == m):  # values[m][11] :
+                        while (m<len(values)) and ((not values[m][5]) or (j == m)) :  # values[m][11] :
                             try:
                                 values[m][11]
                             except:

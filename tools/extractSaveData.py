@@ -121,7 +121,10 @@ class extractSaveData:
         # Extract the signals.
         dataSet.extract(rois, signal_channel='GCaMP6F', label='GCaMP6F_signals')
         raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
-        dataSet.signals('GCaMP6F')['GCaMP6F_signals']['mean_frame']
+        #dataSet.export_signals('example_signals.csv', channel='GCaMP6F',signals_label='GCaMP6F_signals')
+        #pdb.set_trace()
+
+        #dataSet.signals('GCaMP6F')['GCaMP6F_signals']['mean_frame']
 
         # pdb.set_trace()
         roiLabels = []
@@ -166,10 +169,10 @@ class extractSaveData:
         else:
             print 'Problem, recording does not exist'
             
-        if device != 'CameraGigEBehavior':
-            pathToFile = recLocation + '%s.ma' % device
-        else:
+        if device in ['CameraGigEBehavior','CameraPixelfly']:
             pathToFile = recLocation + device + '/' + 'frames.ma'
+        else:
+            pathToFile = recLocation + '%s.ma' % device
         #print pathToFile
 
         if os.path.isfile(pathToFile):
@@ -209,6 +212,17 @@ class extractSaveData:
             frames     = fData['data'].value
             frameTimes = fData['info/0/values'].value
             imageMetaInfo = [None] #self.readMetaInformation(recLocation)
+            print 'done'
+            return (frames,frameTimes,imageMetaInfo)
+        elif device == 'CameraPixelfly':
+            print 'reading raw Pixelfly data ...',
+            frames     = fData['data'].value
+            frameTimes = fData['info/0/values'].value
+            xPixelSize = fData['info/3/pixelSize'].attrs['0']
+            yPixelSize = fData['info/3/pixelSize'].attrs['1']
+            xSize = fData['info/3/region'].attrs['2']
+            ySize = fData['info/3/region'].attrs['3']
+            imageMetaInfo = np.array([xSize*xPixelSize,ySize*yPixelSize,xPixelSize,yPixelSize])
             print 'done'
             return (frames,frameTimes,imageMetaInfo)
 
@@ -261,7 +275,7 @@ class extractSaveData:
 
     ############################################################
     def saveTif(self,frames,mouse,date,rec):
-        img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
+        img_stack_uint8 = np.array(frames, dtype=np.uint8)
         tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
 
     ############################################################
