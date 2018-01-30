@@ -1928,4 +1928,141 @@ class createVisualizations:
         savefig(fname+'.pdf')
         
         
-        
+    ##########################################################################################
+    def generateMotionArtefactImage(self, date, motion) :
+        #rec, img, ttime, rois, raw_signals, imageMetaInfo, motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor):
+        '''
+            test
+        '''
+        # img = data['analyzed_data/motionCorrectedImages/timeAverage'].value
+        # ttime = data['raw_data/caImagingTime'].value
+
+        # dataSet = sima.ImagingDataset.load(self.sima_path)
+        # rois = dataSet.ROIs['stica_ROIs']
+
+        #nRois = len(rois)
+        nImage = 0
+
+        nRecordings = len(motion)
+
+        #nFigs = int(nRois / (plotsPerFig + 1) + 1.)
+        # Extract the signals.
+        # dataSet.extract(rois,signal_channel='GCaMP6F', label='GCaMP6F_signals')
+
+        # raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
+        deltaX = motion[nImage][3][2]*1.E6
+        # deltaX = (data['raw_data/caImagingField'].value)[2]
+        #print 'deltaX ', deltaX
+
+        # figure #################################
+        fig_width = 16  # width in inches
+        fig_height = 15  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi': 600,
+                  'axes.linewidth': 1.3,
+                  'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(3, 3  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        # plt.subplots_adjust(left=0.14, right=0.92, top=0.92, bottom=0.18)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.92, '%s' % date ,clip_on=False,color='black', weight='bold',size=22)
+
+        # first sub-plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax0 = plt.subplot(gs[0])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+        img = motion[nImage][1]
+        ax0.imshow(np.rot90(img,k=2),origin='lower',cmap=plt.cm.gray, extent=[0, np.shape(img)[1] * deltaX, 0, np.shape(img)[0] * deltaX])
+        # pdb.set_trace()
+        #for n in range(len(rois)):
+        #    x, y = rois[n].polygons[0].exterior.xy
+        #    colors = plt.cm.jet(float(n) / float(nRois - 1))
+        #    ax0.plot( np.array(y) * deltaX, np.array(x) * deltaX, '-', c=colors, zorder=1)
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax0,xLabel=r'x ($\mu$m)',yLabel=r'y ($\mu$m)')
+
+        #ax0.set_xlim(0, np.shape(img)[1] * deltaX)
+        #ax0.set_ylim(0, np.shape(img)[0] * deltaX)
+        # ax0.set_xlim()
+        # ax0.set_ylim()
+        # legends and labels
+        # plt.legend(loc=1,frameon=False)
+
+        # third sub-plot #######################################################
+
+        # sub-panel 1 #############################################
+        ax20 = plt.subplot(gs[3])
+        ax21 = plt.subplot(gs[4])
+        ax22= plt.subplot(gs[5])
+
+        ax30 = plt.subplot(gs[6])
+        ax31 = plt.subplot(gs[7])
+        ax32 = plt.subplot(gs[8])
+
+
+        #ax01.plot(ttime, motionCoordinates[:, 2] * deltaX, label='y')
+
+        # sub-panel 1 #############################################
+
+        for n in range(nRecordings):
+            colors = plt.cm.jet(float(n) / float(nRecordings - 1))
+            #print n, fff, nFigs
+            if n<6:
+                ax20.plot(motion[n][2][:,1]*deltaX, motion[n][2][:,2]*deltaX, c=colors, label=str(motion[n][0]))
+                ax21.plot(motion[n][4], motion[n][2][:,1]*deltaX, c=colors)
+                ax21.plot(motion[n][4], motion[n][2][:,2]*deltaX,ls='--',c=colors)
+                ax22.plot(motion[n][4], np.sqrt((motion[n][2][:, 1] * deltaX)**2 + (motion[n][2][:, 2] * deltaX)**2), c=colors)
+            else:
+                ax30.plot(motion[n][2][:,1]*deltaX, motion[n][2][:,2]*deltaX, c=colors, label=str(motion[n][0]))
+                ax31.plot(motion[n][4], motion[n][2][:, 1] * deltaX, c=colors)
+                ax31.plot(motion[n][4], motion[n][2][:, 2] * deltaX, ls='--', c=colors)
+                ax32.plot(motion[n][4],np.sqrt((motion[n][2][:, 1] * deltaX) ** 2 + (motion[n][2][:, 2] * deltaX) ** 2), c=colors)
+
+        self.layoutOfPanel(ax20, xLabel='x movement ($\mu$m)', yLabel='y movement ($\mu$m)', Leg=[1, 10])
+        self.layoutOfPanel(ax21, xLabel='time (s)', yLabel='movement ($\mu$m)')
+        self.layoutOfPanel(ax22, xLabel='time (s)', yLabel='movement RMS ($\mu$m)')
+        self.layoutOfPanel(ax30,xLabel='x movement ($\mu$m)',yLabel = 'y movement ($\mu$m)', Leg=[1,10])
+        self.layoutOfPanel(ax31, xLabel='time (s)', yLabel='movement ($\mu$m)')
+        self.layoutOfPanel(ax32, xLabel='time (s)', yLabel='movement RMS ($\mu$m)')
+        # change tick spacing
+        # majorLocator_x = MultipleLocator(10)
+        # ax1.xaxis.set_major_locator(majorLocator_x)
+
+        ## save figure ############################################################
+        fname = self.determineFileName(date, 'motion-corretion')
+
+        plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+

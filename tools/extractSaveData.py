@@ -183,7 +183,7 @@ class extractSaveData:
             return (False,None)
 
     ############################################################
-    def readRawData(self, recording, device, fData):
+    def readRawData(self, recording, device, fData , readRawData = True):
 
         recLocation = self.dataLocation + '/' + recording + '/'
         if device == 'RotaryEncoder':
@@ -203,20 +203,29 @@ class extractSaveData:
                 monitor = False
             return (angles,times,startTime,monitor)
         elif device == 'Imaging':
-            frames     = fData['data'].value
+            if readRawData:
+                frames     = fData['data'].value
+            else:
+                frames = np.empty([2, 2])
             frameTimes = fData['info/0/values'].value
             imageMetaInfo = self.readMetaInformation(recLocation)
             return (frames,frameTimes,imageMetaInfo)
         elif device == 'CameraGigEBehavior':
             print 'reading raw GigE data ...',
-            frames     = fData['data'].value
+            if readRawData:
+                frames     = fData['data'].value
+            else:
+                frames = np.empty([2, 2])
             frameTimes = fData['info/0/values'].value
             imageMetaInfo = [None] #self.readMetaInformation(recLocation)
             print 'done'
             return (frames,frameTimes,imageMetaInfo)
         elif device == 'CameraPixelfly':
             print 'reading raw Pixelfly data ...',
-            frames     = fData['data'].value
+            if readRawData :
+                frames     = fData['data'].value
+            else:
+                frames = np.empty([2, 2])
             frameTimes = fData['info/0/values'].value
             xPixelSize = fData['info/3/pixelSize'].attrs['0']
             yPixelSize = fData['info/3/pixelSize'].attrs['1']
