@@ -29,10 +29,18 @@ are plotted in a figure.
 
 `getWalkingActivity.py` - The script extracts the Rotary encoder data and saves it to hdf5 file.
 
+`plotWalkingActivity.py` - The script uses the extracted Rotary encoder data and generates an overview figures.
+
 `getRawBehaviorImagesSaveVideo.py` - The script extracts images recorded with the high-speed camera. The extracted images are saved as avi video for the tracking procedures.
 
+`analyzePawMovement.py` - The script uses openCV to analyze the behavioral videos. Paw and rung locations are extracted.
 
-**Typical work-flow to analyze experiments with walking behavior**
+**Typical work-flow to analyze global movement parameters during walking experiments**
+
+1. run `getWalkingActivity.py` turn behavior camera recordings into movie.
+1. run `plotWalkingActivity.py` to track paw and rungs.
+
+**Typical work-flow to analyze detailed paw movement during walking experiments**
 
 1. run `getRawBehaviorImagesSaveVideo.py` turn behavior camera recordings into movie.
 1. run `analyzePawMovement.py` to track paw and rungs.
