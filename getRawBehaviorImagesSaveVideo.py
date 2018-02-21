@@ -7,11 +7,12 @@ import pdb
 #mouse = '171126_m90'
 #expDate = '180118'
 mouse = '180107_m27'
-expDate = '180213'
+expDate = '180215'
 
 eSD         = extractSaveData.extractSaveData(mouse)
-(recordings,dataFolder) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
+(foldersRecordings,dataFolders) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
 
+pdb.set_trace()
 for rec in recordings:
     (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(rec,'CameraGigEBehavior')
     if existence:

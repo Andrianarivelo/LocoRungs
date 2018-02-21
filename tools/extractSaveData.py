@@ -142,23 +142,27 @@ class extractSaveData:
             print mouse
             print expDate, self.listOfAllExpts[mouse]['dates']
             if expDate in self.listOfAllExpts[mouse]['dates']:
-                dataFolder = self.listOfAllExpts[mouse]['dates'][expDate]['folder']
-                print expDate, dataFolder
+                #pdb.set_trace()
+                dataFolders = self.listOfAllExpts[mouse]['dates'][expDate]['folders']
+                print expDate, dataFolders
+        folderRec = []
+        for fold in dataFolders:
+            if int(expDate) >= 170914:
+                self.dataLocation = self.dataBase + 'altair_data/dataMichael/' + fold + '/'
+            else:
+                self.dataLocation = self.dataBase + 'altair_data/experiments/data_Michael/acq4/' + fold + '/'
 
-        if int(expDate) >= 170914:
-            self.dataLocation = self.dataBase + 'altair_data/dataMichael/' + dataFolder + '/'
-        else:
-            self.dataLocation = self.dataBase + 'altair_data/experiments/data_Michael/acq4/' + dataFolder + '/'
+            if os.path.exists(self.dataLocation):
+                print 'experiment %s exists' % fold
+            else:
+                print 'Problem, experiment does not exist'
+            #recList = OrderedDict()
+            recList = [os.path.join(o) for o in os.listdir(self.dataLocation) if os.path.isdir(os.path.join(self.dataLocation,o))]
+            #recList = glob(self.dataLocation + '*')
+            recList.sort()
+            folderRec.append([fold,recList])
 
-        if os.path.exists(self.dataLocation):
-            print 'experiment %s exists' % dataFolder
-        else:
-            print 'Problem, experiment does not exist'
-        #recList = OrderedDict()
-        recList = [os.path.join(o) for o in os.listdir(self.dataLocation) if os.path.isdir(os.path.join(self.dataLocation,o))]
-        #recList = glob(self.dataLocation + '*')
-        recList.sort()
-        return (recList,dataFolder)
+        return (folderRec,dataFolders)
 
     ############################################################
     def checkIfDeviceWasRecorded(self,recording, device):

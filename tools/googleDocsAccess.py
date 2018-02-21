@@ -1,6 +1,7 @@
 from __future__ import print_function
 import httplib2
 import os
+import pdb
 from collections import OrderedDict
 
 from apiclient import discovery
@@ -66,44 +67,62 @@ def convertListToDict(values):
                 }),
                 ('dates', {})
             ])
-            # save days of experiments
+            # save days of experiments, j ... index over dates
             j = n
             while (j < len(values)) and ((not values[j][0]) or (j == n)):
+                # create a new entry for a recording date
                 if values[j][5]:
                     # print values[j][5]
                     exDict[values[n][0]]['dates'].update(OrderedDict([
                         (values[j][5], {
                             'age': values[j][6],
                             'weight': values[j][7],
-                            'description': values[j][8],
-                            'folder': {},
-                            'recordings': {}
+                            #'description': values[j][8],
+                            'folders': {},
+                            #'recordings': {}
                         })
                     ]))
-                    try:
-                        values[j][10]
-                    except IndexError:
-                        pass
-                    else:
-                        exDict[values[n][0]]['dates'][values[j][5]]['folder'] = values[j][10]
-                        m = j
-                        # read out recordings
-                        while (m<len(values)) and ((not values[m][5]) or (j == m)) :  # values[m][11] :
+                    # create new entry for recording session on that date, asociated to a folder '[date]_xxx', m ... index of folder
+                    m = j
+                    # check if recording was performed on a given date
+                    if len(values[m])>10:
+                        # loop over folders
+                        while (m < len(values)) and ((not values[m][5]) or (j == m)):
+
                             try:
-                                values[m][11]
-                            except:
+                                content = values[m][10]
+                            except IndexError:
                                 pass
                             else:
-                                exDict[values[n][0]]['dates'][values[j][5]]['recordings'].update(
-                                    OrderedDict([(values[m][11], {
-                                        'comment': {}, })]))
-                                try:
-                                    values[m][12]
-                                except:
-                                    pass
-                                else:
-                                    exDict[values[n][0]]['dates'][values[j][5]]['recordings'][values[m][11]][
-                                        'comment'] = values[m][12]
+                                #print(m, values[n][0], values[j][5], values[m][10])
+                                if content != '':
+                                    exDict[values[n][0]]['dates'][values[j][5]]['folders'].update(OrderedDict([
+                                            (values[m][10], {
+                                                'description': values[m][8],
+                                                'recordings': {},
+                                                #'recordings': {}
+                                            })
+                                        ]))
+                                    # create new entry for all recordings performed on given date and session
+                                    r = m
+                                    # read out recordings
+                                    while (r<len(values)) and ((not values[r][8]) or (r == m)) :  # values[m][11] :
+                                        try:
+                                            values[r][11]
+                                        except:
+                                            pass
+                                        else:
+                                            print(m,values[n][0], values[j][5], values[m][10], r, values[r][11])
+                                            exDict[values[n][0]]['dates'][values[j][5]]['folders'][values[m][10]]['recordings'].update(
+                                                OrderedDict([(values[r][11], {
+                                                    'comment': {}, })]))
+                                            try:
+                                                values[r][12]
+                                            except:
+                                                pass
+                                            else:
+                                                exDict[values[n][0]]['dates'][values[j][5]]['folders'][values[m][10]]['recordings'][values[r][11]]['comment'] = values[r][12]
+                                        r += 1
                             m += 1
                 j += 1
     return exDict
