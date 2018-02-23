@@ -16,7 +16,7 @@ from tools.pyqtgraph.configfile import *
 
 
 class extractSaveData:
-    def __init__(self, mouse):
+    def __init__(self, mouse, expDate):
 
         self.h5pyTools = h5pyTools()
 
@@ -40,6 +40,11 @@ class extractSaveData:
             os.system('mount %s' % self.dataBase)
         if not os.listdir(self.analysisBase):
             os.system('mount %s' % self.analysisBase)
+
+        if int(expDate) >= 170914:
+            self.dataBase +=  'altair_data/dataMichael/'
+        else:
+            self.dataBase += 'altair_data/experiments/data_Michael/acq4/'
 
         self.analysisLocation = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsData/%s/' % mouse
         self.figureLocation   = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsFigures/%s/' % mouse
@@ -147,10 +152,7 @@ class extractSaveData:
                 print expDate, dataFolders
         folderRec = []
         for fold in dataFolders:
-            if int(expDate) >= 170914:
-                self.dataLocation = self.dataBase + 'altair_data/dataMichael/' + fold + '/'
-            else:
-                self.dataLocation = self.dataBase + 'altair_data/experiments/data_Michael/acq4/' + fold + '/'
+            self.dataLocation = self.dataBase + fold + '/'
 
             if os.path.exists(self.dataLocation):
                 print 'experiment %s exists' % fold
@@ -165,11 +167,11 @@ class extractSaveData:
         return (folderRec,dataFolders)
 
     ############################################################
-    def checkIfDeviceWasRecorded(self,recording, device):
-        recLocation = self.dataLocation + '/' + recording + '/'
-        
-        if os.path.exists(self.dataLocation):
-            print '%s exists' % recording
+    def checkIfDeviceWasRecorded(self,fold,recording, device):
+        recLocation =  self.dataBase + '/' + fold + '/' + recording + '/'
+        print recLocation
+        if os.path.exists(recLocation):
+            print '%s exists in %s' % (recording,fold)
         else:
             print 'Problem, recording does not exist'
             

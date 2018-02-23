@@ -112,7 +112,7 @@ def convertListToDict(values):
                                         except:
                                             pass
                                         else:
-                                            print(m,values[n][0], values[j][5], values[m][10], r, values[r][11])
+                                            #print(m,values[n][0], values[j][5], values[m][10], r, values[r][11])
                                             exDict[values[n][0]]['dates'][values[j][5]]['folders'][values[m][10]]['recordings'].update(
                                                 OrderedDict([(values[r][11], {
                                                     'comment': {}, })]))
