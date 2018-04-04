@@ -169,7 +169,7 @@ class extractSaveData:
     ############################################################
     def checkIfDeviceWasRecorded(self,fold,recording, device):
         recLocation =  self.dataBase + '/' + fold + '/' + recording + '/'
-        print recLocation
+        #print recLocation
         if os.path.exists(recLocation):
             print '%s exists in %s' % (recording,fold)
         else:
@@ -189,9 +189,9 @@ class extractSaveData:
             return (False,None)
 
     ############################################################
-    def readRawData(self, recording, device, fData , readRawData = True):
+    def readRawData(self, fold, recording, device, fData , readRawData = True):
 
-        recLocation = self.dataLocation + '/' + recording + '/'
+        recLocation = self.dataBase + '/' + fold + '/' + recording + '/'
         if device == 'RotaryEncoder':
             # data from activity monitor
             if len(fData['data'])==1:
@@ -208,6 +208,14 @@ class extractSaveData:
             else:
                 monitor = False
             return (angles,times,startTime,monitor)
+
+        elif device == 'AxoPatch200_2':
+            current  = fData['data'].value[0]
+            #pdb.set_trace()
+            ephysTimes = fData['info/1/values'].value
+            #imageMetaInfo = self.readMetaInformation(recLocation)
+            return (current,ephysTimes)
+
         elif device == 'Imaging':
             if readRawData:
                 frames     = fData['data'].value

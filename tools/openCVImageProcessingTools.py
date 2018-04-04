@@ -76,6 +76,7 @@ class openCVImageProcessingTools:
         xCenter = 1485
         yCenter = 1545
 
+        ########################################################################
         # loop to find correct wheel mask
         nIt = 0
         while True:

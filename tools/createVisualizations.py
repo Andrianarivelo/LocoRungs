@@ -541,6 +541,193 @@ class createVisualizations:
         plt.savefig(fname + '.pdf')
 
     ##########################################################################################
+    # cV.generateWalkEphysFigure(foldersRecordings[f][0], foldersRecordings[f][1][r], currentHP, ephysTimes , angluarSpeed, linearSpeed, sTimes, timeStamp, monitor)  # plot fluorescent traces of rois
+
+    def generateWalkEphysFigure(self, date, rec, currentHP, ephysTimes,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor,spikesconv, binnedspikes, binWidth):
+        '''
+            test
+        '''
+        startE = 2.5
+        endE = 4
+        # img = data['analyzed_data/motionCorrectedImages/timeAverage'].value
+        # ttime = data['raw_data/caImagingTime'].value
+
+        # dataSet = sima.ImagingDataset.load(self.sima_path)
+        # rois = dataSet.ROIs['stica_ROIs']
+
+        #nRois = len(rois)
+
+        #plotsPerFig = 5
+        #nFigs = int(nRois / (plotsPerFig + 1) + 1.)
+        # Extract the signals.
+        # dataSet.extract(rois,signal_channel='GCaMP6F', label='GCaMP6F_signals')
+
+        # raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
+        #deltaX = imageMetaInfo[2]
+        # deltaX = (data['raw_data/caImagingField'].value)[2]
+        #print 'deltaX ', deltaX
+
+        # figure #################################
+        fig_width = 11  # width in inches
+        fig_height = 12  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi': 600,
+                  'axes.linewidth': 1.3,
+                  'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(3, 2  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        # plt.subplots_adjust(left=0.14, right=0.92, top=0.92, bottom=0.18)
+
+        # sub-panel enumerations
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+
+        # third sub-plot #######################################################
+        #gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1], hspace=0.2)
+        # sub-panel 1 #############################################
+        ax00 = plt.subplot(gs[0])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+        #pdb.set_trace()
+        #walk_interp = interp1d(sTimes,linearSpeed)
+
+        #mask = (ttime>sTimes[0]) & (ttime<sTimes[-1])
+        #newWalking = walk_interp(ttime[mask])
+        # sTimes, ttime
+        ax00.plot(sTimes,linearSpeed)
+        #ax01.plot(ttime[mask],newWalking)
+        #ax01.plot(ttime, motionCoordinates[:, 2] * deltaX, label='y')
+
+        self.layoutOfPanel(ax00, xLabel='time (sec)', yLabel='speed (cm/s)')
+        #ax01.set_xlim(2,5)
+
+
+        # sub-panel 1 #############################################
+        ax01 = plt.subplot(gs[1])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+        #pdb.set_trace()
+        #walk_interp = interp1d(sTimes,linearSpeed)
+
+        #mask = (ttime>sTimes[0]) & (ttime<sTimes[-1])
+        #newWalking = walk_interp(ttime[mask])
+        # sTimes, ttime
+        ax01.plot(sTimes,linearSpeed)
+        ax01.plot(np.arange(len(binnedspikes))*binWidth, spikesconv/10)
+        #ax01.plot(ttime[mask],newWalking)
+        #ax01.plot(ttime, motionCoordinates[:, 2] * deltaX, label='y')
+
+        self.layoutOfPanel(ax01, xLabel='time (sec)', yLabel='speed (cm/s)')
+        ax01.set_xlim(startE, endE)
+
+        # sub-panel 1 #############################################
+        ax10 = plt.subplot(gs[2])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+        ax10.plot(ephysTimes,currentHP)
+
+
+
+
+        #ax01.plot(ttime, motionCoordinates[:, 2] * deltaX, label='y')
+
+        self.layoutOfPanel(ax10, xLabel='time (sec)', yLabel='current (A)')
+
+        # sub-panel 1 #############################################
+        ax11 = plt.subplot(gs[3])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+        ax11.plot(ephysTimes,currentHP)
+
+
+
+
+        #ax01.plot(ttime, motionCoordinates[:, 2] * deltaX, label='y')
+
+        self.layoutOfPanel(ax11, xLabel='time (sec)', yLabel='current (A)')
+
+        ax11.set_xlim(startE, endE)
+
+        # change tick spacing
+        # majorLocator_x = MultipleLocator(10)
+        # ax1.xaxis.set_major_locator(majorLocator_x)
+
+        # change legend text size
+        # leg = plt.gca().get_legend()
+        # ltext  = leg.get_texts()
+        # plt.setp(ltext, fontsize=11)
+
+        # sub-panel 1 #############################################
+        ax20 = plt.subplot(gs[4])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+        ax20.plot(np.arange(len(binnedspikes))*binWidth, spikesconv)
+
+        # ax01.plot(ttime, motionCoordinates[:, 2] * deltaX, label='y')
+
+        self.layoutOfPanel(ax20, xLabel='time (sec)', yLabel='rate (spk/sec)')
+
+        # sub-panel 1 #############################################
+        ax21 = plt.subplot(gs[5])
+
+        # title
+        # ax0.set_title('sub-plot 1')
+        ax21.plot(np.arange(len(binnedspikes))*binWidth, spikesconv)
+
+        # ax01.plot(ttime, motionCoordinates[:, 2] * deltaX, label='y')
+
+        self.layoutOfPanel(ax21, xLabel='time (sec)', yLabel='rate (spk/sec)')
+        ax21.set_xlim(startE, endE)
+        # change tick spacing
+        # majorLocator_x = MultipleLocator(10)
+        # ax1.xaxis.set_major_locator(majorLocator_x)
+
+        # change legend text size
+        # leg = plt.gca().get_legend()
+        # ltext  = leg.get_texts()
+        # plt.setp(ltext, fontsize=11)
+
+        ## save figure ############################################################
+        fname = self.determineFileName(date, 'ephys-walk_traces', reco=rec)
+
+        #plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+
+
+
+    ##########################################################################################
     def generateWalkCaCorrelationsImage(self, date, rec, img, ttime, rois, raw_signals, imageMetaInfo, motionCoordinates,angluarSpeed, linearSpeed, sTimes, timeStamp, monitor):
         '''
             test
