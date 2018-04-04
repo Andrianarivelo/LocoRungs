@@ -16,7 +16,7 @@ from tools.pyqtgraph.configfile import *
 
 
 class extractSaveData:
-    def __init__(self, mouse):
+    def __init__(self, mouse, expDate):
 
         self.h5pyTools = h5pyTools()
 
@@ -40,6 +40,11 @@ class extractSaveData:
             os.system('mount %s' % self.dataBase)
         if not os.listdir(self.analysisBase):
             os.system('mount %s' % self.analysisBase)
+
+        if int(expDate) >= 170914:
+            self.dataBase +=  'altair_data/dataMichael/'
+        else:
+            self.dataBase += 'altair_data/experiments/data_Michael/acq4/'
 
         self.analysisLocation = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsData/%s/' % mouse
         self.figureLocation   = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsFigures/%s/' % mouse
@@ -142,30 +147,31 @@ class extractSaveData:
             print mouse
             print expDate, self.listOfAllExpts[mouse]['dates']
             if expDate in self.listOfAllExpts[mouse]['dates']:
-                dataFolder = self.listOfAllExpts[mouse]['dates'][expDate]['folder']
-                print expDate, dataFolder
+                #pdb.set_trace()
+                dataFolders = self.listOfAllExpts[mouse]['dates'][expDate]['folders']
+                print expDate, dataFolders
+        folderRec = []
+        for fold in dataFolders:
+            self.dataLocation = self.dataBase + fold + '/'
 
-        if int(expDate) >= 170914:
-            self.dataLocation = self.dataBase + 'altair_data/dataMichael/' + dataFolder + '/'
-        else:
-            self.dataLocation = self.dataBase + 'altair_data/experiments/data_Michael/acq4/' + dataFolder + '/'
+            if os.path.exists(self.dataLocation):
+                print 'experiment %s exists' % fold
+            else:
+                print 'Problem, experiment does not exist'
+            #recList = OrderedDict()
+            recList = [os.path.join(o) for o in os.listdir(self.dataLocation) if os.path.isdir(os.path.join(self.dataLocation,o))]
+            #recList = glob(self.dataLocation + '*')
+            recList.sort()
+            folderRec.append([fold,recList])
 
-        if os.path.exists(self.dataLocation):
-            print 'experiment %s exists' % dataFolder
-        else:
-            print 'Problem, experiment does not exist'
-        #recList = OrderedDict()
-        recList = [os.path.join(o) for o in os.listdir(self.dataLocation) if os.path.isdir(os.path.join(self.dataLocation,o))]
-        #recList = glob(self.dataLocation + '*')
-        recList.sort()
-        return (recList,dataFolder)
+        return (folderRec,dataFolders)
 
     ############################################################
-    def checkIfDeviceWasRecorded(self,recording, device):
-        recLocation = self.dataLocation + '/' + recording + '/'
-        
-        if os.path.exists(self.dataLocation):
-            print '%s exists' % recording
+    def checkIfDeviceWasRecorded(self,fold,recording, device):
+        recLocation =  self.dataBase + '/' + fold + '/' + recording + '/'
+        #print recLocation
+        if os.path.exists(recLocation):
+            print '%s exists in %s' % (recording,fold)
         else:
             print 'Problem, recording does not exist'
             
@@ -183,9 +189,9 @@ class extractSaveData:
             return (False,None)
 
     ############################################################
-    def readRawData(self, recording, device, fData , readRawData = True):
+    def readRawData(self, fold, recording, device, fData , readRawData = True):
 
-        recLocation = self.dataLocation + '/' + recording + '/'
+        recLocation = self.dataBase + '/' + fold + '/' + recording + '/'
         if device == 'RotaryEncoder':
             # data from activity monitor
             if len(fData['data'])==1:
@@ -202,6 +208,14 @@ class extractSaveData:
             else:
                 monitor = False
             return (angles,times,startTime,monitor)
+
+        elif device == 'AxoPatch200_2':
+            current  = fData['data'].value[0]
+            #pdb.set_trace()
+            ephysTimes = fData['info/1/values'].value
+            #imageMetaInfo = self.readMetaInformation(recLocation)
+            return (current,ephysTimes)
+
         elif device == 'Imaging':
             if readRawData:
                 frames     = fData['data'].value

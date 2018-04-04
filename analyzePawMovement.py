@@ -10,12 +10,13 @@ expDate = '171115'
 #mouse = '171218_f8'
 #expDate = '180123'
 
-eSD         = extractSaveData.extractSaveData(mouse)
+eSD         = extractSaveData.extractSaveData(mouse,expDate)
 (recordings,dataFolder) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
 
 cv2Tools = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
 
-for rec in recordings:
-    (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(rec,'CameraGigEBehavior')
-    if existence:
-        cv2Tools.trackPawsAndRungs(mouse,dataFolder,rec)
+for f in range(len(recordings)) :
+    for r in recordings[f][1]:
+        (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(recordings[f][0],r,'CameraGigEBehavior')
+        if existence:
+            cv2Tools.trackPawsAndRungs(mouse,recordings[f][0],r)

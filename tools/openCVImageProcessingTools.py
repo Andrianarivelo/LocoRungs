@@ -1,6 +1,7 @@
 import cv2
 import sys
 import pdb
+import pickle
 from imutils import perspective
 from imutils import contours
 import numpy as np
@@ -75,6 +76,7 @@ class openCVImageProcessingTools:
         xCenter = 1485
         yCenter = 1545
 
+        ########################################################################
         # loop to find correct wheel mask
         nIt = 0
         while True:
@@ -236,4 +238,13 @@ class openCVImageProcessingTools:
             nF += 1
 
         cv2.destroyAllWindows()
+
+        # save tracked data
+        #(test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,'')
+        #self.h5pyTools.createOverwriteDS(grpHandle,'angularSpeed',angularSpeed,['monitor',monitor])
+        #self.h5pyTools.createOverwriteDS(grpHandle,'linearSpeed', linearSpeed)
+        #self.h5pyTools.createOverwriteDS(grpHandle,'walkingTimes', wTimes, ['startTime',startTime])
+
+        pickle.dump(pawPos, open( self.analysisLocation + '%s_%s_%s_pawLocations.p' % (mouse, date, rec), 'wb' ) )
+        pickle.dump(rungs, open( self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb' ) )
 
