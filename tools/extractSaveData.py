@@ -16,7 +16,7 @@ from tools.pyqtgraph.configfile import *
 
 
 class extractSaveData:
-    def __init__(self, mouse, expDate):
+    def __init__(self, mouse):
 
         self.h5pyTools = h5pyTools()
 
@@ -41,7 +41,7 @@ class extractSaveData:
         if not os.listdir(self.analysisBase):
             os.system('mount %s' % self.analysisBase)
 
-        if int(expDate) >= 170914:
+        if int(mouse[:6]) >= 170829:
             self.dataBase +=  'altair_data/dataMichael/'
         else:
             self.dataBase += 'altair_data/experiments/data_Michael/acq4/'
@@ -141,28 +141,34 @@ class extractSaveData:
         return (img,rois,raw_signals)
 
     ############################################################
-    def getRecordingsList(self,mouse,expDate):
+    def getRecordingsList(self,mouse,expDate=None):
 
-        if mouse in self.listOfAllExpts:
-            print mouse
-            print expDate, self.listOfAllExpts[mouse]['dates']
-            if expDate in self.listOfAllExpts[mouse]['dates']:
-                #pdb.set_trace()
-                dataFolders = self.listOfAllExpts[mouse]['dates'][expDate]['folders']
-                print expDate, dataFolders
         folderRec = []
-        for fold in dataFolders:
-            self.dataLocation = self.dataBase + fold + '/'
-
-            if os.path.exists(self.dataLocation):
-                print 'experiment %s exists' % fold
+        if mouse in self.listOfAllExpts:
+            #print mouse
+            #print expDate, self.listOfAllExpts[mouse]['dates']
+            expDateList = []
+            if expDate == None :
+                for d in self.listOfAllExpts[mouse]['dates']:
+                    expDateList.append(d)
             else:
-                print 'Problem, experiment does not exist'
-            #recList = OrderedDict()
-            recList = [os.path.join(o) for o in os.listdir(self.dataLocation) if os.path.isdir(os.path.join(self.dataLocation,o))]
-            #recList = glob(self.dataLocation + '*')
-            recList.sort()
-            folderRec.append([fold,recList])
+                expDateList.append(expDate)
+            for eD in expDateList:
+                if eD in self.listOfAllExpts[mouse]['dates']:
+                    dataFolders = self.listOfAllExpts[mouse]['dates'][eD]['folders']
+                    #print eD, dataFolders
+                    for fold in dataFolders:
+                        self.dataLocation = self.dataBase + fold + '/'
+
+                        if os.path.exists(self.dataLocation):
+                            print 'experiment %s exists' % fold
+                        else:
+                            print 'Problem, experiment does not exist'
+                        #recList = OrderedDict()
+                        recList = [os.path.join(o) for o in os.listdir(self.dataLocation) if os.path.isdir(os.path.join(self.dataLocation,o))]
+                        #recList = glob(self.dataLocation + '*')
+                        recList.sort()
+                        folderRec.append([fold,eD,recList])
 
         return (folderRec,dataFolders)
 
