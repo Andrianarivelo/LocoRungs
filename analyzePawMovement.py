@@ -16,7 +16,7 @@ eSD         = extractSaveData.extractSaveData(mouse,expDate)
 cv2Tools = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
 
 for f in range(len(recordings)) :
-    for r in recordings[f][1]:
-        (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(recordings[f][0],r,'CameraGigEBehavior')
+    or r in range(len(foldersRecordings[f][1])): # for r in recordings[f][1]:
+        (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(recordings[f][0],foldersRecordings[f][1][r],'CameraGigEBehavior')
         if existence:
-            cv2Tools.trackPawsAndRungs(mouse,recordings[f][0],r)
+            cv2Tools.trackPawsAndRungs(mouse,recordings[f][0],foldersRecordings[f][1][r])
