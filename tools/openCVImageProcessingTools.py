@@ -161,16 +161,17 @@ class openCVImageProcessingTools:
         # print wheelMask
         maxStep = 40
         maxStepCurrent = maxStep
-        nF = 1
+
         rungs = []
         frontpawPos = []
         hindpawPos = []
-        # append first paw postions to list : number of image, idendity 'front' or 'hind', , position, area
-        frontpawPos.append([0, bboxFront[:2], [], np.pi * bboxFront[2] * bboxFront[3] / 4.])
-        hindpawPos.append([0, bboxHind[:2], [], np.pi * bboxHind[2] * bboxHind[3] / 4.])
+        # append first paw postions to list : [0 number of image, 1 success or failure, 2 location of paw, 3 all roi - ellipse - info, 4 area ]
+        frontpawPos.append([0, 's', bboxFront[:2], [], np.pi * bboxFront[2] * bboxFront[3] / 4.])
+        hindpawPos.append([0, 's', bboxHind[:2], [], np.pi * bboxHind[2] * bboxHind[3] / 4.])
         #hindPawPos.append([0, [], bboxHind[:2], np.pi * bboxHind[2] * bboxHind[3] / 4.])
         fcheckPos = -1
         hcheckPos = -1
+        nF = 1
         # loop over all images in video
         while True:
             # Read a new frame
@@ -179,7 +180,7 @@ class openCVImageProcessingTools:
             if not ok:
                 break
             orig = img.copy()
-            #orig2 = img.copy()
+            origCL = img.copy()
             #orig3 = img.copy()
             # while (1):
             # ret, frame = cap.read()
@@ -188,30 +189,44 @@ class openCVImageProcessingTools:
             imgInv = cv2.bitwise_and(img, img, mask=wheelMaskInv)
             imgMouse = cv2.bitwise_and(img, img, mask=wheelMask)
 
-            ###############################################################################################
-            # find location of rungs
             # convert image to gray-scale
             imgGWheel = cv2.cvtColor(imgInv, cv2.COLOR_BGR2GRAY)
+            imgGMouse = cv2.cvtColor(imgMouse, cv2.COLOR_BGR2GRAY)
+            ###############################################################################################
+            # find location of rungs
+
+
             # find circles in the lower part of the image, i.e., find screws to determine paw positions,
             circles = cv2.HoughCircles(imgGWheel, cv2.HOUGH_GRADIENT, 1, minDist=22, param1=50, param2=20, minRadius=30, maxRadius=40)
             if circles is not None:
                 circles = np.uint16(np.around(circles))
                 for i in circles[0, :]:
                     # draw the outer circle
-                    cv2.circle(imgInv, (i[0], i[1]), i[2], (0, 255, 0), 2)
+                    cv2.circle(origCL, (i[0], i[1]), i[2], (0, 255, 0), 2)
                     # draw the center of the circle
-                    cv2.circle(imgInv, (i[0], i[1]), 2, (0, 0, 255), 3)
+                    cv2.circle(origCL, (i[0], i[1]), 2, (0, 0, 255), 3)
                     #cv2.circle(orig3, (i[0], i[1]), 2, (0, 0, 255), 3)
                     #cv2.line(imgInv, (i[0], i[1]), (500, -20), (255, 0, 0), 3)
                     rungs.append([nF, i[0], i[1], 500, -20])
-                if self.showImages:
-                    cv2.imshow('detected circles', imgInv)
+            # find lines in the upper part of the image, i.e., the rungs
+            #edges = cv2.Canny(imgGMouse,10,150,apertureSize = 3)
+            #minLineLength = 50
+            #maxLineGap = 10
+            #cv2.imshow('edges detection', edges)
+            #pdb.set_trace()
+            #lines = cv2.HoughLinesP(edges,1,np.pi/(2*180),50,minLineLength,maxLineGap)
+            #if lines is not None:
+            #    for x1,y1,x2,y2 in lines[0]:
+            #        cv2.line(origCL,(x1,y1),(x2,y2),(0,255,0),2)
+
+            self.outPawRung.write(origCL)
+            if self.showImages:
+                cv2.imshow('detected circles', origCL)
 
             #################################################################################################
             # find contours based on maximal illumination
 
             # blur image and apply threshold
-            imgGMouse = cv2.cvtColor(imgMouse, cv2.COLOR_BGR2GRAY)
             blur = cv2.GaussianBlur(imgGMouse, (5, 5), 0)
             minMaxL = cv2.minMaxLoc(blur)
             while True:
@@ -268,28 +283,47 @@ class openCVImageProcessingTools:
                 #pdb.set_trace()
                 for i in range(len(rois)):
                     cornerDist.append(dist.euclidean((0,self.Vheight), rois[i][0][0]))
-                    frontDist.append(dist.euclidean(frontpawPos[-1][1], rois[i][0][0]))
-                    hindDist.append(dist.euclidean(hindpawPos[-1][1], rois[i][0][0]))
+                    frontDist.append(dist.euclidean(frontpawPos[fcheckPos][2], rois[i][0][0]))
+                    hindDist.append(dist.euclidean(hindpawPos[hcheckPos][2], rois[i][0][0]))
+                #
                 if len(cornerDist) == 2:
                     hindIdx =  np.argmin(np.asarray(cornerDist))
                     frontIdx = np.argmax(np.asarray(cornerDist))
                 else :
                     hindIdx = np.argmin(np.asarray(hindDist))
                     frontIdx = np.argmin(np.asarray(frontDist))
-                print 'front, hind index ', frontIdx, hindIdx
+                #print 'front, hind index ', frontIdx, hindIdx
                 #pdb.set_trace()
-                frontpawPos.append([nF, rois[frontIdx][0][0],rois[frontIdx], 0.1 ])
-                hindpawPos.append([nF, rois[hindIdx][0][0], rois[frontIdx], 0.1] )
+                if (frontDist[frontIdx] < abs(fcheckPos) * 50.):
+                    print 'frontDist success : ', frontDist[frontIdx],
+                    frontpawPos.append([nF,'s',rois[frontIdx][0][0],rois[frontIdx][0],rois[frontIdx][1]])
+                    fcheckPos = -1
+                else:
+                    print 'frontDist failure : ', frontDist[frontIdx],
+                    frontpawPos.append([nF,'f',rois[frontIdx][0][0],rois[frontIdx][0],rois[frontIdx][1]])
+                    fcheckPos -= 1
+                if (hindDist[hindIdx] < abs(hcheckPos) * 50.):
+                    print 'hindDist success : ', hindDist[hindIdx],
+                    hindpawPos.append([nF, 's', rois[hindIdx][0][0], rois[hindIdx],rois[hindIdx][1]] )
+                    hcheckPos = -1
+                else:
+                    print 'hindDist failure : ', hindDist[hindIdx],
+                    hindpawPos.append([nF, 'f', rois[hindIdx][0][0], rois[hindIdx],rois[hindIdx][1]] )
+                    hcheckPos -=1
                 ##
-                orig = cv2.ellipse(orig, rois[frontIdx][0], (0, 255, 0), 2)
+                if self.showImages:
+                    cv2.putText(orig,'frontpaw',(10,30),cv2.FONT_HERSHEY_SIMPLEX,1,color=(0, 255, 0))
+                    orig = cv2.ellipse(orig, rois[frontIdx][0], (0, 255, 0), 2)
                 #print 'hind ',
                 #dret = decideonAndAddPawPositions(hindpawPos, hcheckPos, rois)
                 #hindpawPos.append(dret[1])
                 #hcheckPos += dret[0]
                 #if not dret[0]:
-                orig = cv2.ellipse(orig, rois[hindIdx][0], (0, 0, 255), 2)
+                if self.showImages:
+                    cv2.putText(orig,'hindpaw',(10,60),cv2.FONT_HERSHEY_SIMPLEX,1,color=(0, 0, 255))
+                    orig = cv2.ellipse(orig, rois[hindIdx][0], (0, 0, 255), 2)
                 # pdb.set_trace()
-                print '\n'
+                print ' '
                 #Dchange = abs(np.asarray(cntDistances))
                 #Achange = abs(np.asarray(cntArea) / pawPos[checkPos][3] - 1.) * 100.  # in percent
                 #DWeight = 0.5
@@ -339,13 +373,14 @@ class openCVImageProcessingTools:
 
             else:
                 print 'failure no rois'
-                frontpawPos.append([nF, -1, -1])
-                hindpawPos.append([nF,-1, -1])
+                frontpawPos.append([nF, 'f', -1, -1, -1])
+                hindpawPos.append([nF,'f', -1, -1, -1])
                 fcheckPos -= 1
                 hcheckPos -= 1
             # show image with all detected rois, and rois decided to be paws
+            self.outPaw.write(orig)
             if self.showImages:
-                cv2.imshow("Image", orig)
+                cv2.imshow("Paw-tracking monitor", orig)
 
             # wait and abort criterion, 'esc' allows to stop
             k = cv2.waitKey(1) & 0xff

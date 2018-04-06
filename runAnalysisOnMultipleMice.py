@@ -6,13 +6,27 @@ import os
 import commands
 import time
 import pickle
+import multiprocessing
 
 saveDir = 'scriptRunHistory/'
 
-mouseList = ['180107_m27',
-             '180107_f28',
-             '180107_f29',
-             '171227_m96',
+mouseList = [#'180107_m27',
+             #'180107_f28',
+             #'180107_f29',
+             #'171227_m96',
+             '171215_m2',
+             '180112_m33',
+             '180112_f36 ',
+             '180124_f1',
+             '180131_f2',
+             '180201_f48',
+             '180201_f49',
+             '180203_f40',
+             '180203_f41',
+             '180201_m42',
+             '180201_m43',
+             '180201_m44',
+             '180201_m45',
              ]
 
 script = 'getRawBehaviorImagesSaveVideo'
@@ -33,8 +47,8 @@ for m in mouseList:
             print comandString
             #tp = os.system('pwd')
             #print tp
-            #(out,err) = commands.getstatusoutput(comandString)
-            #commandHist.append([comandString,out,err])
+            (out,err) = commands.getstatusoutput(comandString)
+            commandHist.append([comandString,out,err])
             #pdb.set_trace()
 
 ttt = time.strftime("%y-%m-%d")
