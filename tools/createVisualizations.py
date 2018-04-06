@@ -1106,23 +1106,23 @@ class createVisualizations:
         ax10 = plt.subplot(gssub1[0])
         ax11 = plt.subplot(gssub1[1])
         ax10.axhline(y=0,ls='--',c='0.5')
-        if nFigs > 1:
+        if nFigs >= 1:
             gssub2 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[2], hspace=0.2)
             ax20 = plt.subplot(gssub2[0])
             ax21 = plt.subplot(gssub2[1])
             #ax11 = plt.subplot(gs[2])
             ax20.axhline(y=0,ls='--',c='0.5')
-        if nFigs > 2:
+        if nFigs >= 2:
             gssub3 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[3], hspace=0.2)
             ax30 = plt.subplot(gssub3[0])
             ax31 = plt.subplot(gssub3[1])
             ax30.axhline(y=0,ls='--',c='0.5')
-        if nFigs > 3:
+        if nFigs >= 3:
             gssub4 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[4], hspace=0.2)
             ax40 = plt.subplot(gssub4[0])
             ax41 = plt.subplot(gssub4[1])
             ax40.axhline(y=0,ls='--',c='0.5')
-        if nFigs > 4:
+        if nFigs >= 4:
             gssub5 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[5], hspace=0.2)
             ax50 = plt.subplot(gssub5[0])
             ax51 = plt.subplot(gssub5[1])
@@ -1212,6 +1212,7 @@ class createVisualizations:
 
         plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
+        plt.close()
 
     ##########################################################################################
     def generateROIAndEphysImage(self,data,fileName,stim=False):
