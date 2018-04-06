@@ -177,7 +177,7 @@ class extractSaveData:
         recLocation =  self.dataBase + '/' + fold + '/' + recording + '/'
         #print recLocation
         if os.path.exists(recLocation):
-            print '%s exists in %s' % (recording,fold)
+            print '%s exists in %s , ' % (recording,fold),
         else:
             print 'Problem, recording does not exist'
             
@@ -189,15 +189,23 @@ class extractSaveData:
 
         if os.path.isfile(pathToFile):
             fData = h5py.File(pathToFile,'r')
-            return (True,fData)
+            try:
+                kk = fData['data']
+            except KeyError:
+                print 'Device %s was acquired but NO data exists' % device
+                return (False,None)
+            else:
+                print 'Device %s was acquired' % device
+                return (True,fData)
         else:
-            print 'device %s was not acquired during recording %s' % (device,recording)
+            print 'Device %s was NOT acquired' % device
             return (False,None)
 
     ############################################################
     def readRawData(self, fold, recording, device, fData , readRawData = True):
 
         recLocation = self.dataBase + '/' + fold + '/' + recording + '/'
+        print recLocation
         if device == 'RotaryEncoder':
             # data from activity monitor
             if len(fData['data'])==1:

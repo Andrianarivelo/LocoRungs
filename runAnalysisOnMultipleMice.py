@@ -25,14 +25,18 @@ for m in mouseList:
     (recordings,dataFolder) = eSD.getRecordingsList(m) # get recordings for specific mouse and date
     # loop over recording dates of the current mouse
     for n in range(len(recordings)):
-        comandString = 'python %s.py -m %s -d %s' % (script,m,recordings[n][1])
-        print comandString
-        #tp = os.system('pwd')
-        #print tp
-        (out,err) = commands.getstatusoutput(comandString)
-        commandHist.append([comandString,out,err])
-        #pdb.set_trace()
+        # two or more recordings on the same day appear as two entries in recordings, can be skipped here
+        if (n>0) and (recordings[n-1][1] == recordings[n][1]):
+            continue
+        else:
+            comandString = 'python %s.py -m %s -d %s' % (script,m,recordings[n][1])
+            print comandString
+            #tp = os.system('pwd')
+            #print tp
+            #(out,err) = commands.getstatusoutput(comandString)
+            #commandHist.append([comandString,out,err])
+            #pdb.set_trace()
 
 ttt = time.strftime("%y-%m-%d")
 sname = os.path.basename(__file__)
-pickle.dump( commandHist, open( saveDir+"%s_runOf_%s.p" % (ttt,sname), "wb" ) )
+pickle.dump( commandHist, open( saveDir+"%s_%s_script-%s.p" % (ttt,sname,script), "wb" ) )
