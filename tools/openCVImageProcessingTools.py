@@ -7,6 +7,8 @@ from imutils import contours
 import numpy as np
 import imutils
 from scipy.spatial import distance as dist
+from scipy import optimize
+import math
 
 (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
 
@@ -30,48 +32,6 @@ class openCVImageProcessingTools:
     ############################################################
     def trackPawsAndRungs(self,mouse,date,rec):
 
-        def decideonAndAddPawPositions(pawPos,checkPos,rois):
-            cntDistances = []
-            cntArea = []
-            #pdb.set_trace()
-            for i in range(len(rois)):
-                cntDistances.append(dist.euclidean(pawPos[checkPos][2], rois[i][0][0]))
-                cntArea.append(rois[i][1])
-            # lockBack = (3 if len(pawPos)>=3 else len(pawPos))
-            # print lockBack
-            # pdb.set_trace()
-            # pd = [pawPos[i][3] for i in range(-lockBack,0)]
-            # print pd
-            # Aslope, Aintercept,_,_,_ = stats.linregress(range(lockBack),[pawPos[i][3] for i in range(-lockBack,0)])
-            # Dslope, Dintercept,_,_,_ = stats.linregress(range(lockBack),[pawPos[i][2] for i in range(-lockBack,0)])
-            # Aprojection = (lockBack+1.)*Aslope + Aintercept
-            # Dprojection = (lockBack+1.)*Dslope + Dintercept
-            # Aindex = np.argmin(abs(np.asarray(cntArea)-Aprojection))
-            Dchange = abs(np.asarray(cntDistances))
-            Achange = abs(np.asarray(cntArea) / pawPos[checkPos][3] - 1.) * 100.  # in percent
-            DWeight = 0.9
-            #print checkPos, Dchange, Achange,
-            Pindex = np.argmin(DWeight * Dchange + (1. - DWeight) * Achange)
-            # Dindex = np.argmin(abs(np.asarray(cntDistances)-Dprojection))
-            # print Dindex, Dprojection, pawPos[-2:]
-            # if abs(cntArea[Dindex]/pawPos[-1][3] - 1.) < 0.2:
-            # print cntDistances[Aindex]
-            if (Dchange[Pindex] < abs(checkPos) * 60.) and (Achange[Pindex] < abs(checkPos) * 200.):
-                print 'success', Pindex, Dchange[Pindex], Achange[Pindex],
-                return (0,[nF, rois[Pindex][0], rois[Pindex][0][0], cntArea[Pindex]])
-                #pawPos.append([nF, rois[Pindex], rois[Pindex][0], cntArea[Pindex]])
-
-                # orig2 = cv2.ellipse(orig2, rois[Pindex], (0, 255, 0), 2)
-                # orig3 = cv2.ellipse(orig3, rois[Pindex], (0, 255, 0), 2)
-                checkPos = -1  # pointLoc = rois[Dindex][0]  # maxStepCurrent = maxStep
-            else:
-                print 'failure', Pindex, Dchange[Pindex], Achange[Pindex],
-                return (1,[nF,-1, -1, -1])
-                #pawPos.append([nF, '', -1, -1, -1])
-                #checkPos -= 1
-
-        #################################################################################
-
         # tracking parameters #########################
         self.thresholdValue = 0.7 # in %
         self.minContourArea = 40 # square pixels
@@ -86,7 +46,6 @@ class openCVImageProcessingTools:
         self.Vfps = self.video.get(cv2.CAP_PROP_FPS)
 
         print 'Video properties : %s frames, %s pixels width, %s pixels height, %s fps' % (self.Vlength, self.Vwidth, self.Vheight, self.Vfps)
-
         if not self.video.isOpened():
             print "Could not open video"
             sys.exit()
@@ -114,12 +73,12 @@ class openCVImageProcessingTools:
         # Return an array representing the indices of a grid.
         imgGrid = np.indices((self.Vheight, self.Vwidth))
 
-        Radius = 1500 # 1400
-        xCenter = 1205 #1485
-        yCenter = 1625 #1545
-
         ########################################################################
         # loop to find correct wheel mask
+        Radius = 1500  # 1400
+        xCenter = 1205  # 1485
+        yCenter = 1625  # 1545
+
         nIt = 0
         while True:
 
@@ -130,7 +89,7 @@ class openCVImageProcessingTools:
                 #cv2.putText(imgCircle,'now',(10,10),color=(0, 0, 255))
                 #cv2.putText(imgCircle,'before',(10,20),fontScale=4,color=(0, 0, 150),thickness=2)
             cv2.imshow("Wheel mask %s" % nIt , imgCircle)
-            cv2.waitKey(1000)
+            cv2.waitKey(2000)
             print 'current radius, xCenter, yCenter : ' , Radius, xCenter, yCenter
             var = raw_input("Enter new radius, xCenter, yCenter coordinates (separated by commas), otherwise press 'k' : ")
             #print "you entered", var
@@ -158,11 +117,55 @@ class openCVImageProcessingTools:
         wheelMask = np.array(wheelMask, dtype=np.uint8)
         wheelMaskInv = np.array(wheelMaskInv, dtype=np.uint8)
 
-        # print wheelMask
-        maxStep = 40
-        maxStepCurrent = maxStep
+        ########################################################################
+        xPosition = 190
+        yPosition = 0
 
-        rungs = []
+        # loop to find correct rung lines
+        imgInv = cv2.bitwise_and(img, img, mask=wheelMaskInv)
+        # convert image to gray-scale
+        imgGWheel = cv2.cvtColor(imgInv, cv2.COLOR_BGR2GRAY)
+        nIt = 0
+        while True:
+            rungs = []
+            imgLines = imgCircle.copy()
+            circles = cv2.HoughCircles(imgGWheel, cv2.HOUGH_GRADIENT, 1, minDist=150, param1=50, param2=15, minRadius=30, maxRadius=40)
+            if circles is not None:
+                circles = np.uint16(np.around(circles))
+                cLoc = []
+                for i in circles[0, :]:
+                    # draw the outer circle
+                    cv2.circle(imgLines, (i[0], i[1]), i[2], (0, 255, 0), 2)
+                    # draw the center of the circle
+                    cv2.circle(imgLines, (i[0], i[1]), 2, (0, 0, 255), 3)
+                    # cv2.circle(orig3, (i[0], i[1]), 2, (0, 0, 255), 3)
+                    cv2.line(imgLines, (i[0], i[1]), (xPosition,yPosition), (255, 0, 0), 2)
+                    rungs.append([0, i[0], i[1], xPosition, yPosition])
+                    if nIt > 0:
+                        cv2.line(imgLines, (i[0], i[1]), (oldxPosition, oldyPosition), (100, 0, 0), 2)
+                    cLoc.append([i[0],i[1]])
+            cLoc =np.asarray(cLoc)
+            a = np.sum(np.sqrt((cLoc[0]-cLoc[1])**2)) #np.linalg.norm(cLoc[0]-cLoc[1])
+            b = np.sum(np.sqrt((cLoc[0]-cLoc[2])**2))
+            c = np.sum(np.sqrt((cLoc[1]-cLoc[2])**2))
+            #pdb.set_trace()
+            print 'argLengths : ', a ,b, c
+            cv2.imshow("Wheel mask %s" % nIt, imgLines)
+            cv2.waitKey(2000)
+            print 'current xPosition, yPostion : ', xPosition, yPosition
+            var = raw_input("Enter new xPostion, yPosition coordinates (separated by commas), otherwise press 'k' : ")
+            # print "you entered", var
+            if var == 'k':
+                cv2.destroyWindow("Wheel mask %s" % (nIt))
+                break
+            else:
+                (oldxPosition, oldyPosition) = (xPosition, yPosition)
+                (xPosition, yPosition) = map(int, var.split(','))
+                nIt += 1
+                cv2.destroyWindow("Wheel mask %s" % (nIt - 1))  # if nIt >= 2:  #    cv2.destroyWindow("Wheel mask %s" % (nIt-1))
+
+        #########################################################################
+
         frontpawPos = []
         hindpawPos = []
         # append first paw postions to list : [0 number of image, 1 success or failure, 2 location of paw, 3 all roi - ellipse - info, 4 area ]
@@ -197,7 +200,7 @@ class openCVImageProcessingTools:
 
 
             # find circles in the lower part of the image, i.e., find screws to determine paw positions,
-            circles = cv2.HoughCircles(imgGWheel, cv2.HOUGH_GRADIENT, 1, minDist=22, param1=50, param2=20, minRadius=30, maxRadius=40)
+            circles = cv2.HoughCircles(imgGWheel, cv2.HOUGH_GRADIENT, 1, minDist=150, param1=50, param2=15, minRadius=30, maxRadius=40)
             if circles is not None:
                 circles = np.uint16(np.around(circles))
                 for i in circles[0, :]:
@@ -206,8 +209,8 @@ class openCVImageProcessingTools:
                     # draw the center of the circle
                     cv2.circle(origCL, (i[0], i[1]), 2, (0, 0, 255), 3)
                     #cv2.circle(orig3, (i[0], i[1]), 2, (0, 0, 255), 3)
-                    #cv2.line(imgInv, (i[0], i[1]), (500, -20), (255, 0, 0), 3)
-                    rungs.append([nF, i[0], i[1], 500, -20])
+                    cv2.line(origCL, (i[0], i[1]), (xPosition, yPosition), (255, 0, 0), 3)
+                    rungs.append([nF, i[0], i[1], xPosition, yPosition])
             # find lines in the upper part of the image, i.e., the rungs
             #edges = cv2.Canny(imgGMouse,10,150,apertureSize = 3)
             #minLineLength = 50
@@ -373,8 +376,8 @@ class openCVImageProcessingTools:
 
             else:
                 print 'failure no rois'
-                frontpawPos.append([nF, 'f', -1, -1, -1])
-                hindpawPos.append([nF,'f', -1, -1, -1])
+                frontpawPos.append([nF, 'f', [-1,-1], -1, -1])
+                hindpawPos.append([nF,'f', [-1,-1], -1, -1])
                 fcheckPos -= 1
                 hcheckPos -= 1
             # show image with all detected rois, and rois decided to be paws
@@ -399,4 +402,216 @@ class openCVImageProcessingTools:
         pickle.dump(frontpawPos, open(self.analysisLocation + '%s_%s_%s_frontpawLocations.p' % (mouse, date, rec), 'wb'))
         pickle.dump(hindpawPos, open(self.analysisLocation + '%s_%s_%s_hindpawLocations.p' % (mouse, date, rec), 'wb'))
         pickle.dump(rungs, open( self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb' ) )
+
+    ########################################################################################################################
+    # frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes
+    def analyzePawsAndRungs(self,mouse,date,rec,frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes):
+
+        spacingDegree = 6.81 #360./48.
+
+        rungs = np.asarray(rungs)
+
+        fp = np.array([-1,-1,-1])
+        hp = np.array([-1,-1,-1])
+        for i in range(len(frontpawPos)):
+            #if frontpawPos[i][1] == 's':
+            #print i, frontpawPos[i]
+            fp = np.row_stack((fp,np.array([frontpawPos[i][0],frontpawPos[i][2][0],frontpawPos[i][2][1]])))
+        for i in range(len(hindpawPos)):
+            hp = np.row_stack((hp, np.array([hindpawPos[i][0], hindpawPos[i][2][0], hindpawPos[i][2][1]])))
+
+        fp = fp[1:]
+        hp = hp[1:]
+
+        #pdb.set_trace()
+        ################################################################################
+        # fit circle to points of rungscrews
+
+        x = np.r_[rungs[:,1]]
+        y = np.r_[rungs[:,2]]
+
+        def calc_R(xc, yc):
+            """ calculate the distance of each data points from the center (xc, yc) """
+            return np.sqrt((x - xc) ** 2 + (y - yc) ** 2)
+
+        def f_2b(c):
+            """ calculate the algebraic distance between the 2D points and the mean circle centered at c=(xc, yc) """
+            Ri = calc_R(*c)
+            return Ri - Ri.mean()
+
+        def Df_2b(c):
+            """ Jacobian of f_2b
+            The axis corresponding to derivatives must be coherent with the col_deriv option of leastsq"""
+            xc, yc = c
+            df2b_dc = np.empty((len(c), x.size))
+
+            Ri = calc_R(xc, yc)
+            df2b_dc[0] = (xc - x) / Ri  # dR/dxc
+            df2b_dc[1] = (yc - y) / Ri  # dR/dyc
+            df2b_dc = df2b_dc - df2b_dc.mean(axis=1)[:, np.newaxis]
+
+            return df2b_dc
+
+        center_estimate = [600,600]
+        center_2b, ier = optimize.leastsq(f_2b, center_estimate, Dfun=Df_2b, col_deriv=True)
+
+        xc_2b, yc_2b = center_2b
+        Ri_2b = calc_R(*center_2b)
+        R_2b = Ri_2b.mean()
+
+        print 'Center, Radius of fitted circle : ', center_2b, R_2b
+
+        ###########################################################
+        # exclude points which are too far away from the circle fit line
+        inclP = abs((Ri_2b - R_2b)) < 25
+        rungs = rungs[inclP]
+
+        ############################################################
+        # fit list of points on a circle to the actual extracted points:
+        # determine rotation angle and count rungs
+        def angle_between(p1, p2):
+            ang1 = np.arctan2(*p1[::-1])
+            ang2 = np.arctan2(*p2[::-1])
+            return np.rad2deg((ang1 - ang2) % (2 * np.pi))
+
+        def contructCloudOfPointsOnCircle(nPoints,circleCenter,circleRadius,spacingDegree):
+            cPoints = np.zeros((nPoints,3))
+            for i in range(nPoints):
+                cPoints[i,0] = i
+                cPoints[i,1] = circleCenter[0] + np.sin(i*spacingDegree*np.pi/180.)*circleRadius
+                cPoints[i,2] = circleCenter[1] - np.cos(i*spacingDegree*np.pi/180.)*circleRadius
+            return cPoints
+
+        def calculateDist(a,b):
+            return np.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
+        def rotate_around_point(xy, degrees, origin=(0, 0)):
+            """Rotate a point around a given point.
+            """
+            x, y = xy
+            offset_x, offset_y = origin
+            adjusted_x = (x - offset_x)
+            adjusted_y = (y - offset_y)
+            cos_rad = math.cos(degrees*np.pi/180.)
+            sin_rad = math.sin(degrees*np.pi/180.)
+            qx = offset_x + cos_rad * adjusted_x + sin_rad * adjusted_y
+            qy = offset_y - sin_rad * adjusted_x + cos_rad * adjusted_y
+
+            return ([qx, qy])
+
+
+        def fitfunc(d,wheelPoints,genericPoints):
+            genericRotated = genericPoints.copy()
+            distances = np.zeros(len(genericPoints))
+            for i in range(len(genericPoints)):
+                genericRotated[i] = rotate_around_point(genericPoints[i],d,origin=center_2b)
+                distances[i] = calculateDist(genericRotated[i],wheelPoints[i])
+            return np.sum(np.abs(distances))
+
+
+        rungsList = rungs.tolist()
+        rungsList.sort(key=lambda x: x[2])
+        rungsList.sort(key=lambda x: x[1])
+        rungsList.sort(key=lambda x: x[0])
+        rungsSorted = np.asarray(rungsList)
+
+        # determine first angle in first image
+        ppFFirst = rungsSorted[rungsSorted[:,0]==0][:,1:3]
+        genericPs = contructCloudOfPointsOnCircle(len(ppFFirst),center_2b,R_2b,spacingDegree)
+        d0 = -0.5
+        d1, success = optimize.leastsq(fitfunc, d0,args=(ppFFirst,genericPs[:,1:]))
+
+        # loop over all frames - via frameNumbers - not individual points
+        frameNumbers = np.unique(rungsSorted[:,0])
+        dOld = d1
+        rungsNumbered = []
+        rungCounter = 0
+        #videoFileName = self.analysisLocation + '%s_%s_%s_pawRungTracking.avi' % (mouse, date, rec)
+        #self.video = cv2.VideoCapture(videoFileName)
+        aBtw = []
+        dD  = []
+        for i in range(len(frameNumbers)):
+            #ok, img = self.video.read()
+
+            # determine points per frame
+            ppF = rungsSorted[rungsSorted[:,0]==frameNumbers[i]][:,1:3]
+
+            # for n in range(1,len(ppF)):
+            #     #print angle_between(ppF[n]-center_2b,ppF[n-1]-center_2b),
+            #     aBtw.append(angle_between(ppF[n]-center_2b,ppF[n-1]-center_2b))
+
+            genericPs = contructCloudOfPointsOnCircle(len(ppF),center_2b,R_2b,spacingDegree)
+            d1, success = optimize.leastsq(fitfunc, d0,args=(ppF,genericPs[:,1:]))
+            degreeDifference = d1-dOld
+            if degreeDifference < -5.:
+                rungCounter +=1
+                degreeDifference += spacingDegree
+            if degreeDifference > 5.:
+                rungCounter -=1
+                degreeDifference -= spacingDegree
+            dD.append(degreeDifference[0])
+            rungsNumbered.append([i,frameNumbers[i],len(ppF),d1,degreeDifference[0],rungCounter,np.arange(len(ppF))+rungCounter,ppF])
+
+            #for n in range(len(ppF)):
+            # if i in [836,837,838]:
+            #     print i
+            #     for n in range(len(ppF)):
+            #         cv2.putText(img,'%s' % (n+rungCounter),(ppF[n,0],ppF[n,1]),cv2.FONT_HERSHEY_SIMPLEX,2,color=(0, 0, 255))
+            #
+            #     cv2.imshow("Paw-tracking monitor", img)
+            #     # wait and abort criterion, 'esc' allows to stop
+            #     k = cv2.waitKey(0) & 0xff
+            #     if k == 27: break
+            dOld = d1
+            #if degreeDifference[0] > 1:
+            #    print i,frameNumbers[i], len(ppF), d1, degreeDifference, np.arange(len(ppF))+rungCounter #, ppF
+
+            #if i == 30 :
+            #    pdb.set_trace()
+        #pdb.set_trace()
+
+        ###################################################################
+        # substract rotation
+
+
+
+        degreesTurned = 0.
+        fpLinear = []
+        hpLinear = []
+        #pdb.set_trace()
+        fInitial = fp[0][1:]
+        hInitial = hp[0][1:]
+        rotationsHP = 0.
+        rotationsFP = 0.
+        oldAfp = 0.
+        oldAhp = 0.
+        for i in range(len(frameNumbers)):
+            fpMask = fp[:,0]==frameNumbers[i]
+            hpMask = hp[:,0]==frameNumbers[i]
+            degreesTurned  += rungsNumbered[i][4]
+            #pdb.set_trace()
+            rfp = rotate_around_point(fp[fpMask][:,1:][0],-degreesTurned,center_2b)
+            rhp = rotate_around_point(hp[hpMask][:,1:][0],-degreesTurned,center_2b)
+
+            afp = angle_between(rfp-center_2b,fInitial-center_2b)
+            if oldAfp > 300. and afp < 100. :
+                rotationsFP +=1.
+            elif oldAfp < 100. and afp > 300. :
+                rotationsFP -=1.
+            dfp = (rotationsFP + afp/360.)*80.
+            ahp = angle_between(rhp-center_2b,hInitial-center_2b)
+            if oldAhp > 300. and ahp < 100. :
+                rotationsHP +=1.
+            elif oldAhp < 100. and ahp > 300. :
+                rotationsHP -=1.
+            dhp = (rotationsHP + ahp/360.)*80.
+            # rotational coordinates to straight motion : distance is y
+            fpLinear.append([frameNumbers[i],dfp,calculateDist(rfp,center_2b)-R_2b,degreesTurned])
+            hpLinear.append([frameNumbers[i],dhp,calculateDist(rhp,center_2b)-R_2b,degreesTurned])
+            print i,degreesTurned,afp,dfp,ahp,dhp, rotationsFP, rotationsHP
+            oldAfp = afp
+            oldAhp = ahp
+
+        #cpdb.set_trace()
+        return (fp,hp,rungs,center_2b, R_2b,rungsNumbered,np.asarray(fpLinear),np.asarray(hpLinear))
 

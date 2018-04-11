@@ -2254,3 +2254,138 @@ class createVisualizations:
         plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
 
+    ##########################################################################################
+    def generatePawMovementFigure(self,date,rec, fp, hp,rungs,fTimes,centerR,radius,rungsNumbered,fpLinear,hpLinear,linearSpeed,sTimes):
+        yMax = 816
+        xMax = 616
+
+        #pdb.set_trace()
+        # figure #################################
+        fig_width = 16  # width in inches
+        fig_height = 24  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi': 600,
+                  'axes.linewidth': 1.3,
+                  'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(4, 2  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        # plt.subplots_adjust(left=0.14, right=0.92, top=0.92, bottom=0.18)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.92, '%s   %s   %s' % (self.mouse,date,rec) ,clip_on=False,color='black',size=14)
+
+        # first sub-plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax0 = plt.subplot(gs[0])
+
+        ax0.plot(fp[:,1],yMax-fp[:,2])
+        ax0.plot(fp[:,1],yMax-fp[:,2],'.')
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax0,xLabel=r'x (pixel)',yLabel=r'y (pixel)')
+
+        # first sub-plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax1 = plt.subplot(gs[1])
+
+        ax1.plot(hp[:,1],yMax-hp[:,2])
+        ax1.plot(hp[:,1],yMax-hp[:,2],'.')
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax1,xLabel=r'x (pixel)',yLabel=r'y (pixel)')
+
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax2 = plt.subplot(gs[2])
+
+        ax2.plot(fTimes, fpLinear[:,1],label='fp')
+        ax2.plot(fTimes, hpLinear[:,1],label='hp')
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax2, xLabel=r'time (s)', yLabel=r'forward motion (cm)',Leg=[1,9])
+        ax2.set_xlim(3,8)
+        ax2.set_ylim(8,40)
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax4 = plt.subplot(gs[4])
+
+        ax4.plot(fTimes, fpLinear[:,2])
+        ax4.plot(fTimes, fpLinear[:,2])
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax4, xLabel=r'time (s)', yLabel=r'frontpaw y (pixel)')
+        ax4.set_xlim(5,10)
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax3 = plt.subplot(gs[3])
+
+        ax3.plot(fTimes,fpLinear[:,2])
+        ax3.plot(fTimes,hpLinear[:,2])
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax3, xLabel=r'time (s)', yLabel=r'hindpaw x (pixel)')
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax5 = plt.subplot(gs[5])
+
+        ax5.plot(fTimes, hpLinear[:,2])
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax5, xLabel=r'time (s)', yLabel=r'hindpaw y (pixel)')
+
+        # first sub-plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+
+        ax6 = plt.subplot(gs[6])
+
+
+
+        ax6.plot(fTimes[1:],np.diff(fpLinear[:,3])/np.diff(fTimes))
+        ax6.plot(fTimes[1:],np.diff(hpLinear[:,3])/np.diff(fTimes))
+        ax6.plot(sTimes, linearSpeed*5.)
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax6,xLabel=r'time (s)',yLabel=r'y (pixel)')
+
+
+
+        ## save figure ############################################################
+        fname = self.determineFileName(date, 'paw-movement', reco=rec)
+
+        #plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')

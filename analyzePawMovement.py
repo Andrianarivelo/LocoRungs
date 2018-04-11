@@ -6,7 +6,10 @@ args = tools.argparser.parse_args()
 import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import tools.openCVImageProcessingTools as openCVImageProcessingTools
+import tools.createVisualizations as createVisualizations
+
 import pdb
+import sys
 
 mouseD = '180107_m27'
 expDateD = '180214'
@@ -31,11 +34,21 @@ eSD         = extractSaveData.extractSaveData(mouse)
 (foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
 
 cv2Tools = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
+cV      = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
 for f in range(len(foldersRecordings)) :
     for r in range(8,len(foldersRecordings[f][2])): # for r in recordings[f][1]:
         print foldersRecordings[f][2][r]
-        (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior')
-        print existence
-        if existence:
-            cv2Tools.trackPawsAndRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r])
+        (GigExistence,GigFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior')
+        (RotExistence,RotFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'RotaryEncoder')
+        #print existence
+        if GigExistence and RotExistence:
+            (frames,fTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior',GigFileHandle,readRawData=False)
+            (angularSpeed, linearSpeed, sTimes, timeStamp, monitor) = eSD.getWalkingActivity([foldersRecordings[f][0], foldersRecordings[f][2][r], 'walking_activity'])
+            (frontpawPos,hindpawPos,rungs) = eSD.getPawRungPickleData(foldersRecordings[f][0],foldersRecordings[f][2][r])
+            #(fp[1:],hp[1:],rungs,center_2b, R_2b,rungsNumbered)
+
+            (fp, hp, rungs,centerR,Radius,rungsNumbered,fpLinear,hpLinear) = cv2Tools.analyzePawsAndRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes)
+            pdb.set_trace()
+            cV.generatePawMovementFigure(foldersRecordings[f][0],foldersRecordings[f][2][r],fp,hp,rungs,fTimes,centerR,Radius,rungsNumbered,fpLinear,hpLinear,linearSpeed,sTimes)
+        pdb.set_trace()

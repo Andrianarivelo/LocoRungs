@@ -9,6 +9,7 @@ import sima.segment
 import time
 import pdb
 import cv2
+import pickle
 
 from tools.h5pyTools import h5pyTools
 import tools.googleDocsAccess as googleDocsAccess
@@ -309,6 +310,12 @@ class extractSaveData:
         startTime = self.f[grpName+'/walkingTimes'].attrs['startTime']
         return (angularSpeed,linearSpeed,wTimes,startTime,monitor)
 
+    ############################################################
+    def getPawRungPickleData(self,date,rec):
+        frontpawPos = pickle.load(open(self.analysisLocation + '%s_%s_%s_frontpawLocations.p' % (self.mouse,date,rec), 'rb'))
+        hindpawPos = pickle.load(open(self.analysisLocation + '%s_%s_%s_hindpawLocations.p' % (self.mouse,date,rec), 'rb'))
+        rungs = pickle.load(open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (self.mouse,date,rec), 'rb'))
+        return (frontpawPos,hindpawPos,rungs)
 
     ############################################################
     def saveTif(self,frames,mouse,date,rec):

@@ -12,8 +12,8 @@ import sys
 #expDate = '171115'
 #mouse = '171126_m90'
 #expDate = '180118'
-mouseD = '180107_f29'
-expDateD = '180215'
+mouseD = '180112_f36'
+expDateD = '180228'
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -27,8 +27,8 @@ else:
     expDate = args.date
 
 
-#print mouse, expDate
-#sys.exit(0) #pdb.set_trace()
+print mouse, expDate
+sys.exit(0) #pdb.set_trace()
 eSD         = extractSaveData.extractSaveData(mouse)  # find data folder of specific mouse, create data folder, and hdf5 handle
 (foldersRecordings,dataFolders) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
 
