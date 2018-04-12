@@ -33,7 +33,7 @@ eSD         = extractSaveData.extractSaveData(mouse)
 cv2Tools = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
 
 for f in range(len(foldersRecordings)) :
-    for r in range(8,len(foldersRecordings[f][2])): # for r in recordings[f][1]:
+    for r in range(len(foldersRecordings[f][2])): # for r in recordings[f][1]:
         print foldersRecordings[f][2][r]
         (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior')
         print existence

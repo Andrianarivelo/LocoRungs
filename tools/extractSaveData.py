@@ -28,6 +28,10 @@ class extractSaveData:
         elif platform.node() == 'otillo':
             laptop = False
             self.analysisBase = '/media/mgraupe/nyc_data/'
+        elif platform.node() == 'yamal':
+            laptop = False
+            self.analysisBase = '/media/HDnyc_data/'
+            
         elif platform.node() == 'bs-analysis':
             laptop = False
             self.analysisBase = '/home/mgraupe/nyc_data/'
