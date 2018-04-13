@@ -12,6 +12,8 @@ import math
 from scipy.interpolate import interp1d
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
+import os
+
 
 (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
 
@@ -33,8 +35,9 @@ class openCVImageProcessingTools:
         print 'on exit'
 
     ############################################################
-    def trackPawsAndRungs(self,mouse,date,rec):
-
+    def trackPawsAndRungs(self,mouse,date,rec, **kwargs):
+        badVideo = 0
+        stopProgram = False
         # tracking parameters #########################
         self.thresholdValue = 0.7 # in %
         self.minContourArea = 40 # square pixels
@@ -55,8 +58,8 @@ class openCVImageProcessingTools:
 
         # create video output streams
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.outPaw = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawTracking.avi' % (mouse, date, rec), fourcc, 20.0, (self.Vwidth, self.Vheight))
-        self.outPawRung  = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawRungTracking.avi' % (mouse, date, rec),fourcc, 20.0, (self.Vwidth, self.Vheight))
+        self.outPaw = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawTracking.avi' % (mouse, date, rec), fourcc, 500.0, (self.Vwidth, self.Vheight))
+        self.outPawRung  = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawRungTracking.avi' % (mouse, date, rec),fourcc, 500.0, (self.Vwidth, self.Vheight))
 
         # read first video frame
         ok, img = self.video.read()
@@ -64,15 +67,7 @@ class openCVImageProcessingTools:
             print 'Cannot read video file'
             sys.exit()
 
-        recs = []
-        bboxFront = cv2.selectROI("Select dot for FRONT paw", img, False)
-        print recs
-        bboxHind = cv2.selectROI("Select dot for HIND paw", img, False)
-        cv2.destroyAllWindows()
-        print 'front, hind paw bounding boxes : ', bboxFront, bboxHind
-        pointLoc = bboxFront[:2]
-        print 'bounding box area : ', bboxFront[2] * bboxFront[3]
-
+        
         # Return an array representing the indices of a grid.
         imgGrid = np.indices((self.Vheight, self.Vwidth))
 
@@ -81,32 +76,57 @@ class openCVImageProcessingTools:
         Radius = 1500  # 1400
         xCenter = 1205  # 1485
         yCenter = 1625  # 1545
-
+        xPosition = 190
+        yPosition = 0
+        Npix = 5
         nIt = 0
-        while True:
+        ConfirmedMask=False
+
+        if 'WheelMask' in kwargs:
+            Radius = kwargs['WheelMask'][0]
+            xCenter = kwargs['WheelMask'][1]
+            yCenter = kwargs['WheelMask'][2]
+
+        
+        while not ConfirmedMask and not stopProgram:
 
             imgCircle = img.copy()
             cv2.circle(imgCircle, (xCenter, yCenter), Radius, (0, 0, 255), 2)
-            if nIt > 0:
-                cv2.circle(imgCircle, (oldxCenter, oldyCenter), oldRadius, (0, 0, 100), 2)
+            #if nIt > 0:
+                #cv2.circle(imgCircle, (oldxCenter, oldyCenter), oldRadius, (0, 0, 100), 2)
                 #cv2.putText(imgCircle,'now',(10,10),color=(0, 0, 255))
                 #cv2.putText(imgCircle,'before',(10,20),fontScale=4,color=(0, 0, 150),thickness=2)
-            cv2.imshow("Wheel mask %s" % nIt , imgCircle)
-            cv2.waitKey(2000)
-            print 'current radius, xCenter, yCenter : ' , Radius, xCenter, yCenter
-            var = raw_input("Enter new radius, xCenter, yCenter coordinates (separated by commas), otherwise press 'k' : ")
-            #print "you entered", var
-            if var == 'k':
-                cv2.destroyWindow("Wheel mask %s" % (nIt))
-                break
+            cv2.imshow("Wheel mask", imgCircle)
+            #print 'current radius, xCenter, yCenter : ' , Radius, xCenter, yCenter
+            #print('Adjust the wheel mask using the arrows and +/- \n Press Space or Enter to confirm')
+            PressedKey = cv2.waitKey(0)
+            if PressedKey == 56 or PressedKey ==82: #UP arrow
+                yCenter -= Npix
+            elif PressedKey == 50 or PressedKey ==84: #DOWN arrow
+                yCenter += Npix
+            elif PressedKey == 54 or PressedKey ==83: #RIGHT arrow
+                xCenter += Npix
+            elif PressedKey == 52 or PressedKey ==81: #LEFT arrow
+                xCenter -= Npix
+            elif PressedKey == 43: # + Button
+                Radius += Npix
+            elif PressedKey == 45: # - Button
+                Radius -= Npix
+            elif PressedKey == 13 or PressedKey == 32: # Enter or Space
+                cv2.destroyWindow("Wheel mask")
+                ConfirmedMask = True
+            elif PressedKey == 27: # Escape
+                cv2.destroyWindow("Wheel mask")
+                stopProgram=True
+                #sys.exit()
+            elif PressedKey ==8: #Backspace marks the recording as bad
+                badVideo = 1
+                cv2.destroyWindow("Wheel mask")
+                #cv2.destroyAllWindows()
+                return stopProgram, [Radius, xCenter, yCenter], [xPosition,yPosition], badVideo
             else:
-                (oldRadius,oldxCenter,oldyCenter) = (Radius, xCenter, yCenter)
-                (Radius, xCenter, yCenter) = map(int, var.split(','))
-                nIt += 1
-                cv2.destroyWindow("Wheel mask %s" % (nIt-1))
-                #if nIt >= 2:
-                #    cv2.destroyWindow("Wheel mask %s" % (nIt-1))
-
+                pass
+            #nIt +=1
         print 'masking after loop, Radius = %s, xCenter %s, yCenter = %s' % (Radius, xCenter, yCenter)
 
         wheelMask = np.zeros((self.Vheight, self.Vwidth))
@@ -124,12 +144,19 @@ class openCVImageProcessingTools:
         xPosition = 190
         yPosition = 0
 
+        if 'RungsLoc' in kwargs:
+            xPosition = kwargs['RungsLoc'][0]
+            yPosition = kwargs['RungsLoc'][1]
+            
+
+
         # loop to find correct rung lines
         imgInv = cv2.bitwise_and(img, img, mask=wheelMaskInv)
         # convert image to gray-scale
         imgGWheel = cv2.cvtColor(imgInv, cv2.COLOR_BGR2GRAY)
         nIt = 0
-        while True:
+        ConfirmedRungALignement = False
+        while not ConfirmedRungALignement and not stopProgram:
             rungs = []
             imgLines = imgCircle.copy()
             circles = cv2.HoughCircles(imgGWheel, cv2.HOUGH_GRADIENT, 1, minDist=150, param1=50, param2=15, minRadius=30, maxRadius=40)
@@ -152,35 +179,62 @@ class openCVImageProcessingTools:
             b = np.sum(np.sqrt((cLoc[0]-cLoc[2])**2))
             c = np.sum(np.sqrt((cLoc[1]-cLoc[2])**2))
             #pdb.set_trace()
-            print 'argLengths : ', a ,b, c
-            cv2.imshow("Wheel mask %s" % nIt, imgLines)
-            cv2.waitKey(2000)
-            print 'current xPosition, yPostion : ', xPosition, yPosition
-            var = raw_input("Enter new xPostion, yPosition coordinates (separated by commas), otherwise press 'k' : ")
-            # print "you entered", var
-            if var == 'k':
-                cv2.destroyWindow("Wheel mask %s" % (nIt))
-                break
+            #print 'argLengths : ', a ,b, c
+            cv2.imshow("Rungs", imgLines)
+            #print 'current xPosition, yPostion : ', xPosition, yPosition
+            PressedKey = cv2.waitKey(0)
+            if PressedKey == 56 or PressedKey ==82: #UP arrow
+                yPosition -= Npix
+            elif PressedKey == 50 or PressedKey ==84: #DOWN arrow
+                yPosition += Npix
+            elif PressedKey == 54 or PressedKey ==83: #RIGHT arrow
+                xPosition += Npix
+            elif PressedKey == 52 or PressedKey ==81: #LEFT arrow
+                xPosition -= Npix
+            elif PressedKey == 13 or PressedKey == 32: # Enter or Space
+                cv2.destroyWindow("Rungs")
+                ConfirmedRungALignement = True
+            elif PressedKey == 27: # Escape
+                cv2.destroyWindow("Rungs")
+                stopProgram=True
+                #sys.exit()
+            elif PressedKey ==8: #Backspace marks the recording as bad
+                badVideo = 1
+                cv2.destroyWindow("Wheel mask")
+                return stopProgram, [Radius, xCenter, yCenter], [xPosition,yPosition], badVideo
             else:
-                (oldxPosition, oldyPosition) = (xPosition, yPosition)
-                (xPosition, yPosition) = map(int, var.split(','))
-                nIt += 1
-                cv2.destroyWindow("Wheel mask %s" % (nIt - 1))  # if nIt >= 2:  #    cv2.destroyWindow("Wheel mask %s" % (nIt-1))
-
+                pass
         #########################################################################
 
-        frontpawPos = []
-        hindpawPos = []
-        # append first paw postions to list : [0 number of image, 1 success or failure, 2 location of paw, 3 all roi - ellipse - info, 4 area ]
-        frontpawPos.append([0, 's', bboxFront[:2], [], np.pi * bboxFront[2] * bboxFront[3] / 4.])
-        hindpawPos.append([0, 's', bboxHind[:2], [], np.pi * bboxHind[2] * bboxHind[3] / 4.])
-        #hindPawPos.append([0, [], bboxHind[:2], np.pi * bboxHind[2] * bboxHind[3] / 4.])
-        fcheckPos = -1
+        recs = []
+        if not stopProgram:
+            bboxFront = cv2.selectROI("Select dot for FRONT paw \n mouse %s - rec = %s // %s" % (mouse, date, rec), img, False)
+            print recs
+            bboxHind = cv2.selectROI("Select dot for HIND paw", img, False)
+            cv2.destroyAllWindows()
+            #print 'front, hind paw bounding boxes : ', bboxFront, bboxHind
+            pointLoc = bboxFront[:2]
+            #print 'bounding box area : ', bboxFront[2] * bboxFront[3]
+            frontpawPos = []
+            hindpawPos = []
+            # append first paw postions to list : [0 number of image, 1 success or failure, 2 location of paw, 3 all roi - ellipse - info, 4 area ]
+            frontpawPos.append([0, 's', bboxFront[:2], [], np.pi * bboxFront[2] * bboxFront[3] / 4.])
+            hindpawPos.append([0, 's', bboxHind[:2], [], np.pi * bboxHind[2] * bboxHind[3] / 4.])
+            #hindPawPos.append([0, [], bboxHind[:2], np.pi * bboxHind[2] * bboxHind[3] / 4.])
+            fcheckPos = -1
+
+        ########################################################################
+
+        
         hcheckPos = -1
         nF = 1
         #########################################################################
         # loop over all images in video
-        while True:
+        print("Mouse : %s\nRecording : %s // %s" % (mouse, date, rec))
+        print ("Running the tracking algorithm...")
+        while not stopProgram:
+            #os.system('clear')
+            #print("Mouse : %s\nRecording : %s // %s" % (mouse, date, rec))
             # Read a new frame
             thresholdV = self.thresholdValue
             ok, img = self.video.read()
@@ -228,7 +282,7 @@ class openCVImageProcessingTools:
 
             self.outPawRung.write(origCL)
             if self.showImages:
-                cv2.imshow('detected circles', origCL)
+                cv2.imshow("detected circles  - mouse : %s   rec : %s/%s" % (mouse, date, rec), origCL)
 
             #################################################################################################
             # find contours based on maximal illumination
@@ -281,7 +335,7 @@ class openCVImageProcessingTools:
 
             # find ellipse which is the best continuation of the previous ones
             # print 'nContours, Dist, Areaa : ', nCnts, cntDistances, cntArea
-            print 'frame ', nF, len(rois),
+            #print 'frame ', nF, len(rois),
             # if rois were detected
             if len(rois) > 0:
                 cornerDist = []
@@ -302,35 +356,44 @@ class openCVImageProcessingTools:
                 #print 'front, hind index ', frontIdx, hindIdx
                 #pdb.set_trace()
                 if (frontDist[frontIdx] < abs(fcheckPos) * 50.):
-                    print 'frontDist success : ', frontDist[frontIdx],
+                    
+                    Str = 'frontDist success : %s' % frontDist[frontIdx]
                     frontpawPos.append([nF,'s',rois[frontIdx][0][0],rois[frontIdx][0],rois[frontIdx][1]])
                     fcheckPos = -1
                 else:
-                    print 'frontDist failure : ', frontDist[frontIdx],
+                    Str = 'frontDist failure : %s' % frontDist[frontIdx]
                     frontpawPos.append([nF,'f',rois[frontIdx][0][0],rois[frontIdx][0],rois[frontIdx][1]])
                     fcheckPos -= 1
                 if (hindDist[hindIdx] < abs(hcheckPos) * 50.):
-                    print 'hindDist success : ', hindDist[hindIdx],
+                    Str2 = '    ///     hindDist success : %s' % hindDist[hindIdx]
                     hindpawPos.append([nF, 's', rois[hindIdx][0][0], rois[hindIdx],rois[hindIdx][1]] )
                     hcheckPos = -1
                 else:
-                    print 'hindDist failure : ', hindDist[hindIdx],
+                    Str2 = 'hindDist failure : %s' % hindDist[hindIdx]
                     hindpawPos.append([nF, 'f', rois[hindIdx][0][0], rois[hindIdx],rois[hindIdx][1]] )
                     hcheckPos -=1
                 ##
                 if self.showImages:
+                    FrameStr =  'frame %s (len(rois) = %s)' % (nF, len(rois))
+                    x =  int(self.Vwidth * (nF/float(self.Vlength)))
+                    cv2.rectangle(orig, (0, self.Vheight), (x, self.Vheight-15), (100, 100, 100), thickness=-1)
+                    cv2.putText(orig, FrameStr, (0, self.Vheight-20), cv2.QT_FONT_NORMAL, 0.45, color=(255, 255, 255))
+                    cv2.putText(orig, Str, (0, self.Vheight-5), cv2.QT_FONT_NORMAL, 0.4, color=(220, 220, 220))
+                    cv2.putText(orig, Str2, (int(self.Vwidth/3), self.Vheight-5), cv2.QT_FONT_NORMAL, 0.4, color=(220, 220, 220))
                     cv2.putText(orig,'frontpaw',(10,30),cv2.FONT_HERSHEY_SIMPLEX,1,color=(0, 255, 0))
                     orig = cv2.ellipse(orig, rois[frontIdx][0], (0, 255, 0), 2)
+                    cv2.putText(orig,'hindpaw',(10,60),cv2.FONT_HERSHEY_SIMPLEX,1,color=(0, 0, 255))
+                    orig = cv2.ellipse(orig, rois[hindIdx][0], (0, 0, 255), 2)
                 #print 'hind ',
                 #dret = decideonAndAddPawPositions(hindpawPos, hcheckPos, rois)
                 #hindpawPos.append(dret[1])
                 #hcheckPos += dret[0]
                 #if not dret[0]:
-                if self.showImages:
-                    cv2.putText(orig,'hindpaw',(10,60),cv2.FONT_HERSHEY_SIMPLEX,1,color=(0, 0, 255))
-                    orig = cv2.ellipse(orig, rois[hindIdx][0], (0, 0, 255), 2)
+                #if self.showImages:
+                #    cv2.putText(orig,'hindpaw',(10,60),cv2.FONT_HERSHEY_SIMPLEX,1,color=(0, 0, 255))
+                #    orig = cv2.ellipse(orig, rois[hindIdx][0], (0, 0, 255), 2)
                 # pdb.set_trace()
-                print ' '
+                #print ' '
                 #Dchange = abs(np.asarray(cntDistances))
                 #Achange = abs(np.asarray(cntArea) / pawPos[checkPos][3] - 1.) * 100.  # in percent
                 #DWeight = 0.5
@@ -385,13 +448,20 @@ class openCVImageProcessingTools:
                 fcheckPos -= 1
                 hcheckPos -= 1
             # show image with all detected rois, and rois decided to be paws
+
+                
             self.outPaw.write(orig)
+
             if self.showImages:
-                cv2.imshow("Paw-tracking monitor", orig)
+                cv2.imshow("Paw-tracking monitor - mouse : %s   rec : %s/%s" % (mouse, date, rec), orig)
 
             # wait and abort criterion, 'esc' allows to stop
             k = cv2.waitKey(1) & 0xff
             if k == 27: break
+            elif k ==8: #Backspace marks the recording as bad
+                badVideo = 1
+                cv2.destroyAllWindows()
+                return stopProgram, [Radius, xCenter, yCenter], [xPosition,yPosition], badVideo
 
             nF += 1
 
@@ -402,10 +472,11 @@ class openCVImageProcessingTools:
         #self.h5pyTools.createOverwriteDS(grpHandle,'angularSpeed',angularSpeed,['monitor',monitor])
         #self.h5pyTools.createOverwriteDS(grpHandle,'linearSpeed', linearSpeed)
         #self.h5pyTools.createOverwriteDS(grpHandle,'walkingTimes', wTimes, ['startTime',startTime])
-
-        pickle.dump(frontpawPos, open(self.analysisLocation + '%s_%s_%s_frontpawLocations.p' % (mouse, date, rec), 'wb'))
-        pickle.dump(hindpawPos, open(self.analysisLocation + '%s_%s_%s_hindpawLocations.p' % (mouse, date, rec), 'wb'))
-        pickle.dump(rungs, open( self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb' ) )
+        if not stopProgram:
+            pickle.dump(frontpawPos, open(self.analysisLocation + '%s_%s_%s_frontpawLocations.p' % (mouse, date, rec), 'wb'))
+            pickle.dump(hindpawPos, open(self.analysisLocation + '%s_%s_%s_hindpawLocations.p' % (mouse, date, rec), 'wb'))
+            pickle.dump(rungs, open( self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb' ) )
+        return stopProgram, [Radius, xCenter, yCenter], [xPosition,yPosition], badVideo
 
     ########################################################################################################################
     # frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes
