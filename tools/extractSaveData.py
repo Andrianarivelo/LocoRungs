@@ -293,11 +293,12 @@ class extractSaveData:
             self.h5pyTools.createOverwriteDS(grp_name,'motionCoordinates', motionCorrection)
 
     ############################################################
-    def saveWalkingActivity(self,angularSpeed,linearSpeed,wTimes,startTime,monitor,groupNames):
+    def saveWalkingActivity(self,angularSpeed,linearSpeed,wTimes,angles,aTimes,startTime,monitor,groupNames):
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         self.h5pyTools.createOverwriteDS(grpHandle,'angularSpeed',angularSpeed,['monitor',monitor])
         self.h5pyTools.createOverwriteDS(grpHandle,'linearSpeed', linearSpeed)
         self.h5pyTools.createOverwriteDS(grpHandle,'walkingTimes', wTimes, ['startTime',startTime])
+        self.h5pyTools.createOverwriteDS(grpHandle,'anglesTimes', np.column_stack((aTimes,angles)), ['startTime',startTime])
 
     ############################################################
     def getWalkingActivity(self,groupNames):
@@ -308,7 +309,8 @@ class extractSaveData:
         linearSpeed = self.f[grpName+'/linearSpeed'].value
         wTimes = self.f[grpName+'/walkingTimes'].value
         startTime = self.f[grpName+'/walkingTimes'].attrs['startTime']
-        return (angularSpeed,linearSpeed,wTimes,startTime,monitor)
+        angleTimes = self.f[grpName+'/anglesTimes'].value
+        return (angularSpeed,linearSpeed,wTimes,startTime,monitor,angleTimes)
 
     ############################################################
     def getPawRungPickleData(self,date,rec):

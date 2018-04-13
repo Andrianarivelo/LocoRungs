@@ -44,11 +44,11 @@ for f in range(len(foldersRecordings)) :
         #print existence
         if GigExistence and RotExistence:
             (frames,fTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior',GigFileHandle,readRawData=False)
-            (angularSpeed, linearSpeed, sTimes, timeStamp, monitor) = eSD.getWalkingActivity([foldersRecordings[f][0], foldersRecordings[f][2][r], 'walking_activity'])
+            (angularSpeed, linearSpeed, sTimes, timeStamp, monitor,angleTimes) = eSD.getWalkingActivity([foldersRecordings[f][0], foldersRecordings[f][2][r], 'walking_activity'])
             (frontpawPos,hindpawPos,rungs) = eSD.getPawRungPickleData(foldersRecordings[f][0],foldersRecordings[f][2][r])
             #(fp[1:],hp[1:],rungs,center_2b, R_2b,rungsNumbered)
 
-            (fp, hp, rungs,centerR,Radius,rungsNumbered,fpLinear,hpLinear) = cv2Tools.analyzePawsAndRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes)
-            pdb.set_trace()
-            cV.generatePawMovementFigure(foldersRecordings[f][0],foldersRecordings[f][2][r],fp,hp,rungs,fTimes,centerR,Radius,rungsNumbered,fpLinear,hpLinear,linearSpeed,sTimes)
+            (fp, hp, rungs,centerR,Radius,rungsNumbered,fpLinear,hpLinear,frontpawRungDist,hindpawRungDist,startStopFPStep,startStopHPStep) = cv2Tools.analyzePawsAndRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes,angleTimes)
+            #pdb.set_trace()
+            cV.generatePawMovementFigure(foldersRecordings[f][0],foldersRecordings[f][2][r],fp,hp,rungs,fTimes,centerR,Radius,rungsNumbered,fpLinear,hpLinear,linearSpeed,sTimes,frontpawRungDist,hindpawRungDist,startStopFPStep,startStopHPStep)
         pdb.set_trace()

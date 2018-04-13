@@ -9,6 +9,9 @@ import imutils
 from scipy.spatial import distance as dist
 from scipy import optimize
 import math
+from scipy.interpolate import interp1d
+from numpy.linalg import norm
+import matplotlib.pyplot as plt
 
 (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
 
@@ -175,6 +178,7 @@ class openCVImageProcessingTools:
         fcheckPos = -1
         hcheckPos = -1
         nF = 1
+        #########################################################################
         # loop over all images in video
         while True:
             # Read a new frame
@@ -405,25 +409,112 @@ class openCVImageProcessingTools:
 
     ########################################################################################################################
     # frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes
-    def analyzePawsAndRungs(self,mouse,date,rec,frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes):
+    def analyzePawsAndRungs(self,mouse,date,rec,frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes,angleTimes):
+
+
+        ##########################################################
+        # build array of paw positions
+        def calculateDist(a,b):
+            return np.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
         spacingDegree = 6.81 #360./48.
 
         rungs = np.asarray(rungs)
 
-        fp = np.array([-1,-1,-1])
-        hp = np.array([-1,-1,-1])
-        for i in range(len(frontpawPos)):
-            #if frontpawPos[i][1] == 's':
-            #print i, frontpawPos[i]
-            fp = np.row_stack((fp,np.array([frontpawPos[i][0],frontpawPos[i][2][0],frontpawPos[i][2][1]])))
-        for i in range(len(hindpawPos)):
-            hp = np.row_stack((hp, np.array([hindpawPos[i][0], hindpawPos[i][2][0], hindpawPos[i][2][1]])))
+        fp = []
+        fpAll = []
+        hp = []
+        lastFrontPos = (frontpawPos[0][2][0],frontpawPos[0][2][1])
+        fp.append([0, frontpawPos[0][0],frontpawPos[0][2][0],frontpawPos[0][2][1]])
+        fD = []
+        hD = []
+        threshold = 60.
+        skipSteps = 1
+        for i in range(1,len(frontpawPos)-1):
+            #currPos = (frontpawPos[i][2][0],frontpawPos[i][2][1])
+            #nextPos = (frontpawPos[i+1][2][0],frontpawPos[i+1][2][1])
+            #lastcurrDist = calculateDist(lastFrontPos,currPos)
+            #currNextDist = calculateDist(currPos,nextPos)
+            #fD.append([lastcurrDist,currNextDist])
+            fp.append([i, frontpawPos[i][0],frontpawPos[i][2][0],frontpawPos[i][2][1]])
+            # if (np.abs(lastcurrDist)+np.abs(currNextDist)) < threshold*skipSteps :
+            #     fp.append([frontpawPos[i][0],frontpawPos[i][2][0],frontpawPos[i][2][1]])
+            #     lastFrontPos = currPos
+            #     skipSteps = 1
+            # else:
+            #     print 'fp', i, lastcurrDist, currNextDist
+            #     skipSteps +=1
+        lastHindPos = (hindpawPos[0][2][0],hindpawPos[0][2][1])
+        hp.append([0,hindpawPos[0][0], hindpawPos[0][2][0], hindpawPos[0][2][1]])
+        skipSteps=1
+        for i in range(1,len(hindpawPos)):
+            #currPos = (hindpawPos[i][2][0],hindpawPos[i][2][1])
+            #nextPos = (hindpawPos[i+1][2][0],hindpawPos[i+1][2][1])
+            #lastcurrDist = calculateDist(lastHindPos,currPos)
+            #currNextDist = calculateDist(currPos, nextPos)
+            #hD.append([lastcurrDist,currNextDist])
+            hp.append([i, hindpawPos[i][0], hindpawPos[i][2][0], hindpawPos[i][2][1]])
+            # if (np.abs(lastcurrDist)+np.abs(currNextDist)) < threshold*skipSteps :
+            #     hp.append([hindpawPos[i][0], hindpawPos[i][2][0], hindpawPos[i][2][1]])
+            #     lastHindPos = currPos
+            #     skipSteps = 1
+            # else:
+            #     skipSteps +=1
 
-        fp = fp[1:]
-        hp = hp[1:]
+        fp = np.asarray(fp)
+        #fpAll = np.asarray(fpAll)
+        hp = np.asarray(hp)
+        ################################################################################
+        # extract stance and swing phase through difference in speed
+
+        def findBeginningAndEndOfStep(speedDiff,speedDiffThresh,minLength,trailingStart,trailingEnd):
+            # determine regions during which the speed is different for more than xLength values
+            thresholded = speedDiff > speedDiffThresh
+            startStop = np.diff(np.arange(len(speedDiff))[thresholded]) > 1
+            mmmStart = np.hstack((([True]), startStop))  # np.logical_or(np.hstack((([True]),startStop)),np.hstack((startStop,([True]))))
+            mmmStop = np.hstack((startStop, ([True])))
+            startIdx = (np.arange(len(speedDiff))[thresholded])[mmmStart]
+            stopIdx = (np.arange(len(speedDiff))[thresholded])[mmmStop]
+            minLengthThres = (stopIdx - startIdx) > minLength
+            startStep = startIdx[minLengthThres]-trailingStart
+            endStep = stopIdx[minLengthThres]+trailingEnd
+            return np.column_stack((startStep,endStep))
+
+        fpTimes = fTimes[np.array(fp[:,1],dtype=int)]
+        hpTimes = fTimes[np.array(hp[:,1],dtype=int)]
+        speedFP = (np.sqrt((np.diff(fp[:, 2]) / np.diff(fpTimes)) ** 2 + (np.diff(fp[:, 3]) / np.diff(fpTimes)) ** 2)) / 80.
+        speedHP = (np.sqrt((np.diff(hp[:,2])/np.diff(hpTimes))**2 + (np.diff(hp[:,3])/np.diff(hpTimes))**2))/80.
+
+
+        walk_interp = interp1d(sTimes, np.abs(linearSpeed))
+        maskF = (fpTimes[1:]>=sTimes[0]) & (fpTimes[1:]<=sTimes[-1])
+        newFPWheelSpeed = walk_interp(fpTimes[1:][maskF])
+        fpSpeedDiff = speedFP[maskF]-newFPWheelSpeed
+        maskH = (hpTimes[1:]>sTimes[0]) & (hpTimes[1:]<sTimes[-1])
+        newHPWheelSpeed = walk_interp(hpTimes[1:][maskH])
+        hpSpeedDiff = speedHP[maskH]-newHPWheelSpeed
+
 
         #pdb.set_trace()
+        xLengthFP = 3
+        xLengthHP = 4
+        speedDiffThreshold = 10.
+        startStopFPStep = findBeginningAndEndOfStep(fpSpeedDiff,5.,xLengthFP,2,3)
+        startStopHPStep = findBeginningAndEndOfStep(hpSpeedDiff,speedDiffThreshold,xLengthHP,2,4)
+        # join times of the respective frames
+        startStopFPStep = np.column_stack((startStopFPStep,fpTimes[1:][maskF][startStopFPStep[:,0]],fpTimes[1:][maskF][startStopFPStep[:,1]]))
+        startStopHPStep = np.column_stack((startStopHPStep,hpTimes[1:][maskH][startStopHPStep[:,0]],hpTimes[1:][maskH][startStopHPStep[:,1]]))
+        #newAngles = walk_interp(fTimes[mask])
+        #ax7.plot(sTimes, np.abs(linearSpeed))
+
+        # plt.plot(fpTimes[1:][maskF],speedFP[maskF],c='0.5')
+        # plt.plot(sTimes, np.abs(linearSpeed),c='C0')
+        # for i in range(len(startStopFPStep)):
+        #     #pdb.set_trace()
+        #     plt.plot(fpTimes[1:][maskF][int(startStopFPStep[i,0]):int(startStopFPStep[i,1])],speedFP[maskF][int(startStopFPStep[i,0]):int(startStopFPStep[i,1])],c='C1')
+        #
+        # plt.show()
+        # pdb.set_trace()
         ################################################################################
         # fit circle to points of rungscrews
 
@@ -458,8 +549,8 @@ class openCVImageProcessingTools:
         xc_2b, yc_2b = center_2b
         Ri_2b = calc_R(*center_2b)
         R_2b = Ri_2b.mean()
-
-        print 'Center, Radius of fitted circle : ', center_2b, R_2b
+        pixToCmConversion = 12.5/R_2b
+        print 'Center, Radius of fitted circle : ', center_2b, R_2b, pixToCmConversion
 
         ###########################################################
         # exclude points which are too far away from the circle fit line
@@ -482,8 +573,7 @@ class openCVImageProcessingTools:
                 cPoints[i,2] = circleCenter[1] - np.cos(i*spacingDegree*np.pi/180.)*circleRadius
             return cPoints
 
-        def calculateDist(a,b):
-            return np.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
 
         def rotate_around_point(xy, degrees, origin=(0, 0)):
             """Rotate a point around a given point.
@@ -522,26 +612,29 @@ class openCVImageProcessingTools:
         d1, success = optimize.leastsq(fitfunc, d0,args=(ppFFirst,genericPs[:,1:]))
 
         # loop over all frames - via frameNumbers - not individual points
-        frameNumbers = np.unique(rungsSorted[:,0])
+        frameNumbers = np.arange(len(fTimes)) #np.unique(rungsSorted[:,0])
         dOld = d1
         rungsNumbered = []
         rungCounter = 0
         #videoFileName = self.analysisLocation + '%s_%s_%s_pawRungTracking.avi' % (mouse, date, rec)
         #self.video = cv2.VideoCapture(videoFileName)
-        aBtw = []
-        dD  = []
+        #aBtw = []
+        frontpawRungDist = []
+        hindpawRungDist = []
+        pC = np.zeros(8)
         for i in range(len(frameNumbers)):
             #ok, img = self.video.read()
 
             # determine points per frame
-            ppF = rungsSorted[rungsSorted[:,0]==frameNumbers[i]][:,1:3]
-
+            ppF = rungsSorted[rungsSorted[:,0]==frameNumbers[i]][:,1:]
+            frontpawPos = fp[fp[:,1]==frameNumbers[i]]
+            hindpawPos  = hp[hp[:,1]==frameNumbers[i]]
             # for n in range(1,len(ppF)):
             #     #print angle_between(ppF[n]-center_2b,ppF[n-1]-center_2b),
             #     aBtw.append(angle_between(ppF[n]-center_2b,ppF[n-1]-center_2b))
 
             genericPs = contructCloudOfPointsOnCircle(len(ppF),center_2b,R_2b,spacingDegree)
-            d1, success = optimize.leastsq(fitfunc, d0,args=(ppF,genericPs[:,1:]))
+            d1, success = optimize.leastsq(fitfunc, d0,args=(ppF[:,:2],genericPs[:,1:]))
             degreeDifference = d1-dOld
             if degreeDifference < -5.:
                 rungCounter +=1
@@ -549,9 +642,31 @@ class openCVImageProcessingTools:
             if degreeDifference > 5.:
                 rungCounter -=1
                 degreeDifference -= spacingDegree
-            dD.append(degreeDifference[0])
-            rungsNumbered.append([i,frameNumbers[i],len(ppF),d1,degreeDifference[0],rungCounter,np.arange(len(ppF))+rungCounter,ppF])
+            #dD.append(degreeDifference[0])
+            numberedR = np.arange(len(ppF))+rungCounter
+            rungsNumbered.append([i,frameNumbers[i],len(ppF),d1,degreeDifference[0],rungCounter,numberedR,ppF[:,:2]])
 
+            # cacluate distance btw paw and rungs
+            tempFD = []
+            tempHD = []
+            pC[len(ppF)]+=1
+            for n in range(len(ppF)):
+                if len(frontpawPos)>0:
+                    tempFD.append(np.cross(ppF[n][2:]-ppF[n][:2],frontpawPos[0][2:]-ppF[n][:2])/norm(ppF[n][2:]-ppF[n][:2]))
+                if len(hindpawPos)>0:
+                    tempHD.append(np.cross(ppF[n][2:]-ppF[n][:2],hindpawPos[0][2:]-ppF[n][:2])/norm(ppF[n][2:]-ppF[n][:2]))
+                    #hindpawRungDist.append(tempD[1])
+            if len(frontpawPos)>0:
+                tempAFD = np.asarray(tempFD)
+                sortedA = np.argsort(np.abs(tempAFD))
+                frontpawRungDist.append([i,frameNumbers[i],tempAFD[sortedA[0]],tempAFD[sortedA[1]],tempAFD[sortedA[2]],numberedR[sortedA[0]],numberedR[sortedA[1]],numberedR[sortedA[2]]])
+            if len(hindpawPos)>0:
+                tempAHD = np.asarray(tempHD)
+                sortedA = np.argsort(np.abs(tempAHD))
+                hindpawRungDist.append([i,frameNumbers[i],tempAHD[sortedA[0]],tempAHD[sortedA[1]],tempAHD[sortedA[2]],numberedR[sortedA[0]],numberedR[sortedA[1]],numberedR[sortedA[2]]])
+
+
+            dOld = d1
             #for n in range(len(ppF)):
             # if i in [836,837,838]:
             #     print i
@@ -562,36 +677,51 @@ class openCVImageProcessingTools:
             #     # wait and abort criterion, 'esc' allows to stop
             #     k = cv2.waitKey(0) & 0xff
             #     if k == 27: break
-            dOld = d1
+
             #if degreeDifference[0] > 1:
             #    print i,frameNumbers[i], len(ppF), d1, degreeDifference, np.arange(len(ppF))+rungCounter #, ppF
 
             #if i == 30 :
             #    pdb.set_trace()
+        print 'rung number per image : ', pC
         #pdb.set_trace()
-
+        frontpawRungDist = np.asarray(frontpawRungDist)
+        hindpawRungDist = np.asarray(hindpawRungDist)
         ###################################################################
         # substract rotation
 
+        if len(frameNumbers) != len(fTimes):
+            print 'problem with frame number length'
+            pdb.set_trace()
 
+        #pdb.set_trace()
+        walk_interp = interp1d(angleTimes[:,0],angleTimes[:,1])
 
+        mask = (fTimes>angleTimes[:,0][0]) & (fTimes<angleTimes[:,0][-1])
+
+        newAngles = walk_interp(fTimes[mask])
+        # # sTimes, ttime
+        # ax01.plot(angleTimes[:,0],linearSpeed)
+        # ax01.plot(ttime[mask],newWalking)
+        #
         degreesTurned = 0.
         fpLinear = []
         hpLinear = []
         #pdb.set_trace()
-        fInitial = fp[0][1:]
-        hInitial = hp[0][1:]
+        fInitial = fp[0][2:]
+        hInitial = hp[0][2:]
         rotationsHP = 0.
         rotationsFP = 0.
         oldAfp = 0.
         oldAhp = 0.
-        for i in range(len(frameNumbers)):
-            fpMask = fp[:,0]==frameNumbers[i]
-            hpMask = hp[:,0]==frameNumbers[i]
-            degreesTurned  += rungsNumbered[i][4]
+        for i in range(len(fTimes[mask])):
+            fpMask = fp[:,1]==frameNumbers[i]
+            hpMask = hp[:,1]==frameNumbers[i]
+
+            degreesTurned += rungsNumbered[i][4]
             #pdb.set_trace()
-            rfp = rotate_around_point(fp[fpMask][:,1:][0],-degreesTurned,center_2b)
-            rhp = rotate_around_point(hp[hpMask][:,1:][0],-degreesTurned,center_2b)
+            rfp = rotate_around_point(fp[fpMask][:,2:][0],-newAngles[i],center_2b)
+            rhp = rotate_around_point(hp[hpMask][:,2:][0],-newAngles[i],center_2b)
 
             afp = angle_between(rfp-center_2b,fInitial-center_2b)
             if oldAfp > 300. and afp < 100. :
@@ -606,12 +736,12 @@ class openCVImageProcessingTools:
                 rotationsHP -=1.
             dhp = (rotationsHP + ahp/360.)*80.
             # rotational coordinates to straight motion : distance is y
-            fpLinear.append([frameNumbers[i],dfp,calculateDist(rfp,center_2b)-R_2b,degreesTurned])
-            hpLinear.append([frameNumbers[i],dhp,calculateDist(rhp,center_2b)-R_2b,degreesTurned])
-            print i,degreesTurned,afp,dfp,ahp,dhp, rotationsFP, rotationsHP
+            fpLinear.append([frameNumbers[i],fTimes[i],dfp,(calculateDist(rfp,center_2b)-R_2b)*pixToCmConversion,newAngles[i],degreesTurned])
+            hpLinear.append([frameNumbers[i],fTimes[i],dhp,(calculateDist(rhp,center_2b)-R_2b)*pixToCmConversion,newAngles[i],degreesTurned])
+            print i,degreesTurned,afp,dfp,ahp,dhp, rotationsFP, rotationsHP,newAngles[i]
             oldAfp = afp
             oldAhp = ahp
 
         #cpdb.set_trace()
-        return (fp,hp,rungs,center_2b, R_2b,rungsNumbered,np.asarray(fpLinear),np.asarray(hpLinear))
+        return (fp,hp,rungs,center_2b, R_2b,rungsNumbered,np.asarray(fpLinear),np.asarray(hpLinear),frontpawRungDist,hindpawRungDist,startStopFPStep,startStopHPStep)
 

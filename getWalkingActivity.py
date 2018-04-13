@@ -35,6 +35,6 @@ for f in range(len(foldersRecordings)):
             (angles, aTimes,timeStamp,monitor) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][2][r],'RotaryEncoder',fileHandle)
             (angularSpeed, linearSpeed, sTimes)  = dataAnalysis.getSpeed(angles,aTimes,wheelCircumsphere)
             #pdb.set_trace()
-            eSD.saveWalkingActivity(angularSpeed, linearSpeed, sTimes,timeStamp,monitor, [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity'])  # save motion corrected image stack
+            eSD.saveWalkingActivity(angularSpeed, linearSpeed, sTimes, angles, aTimes, timeStamp,monitor, [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity'])  # save motion corrected image stack
 
 del eSD
