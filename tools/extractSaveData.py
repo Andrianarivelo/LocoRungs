@@ -342,8 +342,15 @@ class extractSaveData:
         videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
 
+        #vlength = int(self.video.get(cv2.CAP_PROP_FRAME_COUNT))
+        #self.Vwidth = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
+        #self.Vheight = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        #self.Vfps = self.video.get(cv2.CAP_PROP_FPS)
+
+        vLength = np.shape(framesRaw)[0]
         width  = np.shape(framesRaw)[1]
         heigth = np.shape(framesRaw)[2]
+
         fps    = 80.
         #w = 480
         #h = 640
@@ -353,23 +360,28 @@ class extractSaveData:
         out = cv2.VideoWriter(videoFileName, fourcc, fps, (width, heigth))
 
         ret = True
+        nF = 0
         for i in range(len(framesRaw)):
             #frameRaw = np.random.rand(w, h) * 255.
 
             frame8bit = np.array(np.transpose(framesRaw[i]), dtype=np.uint8)
             # ret, frame = cap.read()
             frame = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2RGB)
+            cv2.putText(frame, 'time %s sec' % round(frameTimes[i],1), (10,20), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
+            cv2.putText(frame, 'frame %04d / %s' % (nF,vLength), (10,40), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
+            #cv2.putText(frame, FrameStr, (0, self.Vheight-20), cv2.QT_FONT_NORMAL, 0.45, color=(255, 255, 255))
             #if ret == True:
                 # frame = cv2.flip(frame,0)
 
                 # write the flipped frame
             out.write(frame)
-
+            nF += 1
             #   cv2.imshow('frame', frame)
             #    if cv2.waitKey(1) & 0xFF == ord('q'):
             #        break
             #else:
             #    break
+
 
         # Release everything if job is finished
         #cap.release()

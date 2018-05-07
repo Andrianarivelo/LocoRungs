@@ -2498,10 +2498,11 @@ class createVisualizations:
         #pdb.set_trace()
         ax8.set_title('frontpaw-rungs distance')
         #for i in range(len(frontpawRungDist)):
+        #pdb.set_trace()
         #print np.repeat(fTimes[int(frontpawRungDist[i][1])],len(frontpawRungDist[i][2:])), frontpawRungDist[i][2:]
-        ax8.plot(fTimes[np.array(frontpawRungDist[:,1],dtype=int)],frontpawRungDist[:,2],'.',c='C0')
-        ax8.plot(fTimes[np.array(frontpawRungDist[:,1],dtype=int)],frontpawRungDist[:,3],'.',c='C1')
-        ax8.plot(fTimes[np.array(frontpawRungDist[:,1],dtype=int)],frontpawRungDist[:,4],'.',c='C2')
+        ax8.plot(fTimes[np.array(frontpawRungDist[:,1],dtype=int)],frontpawRungDist[:,2:9],'.',c='C0')
+        #ax8.plot(fTimes[np.array(frontpawRungDist[:,1],dtype=int)],frontpawRungDist[:,3],'.',c='C1')
+        #ax8.plot(fTimes[np.array(frontpawRungDist[:,1],dtype=int)],frontpawRungDist[:,4],'.',c='C2')
 
         # and moves left and bottom axes away
         self.layoutOfPanel(ax8,xLabel=r'time (s)',yLabel=r'frontpaw-rung dist (pixel)')
@@ -2510,9 +2511,9 @@ class createVisualizations:
         #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
         ax9 = plt.subplot(gs[13])
         ax9.set_title('hindpaw-rungs distance')
-        ax9.plot(fTimes[np.array(hindpawRungDist[:,1],dtype=int)],hindpawRungDist[:,2],'.',c='C0')
-        ax9.plot(fTimes[np.array(hindpawRungDist[:,1],dtype=int)],hindpawRungDist[:,3],'.',c='C1')
-        ax9.plot(fTimes[np.array(hindpawRungDist[:,1],dtype=int)],hindpawRungDist[:,4],'.',c='C2')
+        ax9.plot(fTimes[np.array(hindpawRungDist[:,1],dtype=int)],hindpawRungDist[:,2:9],'.',c='C0')
+        #ax9.plot(fTimes[np.array(hindpawRungDist[:,1],dtype=int)],hindpawRungDist[:,3],'.',c='C1')
+        #ax9.plot(fTimes[np.array(hindpawRungDist[:,1],dtype=int)],hindpawRungDist[:,4],'.',c='C2')
 
 
         # and moves left and bottom axes away
@@ -2525,28 +2526,44 @@ class createVisualizations:
         ax16 = plt.subplot(gs[16])
         ax14.set_title('minimal frontpaw-rung distance during stance')
         ax16.set_title('rung number during frontpaw stance')
-        fpTimes = fTimes[np.array(frontpawRungDist[:, 1], dtype=int)]
-        minfpRDist = np.min(np.abs(frontpawRungDist[:,2:5]),axis=1)
-        minfpRungN = np.argmin(np.abs(frontpawRungDist[:,2:5]),axis=1)
+        fpTimes = fTimes[np.array(frontpawRungDist[:,1], dtype=int)]
+        #minfpRDist = np.min(np.abs(frontpawRungDist[:,2:9]),axis=1)
+        minfpRungN = np.argsort(np.abs(frontpawRungDist[:,2:9]),axis=1)
         fpRungsCrossed =[]
         for i in range(len(startStopFPStep)+1):
             if i == len(startStopFPStep):
-                mask = (fpTimes >= np.where((i-1)>-1,startStopFPStep[i-1,3],fpTimes[0])) & (fpTimes <= fpTimes[-1])
+                mask = (fpTimes >= startStopFPStep[i-1,3]) & (fpTimes <= fpTimes[-1])
+            elif i == 0:
+                mask = (fpTimes >= fpTimes[0]) & (fpTimes <= startStopFPStep[i,2])
             else:
-                mask = (fpTimes >= np.where((i-1)>-1,startStopFPStep[i-1,3],fpTimes[0])) & (fpTimes <= startStopFPStep[i,2])
+                mask = (fpTimes >= startStopFPStep[i-1,3]) & (fpTimes <= startStopFPStep[i,2])
             #mask = (fpTimes >= startStopFPStep[i-1,3]) & (fpTimes <= startStopFPStep[i,2])
             #startIdx = np.where(mask == True)[0][0]
             if sum(mask)> 1 :
-                ax14.plot(fpTimes[mask], minfpRDist[mask],'.',c='0.5', alpha=0.5)  # ax0.plot(fp[:,2],yMax-fp[:,3],'.')
+                llength = len(frontpawRungDist[mask])
+                # generate list of tuples which contain the indices of the first three closest rungs
+                # pdb.set_trace()
+                idx0 = [(x, y) for x, y in zip(range(llength), minfpRungN[mask][:, 0])]
+                idx1 = [(x, y) for x, y in zip(range(llength), minfpRungN[mask][:, 1])]
+                idx2 = [(x, y) for x, y in zip(range(llength), minfpRungN[mask][:, 2])]
+                # hindpawRungDist[mask][:,9:16][tuple(np.array(idx0).T)]
+                ax14.plot(fpTimes[mask], frontpawRungDist[mask][:, 2:9][tuple(np.array(idx0).T)], '.', c='0.5', alpha=0.5)
+                ax14.plot(fpTimes[mask], frontpawRungDist[mask][:, 2:9][tuple(np.array(idx1).T)], '.', c='0.7', alpha=0.5)
+                ax14.plot(fpTimes[mask], frontpawRungDist[mask][:, 2:9][tuple(np.array(idx2).T)], '.', c='0.9', alpha=0.5)
+                # draw a line of the median closest distance during step
+                ax14.plot(fpTimes[mask],np.repeat(np.median(frontpawRungDist[mask][:, 2:9][tuple(np.array(idx0).T)]),llength),lw=2)
+
+                ax16.plot(fpTimes[mask], frontpawRungDist[mask][:, 9:16][tuple(np.array(idx0).T)])
+                fpRungsCrossed.append([np.where((i - 1) > -1, startStopFPStep[i - 1, 3], fpTimes[0]), numpy.bincount(np.array(frontpawRungDist[mask][:, 9:16][tuple(np.array(idx0).T)], dtype=int)).argmax()])
                 #pdb.set_trace()
-                ax14.plot(fpTimes[mask],np.repeat(np.median(minfpRDist[mask]),len(fpTimes[mask])),c='C0',lw=2)
+                #ax14.plot(fpTimes[mask],np.repeat(np.median(minfpRDist[mask]),len(fpTimes[mask])),c='C0',lw=2)
             #
             #pdb.set_trace()
-            ax16.plot(fpTimes[mask],frontpawRungDist[mask][:,5])
+            #ax16.plot(fpTimes[mask],frontpawRungDist[mask][:,5])
             #pdb.set_trace()
-            if sum(mask)> 1 :
-                fpRungsCrossed.append([np.where((i-1)>-1,startStopFPStep[i-1,3],fpTimes[0]),numpy.bincount(np.array(frontpawRungDist[mask][:,5],dtype=int)).argmax()])
-
+            #if sum(mask)> 1 :
+            #    fpRungsCrossed.append([np.where((i-1)>-1,startStopFPStep[i-1,3],fpTimes[0]),numpy.bincount(np.array(frontpawRungDist[mask][:,5],dtype=int)).argmax()])
+        #ax14.set_ylim(-150,150)
         self.layoutOfPanel(ax14, xLabel=r'time (s)', yLabel=r'min distance (pixel)')
         self.layoutOfPanel(ax16, xLabel=r'time (s)', yLabel=r'rung number')
         #ax10.plot(fTimes[np.array(frontpawRungDist[:, 1], dtype=int)], frontpawRungDist[:, 4], '.', c='C2')
@@ -2558,23 +2575,37 @@ class createVisualizations:
         ax15.set_title('minimal hindpaw-rung distance during stance')
         ax17.set_title('rung number during hindpaw stance')
         hpTimes = fTimes[np.array(hindpawRungDist[:, 1], dtype=int)]
-        minhpRDist = np.min(np.abs(hindpawRungDist[:,2:5]),axis=1)
-        minhpRungN = np.argmin(np.abs(hindpawRungDist[:,2:5]),axis=1)
+        # minhpRDist = np.min(np.abs(hindpawRungDist[:,2:5]),axis=1)
+        minhpRungN = np.argsort(np.abs(hindpawRungDist[:,2:9]),axis=1)
         hpRungsCrossed = []
         for i in range(len(startStopHPStep)+1):
             if i == len(startStopHPStep):
-                mask = (hpTimes >= np.where((i-1)>-1,startStopHPStep[i-1,3],hpTimes[0])) & (hpTimes <= hpTimes[-1])
+                mask = (hpTimes >= startStopHPStep[i-1,3]) & (hpTimes <= hpTimes[-1])
+            elif i == 0:
+                mask = (hpTimes >= hpTimes[0]) & (hpTimes <= startStopHPStep[i,2])
             else:
-                mask = (hpTimes >= np.where((i-1)>-1,startStopHPStep[i-1,3],hpTimes[0])) & (hpTimes <= np.where(i<len(startStopHPStep),startStopHPStep[i,2],hpTimes[-1]))
-            #startIdx = np.where(mask == True)[0][0]
+                mask = (hpTimes >= startStopHPStep[i-1,3]) & (hpTimes <= startStopHPStep[i,2])
             if sum(mask)>1:
-                ax15.plot(hpTimes[mask], minhpRDist[mask],'.',c='0.5', alpha=0.5)  # ax0.plot(fp[:,2],yMax-fp[:,3],'.')
-                ax15.plot(hpTimes[mask],np.repeat(np.median(minhpRDist[mask]),len(hpTimes[mask])),c='C0',lw=2)
-            #
-            ax17.plot(hpTimes[mask],hindpawRungDist[mask][:,5])
-            if sum(mask)> 1 :
-                hpRungsCrossed.append([np.where((i-1)>-1,startStopHPStep[i-1,3],hpTimes[0]),numpy.bincount(np.array(hindpawRungDist[mask][:,5],dtype=int)).argmax()])
+                #ax15.plot(hpTimes[mask], hindpawRungDist[mask][:,2:9],'.',c='0.5', alpha=0.5)
+                llength = len(hindpawRungDist[mask])
+                # generate list of tuples which contain the indices of the first three closest rungs
+                #pdb.set_trace()
+                idx0 = [(x,y) for x,y in zip(range(llength),minhpRungN[mask][:,0])]
+                idx1 = [(x,y) for x,y in zip(range(llength),minhpRungN[mask][:,1])]
+                idx2 = [(x,y) for x,y in zip(range(llength),minhpRungN[mask][:,2])]
+                #hindpawRungDist[mask][:,9:16][tuple(np.array(idx0).T)]
+                ax15.plot(hpTimes[mask], hindpawRungDist[mask][:,2:9][tuple(np.array(idx0).T)],'.',c='0.5', alpha=0.5)
+                ax15.plot(hpTimes[mask], hindpawRungDist[mask][:,2:9][tuple(np.array(idx1).T)],'.',c='0.7', alpha=0.5)
+                ax15.plot(hpTimes[mask], hindpawRungDist[mask][:,2:9][tuple(np.array(idx2).T)],'.',c='0.9', alpha=0.5)
 
+                ax15.plot(hpTimes[mask],np.repeat(np.median(hindpawRungDist[mask][:,2:9][tuple(np.array(idx0).T)]),llength),lw=2)
+                #ax15.plot(hpTimes[mask], minhpRDist[mask],'.',c='0.5', alpha=0.5)  # ax0.plot(fp[:,2],yMax-fp[:,3],'.')
+                #np.min(np.abs(hindpawRungDist[mask][:,2:9]),axis=1)
+                #ax15.plot(hpTimes[mask],np.repeat(np.median(np.min(minhpRDist[mask]),len(hpTimes[mask])),c='C0',lw=2)
+                #
+                ax17.plot(hpTimes[mask],hindpawRungDist[mask][:,9:16][tuple(np.array(idx0).T)])
+                hpRungsCrossed.append([np.where((i-1)>-1,startStopHPStep[i-1,3],hpTimes[0]),numpy.bincount(np.array(hindpawRungDist[mask][:,9:16][tuple(np.array(idx0).T)],dtype=int)).argmax()])
+        #ax15.set_ylim(-150,150)
         self.layoutOfPanel(ax15, xLabel=r'time (s)', yLabel=r'min distance (pixel)')
         self.layoutOfPanel(ax17, xLabel=r'time (s)', yLabel=r'rung number')
         #ax10.plot(fTimes[np.array(frontpawRungDist[:, 1], dtype=int)], frontpawRungDist[:, 4], '.', c='C2')

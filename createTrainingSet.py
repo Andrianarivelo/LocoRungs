@@ -5,8 +5,10 @@ args = tools.argparser.parse_args()
 
 import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
-import tools.openCVImageProcessingTools as openCVImageProcessingTools
+import tools.pawClassifier as pawClassifier
 import pdb
+import numpy as np
+import pickle
 
 mouseD = '180107_m27'
 expDateD = '180214'
@@ -30,7 +32,9 @@ else:
 eSD         = extractSaveData.extractSaveData(mouse)
 (foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
 
-cv2Tools = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
+PClassifier = pawClassifier.pawClassifier(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
+
+roiInformation = pickle.load(open(eSD.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsData/Masks.f'))
 
 for f in range(len(foldersRecordings)) :
     for r in range(8,len(foldersRecordings[f][2])): # for r in recordings[f][1]:
@@ -38,5 +42,7 @@ for f in range(len(foldersRecordings)) :
         (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior')
         print existence
         if existence:
-            cv2Tools.trackPawsAndRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r])
+            masks = roiInformation[mouse][foldersRecordings[f][0]][foldersRecordings[f][2][r]]
+            #pdb.set_trace()
+            PClassifier.createTrainingSetWithFeedback(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],masks['WheelMask'])
         pdb.set_trace()

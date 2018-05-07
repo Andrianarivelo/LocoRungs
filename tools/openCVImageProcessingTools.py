@@ -25,7 +25,8 @@ class openCVImageProcessingTools:
         self.figureLocation = figureLoc
         self.f = ff
         self.showImages = showI
-
+        self.Vwidth = 816
+        self.Vheight = 616
 
     ############################################################
     def __del__(self):
@@ -41,6 +42,8 @@ class openCVImageProcessingTools:
         # tracking parameters #########################
         self.thresholdValue = 0.7 # in %
         self.minContourArea = 40 # square pixels
+
+        self.scoreWeights = {'distanceWeight':5,'areaWeight':1}
         ###############################################
 
         videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
@@ -58,8 +61,8 @@ class openCVImageProcessingTools:
 
         # create video output streams
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.outPaw = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawTracking.avi' % (mouse, date, rec), fourcc, 500.0, (self.Vwidth, self.Vheight))
-        self.outPawRung  = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawRungTracking.avi' % (mouse, date, rec),fourcc, 500.0, (self.Vwidth, self.Vheight))
+        self.outPaw = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawTracking.avi' % (mouse, date, rec), fourcc, 20.0, (self.Vwidth, self.Vheight))
+        self.outPawRung  = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawRungTracking.avi' % (mouse, date, rec),fourcc, 20.0, (self.Vwidth, self.Vheight))
 
         # read first video frame
         ok, img = self.video.read()
@@ -290,9 +293,12 @@ class openCVImageProcessingTools:
             # blur image and apply threshold
             blur = cv2.GaussianBlur(imgGMouse, (5, 5), 0)
             minMaxL = cv2.minMaxLoc(blur)
+            #mask = np.zeros(imgGMouse.shape,dtype="uint8")
+            #cv2.drawContours(mask, [contour], -1, 255, -1)
+            #mean,stddev = cv2.meanStdDev(image,mask=mask)
             while True:
                 ret, th1 = cv2.threshold(blur, minMaxL[1] * thresholdV, 255, cv2.THRESH_BINARY)
-                # print ret, th1
+                #print ret, th1
                 # perform edge detection, then perform a dilation + erosion to
                 # close gaps in between object edges
                 edged = cv2.Canny(th1, 50, 100)
@@ -309,15 +315,20 @@ class openCVImageProcessingTools:
                 for c in cnts:
                     if cv2.contourArea(c) > self.minContourArea:
                         nLarge += 1
-                if nLarge >= 2 :
+                if nLarge >= 4 :
                     break
                 else:
                     thresholdV = thresholdV - 0.05
-            # print cnts
+            #print mmean, sstddev
+            #for c in cnts:
+            #    mask = np.zeros(imgGMouse.shape, dtype="uint8")
+            #    cv2.drawContours(mask, c, 0, 255, 2)
+            #    mmean, sstddev = cv2.meanStdDev(imgGMouse, mask=mask)
+            #    print cv2.contourArea(c), mmean, sstddev
             #pdb.set_trace()
 
             #cntDistances = []
-            #cntArea = []
+            statsRois = []
             rois = []
             for c in cnts:
                 # if the contour is not sufficiently large, ignore it
@@ -330,8 +341,17 @@ class openCVImageProcessingTools:
                 # print ell
                 #cntDistances.append(dist.euclidean(pawPos[checkPos][3], ell[0]))
                 #cntArea.append(np.pi * (ell[1][0] / 2.) * (ell[1][1] / 2.0))
+                # get statistics of contour
+                mask = np.zeros(imgGMouse.shape, dtype="uint8")
+                cv2.drawContours(mask, c, -1, (255), 1)  # cv.drawContours(mask, contours, -1, (255),1)
+                mmean, sstddev = cv2.meanStdDev(imgGMouse, mask=mask)
+                statsRois.append([cv2.contourArea(c), mmean[0][0], sstddev[0][0]])
+
                 rois.append([ell,np.pi * (ell[1][0] / 2.) * (ell[1][1] / 2.0)])
                 orig = cv2.ellipse(orig, ell, (255, 0, 0), 2)
+
+
+            #pdb.set_trace()
 
             # find ellipse which is the best continuation of the previous ones
             # print 'nContours, Dist, Areaa : ', nCnts, cntDistances, cntArea
@@ -341,36 +361,74 @@ class openCVImageProcessingTools:
                 cornerDist = []
                 frontDist  = []
                 hindDist   = []
+                frontAreaChange = []
+                hindAreaChange  = []
+                fpScore = np.zeros(len(rois))
+                hpScore = np.zeros(len(rois))
                 #pdb.set_trace()
                 for i in range(len(rois)):
                     cornerDist.append(dist.euclidean((0,self.Vheight), rois[i][0][0]))
                     frontDist.append(dist.euclidean(frontpawPos[fcheckPos][2], rois[i][0][0]))
                     hindDist.append(dist.euclidean(hindpawPos[hcheckPos][2], rois[i][0][0]))
-                #
-                if len(cornerDist) == 2:
-                    hindIdx =  np.argmin(np.asarray(cornerDist))
-                    frontIdx = np.argmax(np.asarray(cornerDist))
-                else :
-                    hindIdx = np.argmin(np.asarray(hindDist))
-                    frontIdx = np.argmin(np.asarray(frontDist))
-                #print 'front, hind index ', frontIdx, hindIdx
+                    frontAreaChange.append(np.abs(frontpawPos[fcheckPos][2] - statsRois[i][0]))
+                    hindAreaChange.append(np.abs(hindpawPos[hcheckPos][2] - statsRois[i][0]))
+                    #pdb.set_trace()
+                    cv2.putText(orig, '%s , %s , %s' % (statsRois[i][0],statsRois[i][1],statsRois[i][2]), (int(rois[i][0][0][0]),int(rois[i][0][0][1])), cv2.QT_FONT_NORMAL, 0.4, color=(220, 220, 220))
+                # score based on the distance to last paw position, smallest distance -> highest score
+                fpScore+= self.scoreWeights['distanceWeight']/np.asarray(frontDist)
+                hpScore+= self.scoreWeights['distanceWeight']/np.asarray(hindDist)
+                # score based on change of contour area, smallest change -> highest score
+                fpScore+= self.scoreWeights['areaWeight']/np.asarray(frontAreaChange)
+                hpScore+= self.scoreWeights['areaWeight']/np.asarray(hindAreaChange)
+                # score based on distance from lower left corner : small dist -> high score for hind
+                #if len(cornerDist) == 2:
+                #    hindIdx =  np.argmin(np.asarray(cornerDist))
+                #    frontIdx = np.argmax(np.asarray(cornerDist))
+                #else :
+
+                highestSTD = np.argsort(1./(np.asarray(statsRois)[:,2]))
+                hindSortIdx = np.argsort(np.asarray(hindDist))
+                frontSortIdx = np.argsort(np.asarray(frontDist))
+                cornerSortIdx = np.argsort(np.asarray(cornerDist))
+                #frontIdx = highestSTD[0] # int(np.where(highestSTD == 0)[0])
+                #hindIdx = highestSTD[1] # int(np.where(highestSTD == 1)[0])
                 #pdb.set_trace()
-                if (frontDist[frontIdx] < abs(fcheckPos) * 50.):
-                    
+                # if STD of first two points is very large : certain that they are the paws
+                if statsRois[highestSTD[1]][2]/statsRois[highestSTD[2]][2] > 3. :
+                    if np.where(highestSTD[0] == hindSortIdx) < np.where(highestSTD[0] == frontSortIdx):
+                        hindIdx  = highestSTD[0]
+                        frontIdx = highestSTD[1]
+                    else:
+                        hindIdx  = highestSTD[1]
+                        frontIdx = highestSTD[0]
+                elif np.where(hindSortIdx[0] == cornerSortIdx) < np.where(frontSortIdx[0] == cornerSortIdx):
+                    hindIdx  = hindSortIdx[0]
+                    frontIdx = frontSortIdx[0]
+                else:
+                    hindIdx  = 0
+                    frontIdx = 0
+                #if hindSortIdx[0] in highestSTD[:2] :
+                #    hindIdx = hindSortIdx[0]
+                if (frontDist[frontIdx] < abs(fcheckPos) * 50.): # frontIdx in np.where(highestSTD<=1)[0] :
+                    #print 'front, hind index ', frontIdx, hindIdx
+                    #pdb.set_trace()
+                    # if (frontDist[frontIdx] < abs(fcheckPos) * 50.):
                     Str = 'frontDist success : %s' % frontDist[frontIdx]
-                    frontpawPos.append([nF,'s',rois[frontIdx][0][0],rois[frontIdx][0],rois[frontIdx][1]])
+                    frontpawPos.append([nF,rois[frontIdx][0][0],rois[frontIdx][0],rois[frontIdx][1],statsRois[frontIdx][0]])
                     fcheckPos = -1
                 else:
                     Str = 'frontDist failure : %s' % frontDist[frontIdx]
-                    frontpawPos.append([nF,'f',rois[frontIdx][0][0],rois[frontIdx][0],rois[frontIdx][1]])
+                    frontpawPos.append([nF,rois[frontIdx][0][0],rois[frontIdx][0],rois[frontIdx][1],statsRois[frontIdx][0]])
                     fcheckPos -= 1
-                if (hindDist[hindIdx] < abs(hcheckPos) * 50.):
+                #
+                if (hindDist[hindIdx] < abs(hcheckPos) * 50.): # hindIdx in np.where(highestSTD<=1)[0] : #hindIdx in np.where(highestSTD<=1)[0] : #(hindDist[hindIdx] < abs(hcheckPos) * 50.):
+
                     Str2 = '    ///     hindDist success : %s' % hindDist[hindIdx]
-                    hindpawPos.append([nF, 's', rois[hindIdx][0][0], rois[hindIdx],rois[hindIdx][1]] )
+                    hindpawPos.append([nF,rois[hindIdx][0][0], rois[hindIdx],rois[hindIdx][1],statsRois[hindIdx][0]] )
                     hcheckPos = -1
                 else:
                     Str2 = 'hindDist failure : %s' % hindDist[hindIdx]
-                    hindpawPos.append([nF, 'f', rois[hindIdx][0][0], rois[hindIdx],rois[hindIdx][1]] )
+                    hindpawPos.append([nF, 'f', rois[hindIdx][0][0], rois[hindIdx],rois[hindIdx][1],statsRois[hindIdx][0]] )
                     hcheckPos -=1
                 ##
                 if self.showImages:
@@ -457,12 +515,15 @@ class openCVImageProcessingTools:
 
             # wait and abort criterion, 'esc' allows to stop
             k = cv2.waitKey(1) & 0xff
+            #print k
             if k == 27: break
             elif k ==8: #Backspace marks the recording as bad
                 badVideo = 1
                 cv2.destroyAllWindows()
                 return stopProgram, [Radius, xCenter, yCenter], [xPosition,yPosition], badVideo
-
+            elif k == 32:
+                pdb.set_trace()
+                #cv2.waitKey(100)
             nF += 1
 
         cv2.destroyAllWindows()
@@ -481,7 +542,20 @@ class openCVImageProcessingTools:
     ########################################################################################################################
     # frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes
     def analyzePawsAndRungs(self,mouse,date,rec,frontpawPos,hindpawPos,rungs,fTimes,angularSpeed,linearSpeed,sTimes,angleTimes):
+        # some image streams for verification
+        self.showImages = False
 
+        # create video output streams
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.outRung = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_rungAnalysis.avi' % (mouse, date, rec), fourcc, 20.0, (self.Vwidth, self.Vheight))
+        # self.outPawRung  = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawRungTracking.avi' % (mouse, date, rec),fourcc, 20.0, (self.Vwidth, self.Vheight))
+
+
+
+        # # wait and abort criterion, 'esc' allows to stop
+        # k = cv2.waitKey(1) & 0xff
+        # # print k
+        # if k == 27: break
 
         ##########################################################
         # build array of paw positions
@@ -676,6 +750,7 @@ class openCVImageProcessingTools:
         rungsList.sort(key=lambda x: x[0])
         rungsSorted = np.asarray(rungsList)
 
+        rungConvergencePoint = ([rungsSorted[0,3],rungsSorted[0,4]])
         # determine first angle in first image
         ppFFirst = rungsSorted[rungsSorted[:,0]==0][:,1:3]
         genericPs = contructCloudOfPointsOnCircle(len(ppFFirst),center_2b,R_2b,spacingDegree)
@@ -695,11 +770,12 @@ class openCVImageProcessingTools:
         pC = np.zeros(8)
         for i in range(len(frameNumbers)):
             #ok, img = self.video.read()
+            if self.showImages:
+                blank_image = np.zeros((self.Vheight,self.Vwidth,3), np.uint8)
 
             # determine points per frame
             ppF = rungsSorted[rungsSorted[:,0]==frameNumbers[i]][:,1:]
-            frontpawPos = fp[fp[:,1]==frameNumbers[i]]
-            hindpawPos  = hp[hp[:,1]==frameNumbers[i]]
+
             # for n in range(1,len(ppF)):
             #     #print angle_between(ppF[n]-center_2b,ppF[n-1]-center_2b),
             #     aBtw.append(angle_between(ppF[n]-center_2b,ppF[n-1]-center_2b))
@@ -718,24 +794,57 @@ class openCVImageProcessingTools:
             rungsNumbered.append([i,frameNumbers[i],len(ppF),d1,degreeDifference[0],rungCounter,numberedR,ppF[:,:2]])
 
             # cacluate distance btw paw and rungs
+            frontpawPos = fp[fp[:, 1] == frameNumbers[i]]
+            hindpawPos = hp[hp[:, 1] == frameNumbers[i]]
             tempFD = []
             tempHD = []
-            pC[len(ppF)]+=1
-            for n in range(len(ppF)):
+            pC[len(ppF)] += 1
+            if len(ppF)==1:
+                nAddRungs = 3
+            elif len(ppF)==2 or len(ppF)==3:
+                nAddRungs = 2
+            elif len(ppF)==4 or len(ppF)==5:
+                nAddRungs = 1
+            elif len(ppF)==6 or len(ppF)==7:
+                nAddRungs = 0
+            genericPs = contructCloudOfPointsOnCircle(7,center_2b,R_2b,spacingDegree)
+            numberedGenericR = np.arange(7) + numberedR[0] - nAddRungs
+            genericRotated = genericPs[:,1:].copy()
+            #pdb.set_trace()
+            for n in range(len(genericPs)):
+                genericRotated[n] = rotate_around_point(genericPs[n][1:],d1+nAddRungs*spacingDegree,origin=center_2b)
+                #print frameNumbers[i], len(ppF), ppF
+                #for n in range(len(ppF)):
                 if len(frontpawPos)>0:
-                    tempFD.append(np.cross(ppF[n][2:]-ppF[n][:2],frontpawPos[0][2:]-ppF[n][:2])/norm(ppF[n][2:]-ppF[n][:2]))
+                    tempFD.append(np.cross(rungConvergencePoint-genericRotated[n],frontpawPos[0][2:]-genericRotated[n])/norm(rungConvergencePoint-genericRotated[n]))
                 if len(hindpawPos)>0:
-                    tempHD.append(np.cross(ppF[n][2:]-ppF[n][:2],hindpawPos[0][2:]-ppF[n][:2])/norm(ppF[n][2:]-ppF[n][:2]))
+                    tempHD.append(np.cross(rungConvergencePoint-genericRotated[n],hindpawPos[0][2:]-genericRotated[n])/norm(rungConvergencePoint-genericRotated[n]))
                     #hindpawRungDist.append(tempD[1])
+                if self.showImages:
+                    cv2.circle(blank_image, (int(genericRotated[n,0]), int(genericRotated[n,1])), 6, (0, 0, 255), 3)
             if len(frontpawPos)>0:
-                tempAFD = np.asarray(tempFD)
-                sortedA = np.argsort(np.abs(tempAFD))
-                frontpawRungDist.append([i,frameNumbers[i],tempAFD[sortedA[0]],tempAFD[sortedA[1]],tempAFD[sortedA[2]],numberedR[sortedA[0]],numberedR[sortedA[1]],numberedR[sortedA[2]]])
+                #tempAFD = np.asarray(tempFD)
+                #sortedA = np.argsort(tempAFD)
+                #pdb.set_trace()
+                frontpawRungDist.append([i,frameNumbers[i]])
+                frontpawRungDist[-1].extend(tempFD)
+                frontpawRungDist[-1].extend(numberedGenericR.tolist())
+            temp = []
             if len(hindpawPos)>0:
-                tempAHD = np.asarray(tempHD)
-                sortedA = np.argsort(np.abs(tempAHD))
-                hindpawRungDist.append([i,frameNumbers[i],tempAHD[sortedA[0]],tempAHD[sortedA[1]],tempAHD[sortedA[2]],numberedR[sortedA[0]],numberedR[sortedA[1]],numberedR[sortedA[2]]])
+                #tempAHD = np.asarray(tempHD)
+                #sortedA = np.argsort(tempAHD)
+                hindpawRungDist.append([i,frameNumbers[i]])
+                hindpawRungDist[-1].extend(tempHD)
+                hindpawRungDist[-1].extend(numberedGenericR.tolist())
+            if self.showImages:
+                for n in range(len(ppF)):
+                    cv2.circle(blank_image, (ppF[n,0], ppF[n,1]), 2, (0, 255, 0), 2)
+            # draw the center of the circle
+            # cv2.circle(blank_image, (i[0], i[1]), 2, (0, 0, 255), 3)
+            # self.outRung.write(orig)
 
+            if self.showImages:
+                cv2.imshow("Rung rotations : %s   rec : %s/%s" % (mouse, date, rec), blank_image)
 
             dOld = d1
             #for n in range(len(ppF)):
@@ -746,8 +855,11 @@ class openCVImageProcessingTools:
             #
             #     cv2.imshow("Paw-tracking monitor", img)
             #     # wait and abort criterion, 'esc' allows to stop
-            #     k = cv2.waitKey(0) & 0xff
-            #     if k == 27: break
+            if self.showImages:
+                k = cv2.waitKey(50) & 0xff
+                if k == 27: break
+                elif k == 32: pdb.set_trace()
+            #cv2.destroyAllWindows()
 
             #if degreeDifference[0] > 1:
             #    print i,frameNumbers[i], len(ppF), d1, degreeDifference, np.arange(len(ppF))+rungCounter #, ppF

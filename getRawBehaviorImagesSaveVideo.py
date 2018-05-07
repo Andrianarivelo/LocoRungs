@@ -12,8 +12,8 @@ import sys
 #expDate = '171115'
 #mouse = '171126_m90'
 #expDate = '180118'
-mouseD = '180112_f36'
-expDateD = '180228'
+mouseD = '180107_m27'
+expDateD = '180214'
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -27,18 +27,18 @@ else:
     expDate = args.date
 
 
-print mouse, expDate
-sys.exit(0) #pdb.set_trace()
+#print mouse, expDate
+#sys.exit(0) #pdb.set_trace()
 eSD         = extractSaveData.extractSaveData(mouse)  # find data folder of specific mouse, create data folder, and hdf5 handle
-(foldersRecordings,dataFolders) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
 
 # loop over all recording folders
 
 for f in range(len(foldersRecordings)):
-    for r in range(len(foldersRecordings[f][2])):
+    for r in range(8,len(foldersRecordings[f][2])):
         (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior')
         if existence:
             #print 'exists'
             (frames,fTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior',fileHandle)
             eSD.saveBehaviorVideo(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],frames,fTimes,imageMetaInfo)
-            # pdb.set_trace()
+            #pdb.set_trace()
