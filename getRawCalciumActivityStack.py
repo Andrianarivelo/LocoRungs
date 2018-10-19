@@ -2,17 +2,20 @@ import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import pdb
 
-mouse = '171218_f8'
-expDate = '180123'
+mouse = '180602_m78'
 
 eSD         = extractSaveData.extractSaveData(mouse)
-(recordings,dataFolder) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse) # get recordings for specific mouse and date
+
+#pdb.set_trace()
 
 #dA      = dataAnalysis.dataAnalysis()
-for rec in recordings:
-    (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(rec,'Imaging')
-    if existence:
-        (frames,fTimes,imageMetaInfo) = eSD.readRawData(rec,'Imaging',fileHandle)
-        eSD.saveImageStack(frames,fTimes,imageMetaInfo,'raw_data')
-        eSD.saveTif(frames[:,:,:,0], mouse, dataFolder, rec) # tif file for possible image registration in ImageJ
-
+for f in range(len(foldersRecordings)):
+    for r in range(len(foldersRecordings[f][2])):
+        (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'Imaging')
+        if existence:
+            (frames,fTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][2][r],'Imaging',fileHandle)
+            eSD.saveImageStack(frames,fTimes,imageMetaInfo,[foldersRecordings[f][0],foldersRecordings[f][2][r],'raw_imaging_data'])
+            eSD.saveTif(frames[:,:,:,0], mouse,foldersRecordings[f][0],foldersRecordings[f][2][r]) # tif file for possible image registration in ImageJ
+        #break
+    #break

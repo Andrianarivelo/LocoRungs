@@ -158,10 +158,12 @@ class extractSaveData:
                     expDateList.append(d)
             else:
                 expDateList.append(expDate)
+            #print expDateList
+            #pdb.set_trace()
             for eD in expDateList:
                 if eD in self.listOfAllExpts[mouse]['dates']:
                     dataFolders = self.listOfAllExpts[mouse]['dates'][eD]['folders']
-                    #print eD, dataFolders
+                    #print eD, self.listOfAllExpts[mouse]['dates']
                     for fold in dataFolders:
                         self.dataLocation = self.dataBase + fold + '/'
 
@@ -276,6 +278,7 @@ class extractSaveData:
         pixWidth  = config['.']['Scanner']['program'][0]['scanInfo']['pixelWidth'][0]*conversion
         pixHeight = config['.']['Scanner']['program'][0]['scanInfo']['pixelHeight'][0]*conversion
         dimensionXY =  np.array(config['.']['Scanner']['program'][0]['roi']['size'])*conversion
+        position = np.array(config['.']['Scanner']['program'][0]['roi']['pos'])*conversion
 
         if pixWidth == pixHeight:
             deltaPix = pixWidth
@@ -284,17 +287,25 @@ class extractSaveData:
             sys.exit(1)
 
         #print r'dimensions (x,y, pixelsize in um) : ', np.hstack((dimensionXY,deltaPix))
-        return np.hstack((dimensionXY,deltaPix))
+        return np.hstack((position,dimensionXY,deltaPix))
         #self.h5pyTools.createOverwriteDS(dataGroup,dataSetName,hstack((dimensionXY,deltaPix)))
 
     ############################################################
-    def saveImageStack(self,frames,fTimes,imageMetaInfo,groupName,motionCorrection=[]):
-        grp_name = self.f.require_group(groupName)
-        self.h5pyTools.createOverwriteDS(grp_name,'caImaging',frames)
-        self.h5pyTools.createOverwriteDS(grp_name,'caImagingTime', fTimes)
-        self.h5pyTools.createOverwriteDS(grp_name,'caImagingField', imageMetaInfo)
+    def saveImageStack(self,frames,fTimes,imageMetaInfo,groupNames,motionCorrection=[]):
+        (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
+        self.h5pyTools.createOverwriteDS(grpHandle,'caImaging',frames)
+        self.h5pyTools.createOverwriteDS(grpHandle,'caImagingTime', fTimes)
+        self.h5pyTools.createOverwriteDS(grpHandle,'caImagingField', imageMetaInfo)
         if len(motionCorrection)>1:
-            self.h5pyTools.createOverwriteDS(grp_name,'motionCoordinates', motionCorrection)
+            self.h5pyTools.createOverwriteDS(grpHandle,'motionCoordinates', motionCorrection)
+
+    ############################################################
+    def readImageStack(self, groupNames):
+        (grpName, test) = self.h5pyTools.getH5GroupName(self.f,groupNames)
+        frames = self.f[grpName + '/caImaging'].value
+        fTimes = self.f[grpName + '/caImagingTime'].value
+        imageMetaInfo = self.f[grpName + '/caImagingField'].value
+        return (frames,fTimes,imageMetaInfo)
 
     ############################################################
     def saveWalkingActivity(self,angularSpeed,linearSpeed,wTimes,angles,aTimes,startTime,monitor,groupNames):
@@ -324,9 +335,12 @@ class extractSaveData:
         return (frontpawPos,hindpawPos,rungs)
 
     ############################################################
-    def saveTif(self,frames,mouse,date,rec):
+    def saveTif(self,frames,mouse,date,rec,norm=None):
         img_stack_uint8 = np.array(frames, dtype=np.uint8)
-        tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
+        if norm:
+            tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack%s.tif' % (mouse, date, rec,norm), img_stack_uint8)
+        else:
+            tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
 
     ############################################################
     def readTif(self,frames,mouse,date,rec):
