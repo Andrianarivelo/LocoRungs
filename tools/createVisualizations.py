@@ -2254,3 +2254,397 @@ class createVisualizations:
         plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
 
+    ##########################################################################################
+    def generatePawMovementFigure(self,date,rec, fp, hp,rungs,fTimes,centerR,radius,rungsNumbered,fpLinear,hpLinear,linearSpeed,sTimes,frontpawRungDist,hindpawRungDist,startStopFPStep,startStopHPStep):
+        yMax = 816
+        xMax = 616
+
+        # ax6.plot(hpLinear[:,1][1:],(np.diff(fpLinear[:,5])/np.diff(fpLinear[:,1]))/5.)
+        # #ax6.plot(hpLinear[:,1][1:],np.diff(hpLinear[:,5])/np.diff(hpLinear[:,1]))
+        #
+        # ax6.plot(sTimes, linearSpeed)
+
+        wheelSpeedInterp = interp1d(hpLinear[:,1][1:],(np.diff(fpLinear[:,5])/np.diff(fpLinear[:,1])))
+
+        mask = (sTimes>hpLinear[:,1][1:][0]) & (sTimes<hpLinear[:,1][1:][-1])
+        newWheelSpeed = wheelSpeedInterp(sTimes[mask])
+
+        frac = linearSpeed/newWheelSpeed
+
+        pixToCmScaling = 1./np.mean(frac)
+        print pixToCmScaling
+
+        #pdb.set_trace()
+        # figure #################################
+        fig_width = 16  # width in inches
+        fig_height = 45 # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi': 600,
+                  'axes.linewidth': 1.3,
+                  'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(10, 2  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.14, right=0.92, top=0.98, bottom=0.05)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.99, '%s   %s   %s' % (self.mouse,date,rec) ,clip_on=False,color='black',size=14)
+
+        # first sub-plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax0 = plt.subplot(gs[0])
+
+        ax0.plot(fp[:,2],yMax-fp[:,3])
+        ax0.plot(fp[:,2],yMax-fp[:,3],'.')
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax0,xLabel=r'x (pixel)',yLabel=r'y (pixel)')
+
+        # first sub-plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax1 = plt.subplot(gs[1])
+
+        ax1.plot(hp[:,2],yMax-hp[:,3])
+        ax1.plot(hp[:,2],yMax-hp[:,3],'.')
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax1,xLabel=r'x (pixel)',yLabel=r'y (pixel)')
+
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax2 = plt.subplot(gs[2])
+
+        ax2.plot(fpLinear[:,1], fpLinear[:,2],label='fp')
+        ax2.plot(fpLinear[:,1], hpLinear[:,2],label='hp')
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax2, xLabel=r'time (s)', yLabel=r'x forward position (cm)',Leg=[2,9])
+        #ax2.set_xlim(3,8)
+        #ax2.set_ylim(8,40)
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax3 = plt.subplot(gs[3])
+
+        ax3.plot(fpLinear[:, 1], fpLinear[:, 3],label='fp')
+        ax3.plot(hpLinear[:, 1], hpLinear[:, 3],label='hp')
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax3, xLabel=r'time (s)', yLabel=r'y upward position (pixel)',Leg=[2,9])
+
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax4 = plt.subplot(gs[4])
+        ax4.set_title('frontpaw swings')
+        for i in range(len(startStopFPStep)):
+            ax4.plot(fp[int(startStopFPStep[i,0]):int(startStopFPStep[i,1]),2]-fp[int(startStopFPStep[i,0]),2],(yMax-fp[int(startStopFPStep[i,0]):int(startStopFPStep[i,1]),3])-(yMax-fp[int(startStopFPStep[i,0]),3]),c='0.5',alpha=0.5)
+
+            #ax0.plot(fp[:,2],yMax-fp[:,3],'.')
+
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax4, xLabel=r'x (pixel)', yLabel=r'y (pixel)')
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax5 = plt.subplot(gs[5])
+        ax5.set_title('hindpaw swings')
+        for i in range(len(startStopHPStep)):
+            ax5.plot(hp[int(startStopHPStep[i,0]):int(startStopHPStep[i,1]),2]-hp[int(startStopHPStep[i,0]),2],(yMax-hp[int(startStopHPStep[i,0]):int(startStopHPStep[i,1]),3])-(yMax-hp[int(startStopHPStep[i,0]),3]),c='0.5',alpha=0.5)
+            #ax0.plot(fp[:,2],yMax-fp[:,3],'.')
+
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax5, xLabel=r'x (pixel)', yLabel=r'y (pixel)')
+
+
+        print len(fp), len(fpLinear), len(hp), len(hpLinear)
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax6 = plt.subplot(gs[6])
+        ax8 = plt.subplot(gs[8])
+        ax6.set_title('frontpaw linearized swings')
+        ax8.set_title('frontpaw linearized swings speed')
+        for i in range(len(startStopFPStep)):
+            mask = (fpLinear[:,1]>=startStopFPStep[i,2]) & (fpLinear[:,1]<=startStopFPStep[i,3])
+            startIdx = np.where(mask==True)[0][0]
+            ax6.plot(fpLinear[mask, 2] - fpLinear[startIdx, 2],fpLinear[mask, 3] - fpLinear[startIdx, 3], c='0.5', alpha=0.5)  # ax0.plot(fp[:,2],yMax-fp[:,3],'.')
+            #
+            speed = (np.sqrt((np.diff(fpLinear[mask, 2])/np.diff(fpLinear[:,1][mask]))**2 + (np.diff(fpLinear[mask, 3])/np.diff(fpLinear[:,1][mask]))**2))
+            ax8.plot(fpLinear[:,1][mask][1:]-fpLinear[:,1][mask][1],speed, c='0.5', alpha=0.5)
+
+        ax8.set_ylim(ymax=100.)
+        self.layoutOfPanel(ax6, xLabel=r'x (cm)', yLabel=r'y (cm)')
+        self.layoutOfPanel(ax8, xLabel=r'time (s)', yLabel=r'speed (cm/s)')
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax7 = plt.subplot(gs[7])
+        ax9 = plt.subplot(gs[9])
+        ax7.set_title('hindpaw linearized swings')
+        ax9.set_title('hindpaw linearized swings speed')
+        trajX2 = []
+        trajY2 = []
+        trajX3 = []
+        trajY3 = []
+        for i in range(len(startStopHPStep)):
+            mask = (hpLinear[:,1]>=startStopHPStep[i,2]) & (hpLinear[:,1]<=startStopHPStep[i,3])
+            startIdx = np.where(mask==True)[0][0]
+            endIdx   = np.where(mask==True)[0][-1]
+            ax7.plot(hpLinear[mask,2] - hpLinear[startIdx,2],hpLinear[mask,3] - hpLinear[startIdx, 3], c='0.5', alpha=0.5)  # ax0.plot(fp[:,2],yMax-fp[:,3],'.')
+            #
+            if (hpLinear[endIdx,2] - hpLinear[startIdx,2])> 1. and (hpLinear[endIdx,2] - hpLinear[startIdx,2])<3. and np.abs(hpLinear[endIdx,3] - hpLinear[startIdx, 3])<0.4:
+                ttNorm = (hpLinear[:,1][mask]-hpLinear[:,1][mask][0])/(hpLinear[:,1][mask][-1] - hpLinear[:,1][mask][0])
+                track_interpx = interp1d(ttNorm, hpLinear[mask,2] - hpLinear[startIdx,2])
+                track_interpy = interp1d(ttNorm, hpLinear[mask,3] - hpLinear[startIdx,3])
+                trajX2.append(track_interpx(np.linspace(0,1,51)))
+                trajY2.append(track_interpy(np.linspace(0,1,51)))
+            elif (hpLinear[endIdx,2] - hpLinear[startIdx,2])> 3.:
+                ttNorm = (hpLinear[:,1][mask]-hpLinear[:,1][mask][0])/(hpLinear[:,1][mask][-1] - hpLinear[:,1][mask][0])
+                track_interpx = interp1d(ttNorm, hpLinear[mask,2] - hpLinear[startIdx,2])
+                track_interpy = interp1d(ttNorm, hpLinear[mask,3] - hpLinear[startIdx,3])
+                trajX3.append(track_interpx(np.linspace(0,1,51)))
+                trajY3.append(track_interpy(np.linspace(0,1,51)))
+
+
+            speed = (np.sqrt((np.diff(hpLinear[mask, 2])/np.diff(hpLinear[:,1][mask]))**2 + (np.diff(hpLinear[mask, 3])/np.diff(hpLinear[:,1][mask]))**2))
+            ax9.plot(hpLinear[:,1][mask][1:]-hpLinear[:,1][mask][1],speed, c='0.5', alpha=0.5)
+
+        trajX2 = np.asarray(trajX2)
+        trajY2 = np.asarray(trajY2)
+        trajX3 = np.asarray(trajX3)
+        trajY3 = np.asarray(trajY3)
+        every = 4
+        ax7.plot(np.mean(trajX2,axis=0),np.mean(trajY2,axis=0),c='C0',lw=2)
+        #ax7.errorbar(np.mean(trajX2,axis=0)[::every],np.mean(trajY2,axis=0)[::every],xerr=np.std(trajX2,axis=0)[::every], yerr=np.std(trajY2,axis=0)[::every],c='C0')
+        ax7.plot(np.mean(trajX3,axis=0),np.mean(trajY3,axis=0),c='C1',lw=2)
+        #ax7.errorbar(np.mean(trajX3,axis=0)[::every],np.mean(trajY3,axis=0)[::every],xerr=np.std(trajX3,axis=0)[::every], yerr=np.std(trajY3,axis=0)[::every],c='C1')
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        ax9.set_ylim(ymax=100.)
+        self.layoutOfPanel(ax7, xLabel=r'x (cm)', yLabel=r'y (cm)')
+        self.layoutOfPanel(ax9, xLabel=r'time', yLabel=r'speed (cm/s)')
+
+
+        # first sub-plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+
+        ax6 = plt.subplot(gs[10])
+        ax6.set_title('wheel speed')
+        ax6.plot(hpLinear[:,1][1:],(np.diff(fpLinear[:,5])/np.diff(fpLinear[:,1]))/pixToCmScaling,label='from rung screws')
+        #ax6.plot(hpLinear[:,1][1:],np.diff(hpLinear[:,5])/np.diff(hpLinear[:,1]))
+
+        ax6.plot(sTimes, linearSpeed,label='rotary encoder')
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax6,xLabel=r'time (s)',yLabel=r'wheel speed (cm/s)',Leg=[1,9])
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+
+        ax7 = plt.subplot(gs[11])
+        ax6.set_title('wheel and paw speed')
+        fpTimes = fTimes[np.array(fp[:,1],dtype=int)]
+        hpTimes = fTimes[np.array(hp[:,1],dtype=int)]
+        ax7.plot(fpTimes[1:], (np.sqrt((np.diff(fp[:, 2]) / np.diff(fpTimes)) ** 2 + (np.diff(fp[:, 3]) / np.diff(fpTimes)) ** 2)) / 80., label='frontpaw')
+        ax7.plot(hpTimes[1:], (np.sqrt((np.diff(hp[:,2])/np.diff(hpTimes))**2 + (np.diff(hp[:,3])/np.diff(hpTimes))**2))/80.,label='hindpaw')
+
+        # ax6.plot(hpLinear[:,1][1:],np.diff(hpLinear[:,5])/np.diff(hpLinear[:,1]))
+
+        ax7.plot(sTimes, np.abs(linearSpeed),label='wheel')
+        # removes upper and right axes
+        # and moves left and bottom axes away
+
+        ax7.set_ylim(ymax=100)
+        self.layoutOfPanel(ax7, xLabel=r'time (s)', yLabel=r'speed (cm/s)',Leg=[1,9])
+
+        # first sub-plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax8 = plt.subplot(gs[12])
+        #pdb.set_trace()
+        ax8.set_title('frontpaw-rungs distance')
+        #for i in range(len(frontpawRungDist)):
+        #pdb.set_trace()
+        #print np.repeat(fTimes[int(frontpawRungDist[i][1])],len(frontpawRungDist[i][2:])), frontpawRungDist[i][2:]
+        ax8.plot(fTimes[np.array(frontpawRungDist[:,1],dtype=int)],frontpawRungDist[:,2:9],'.',c='C0')
+        #ax8.plot(fTimes[np.array(frontpawRungDist[:,1],dtype=int)],frontpawRungDist[:,3],'.',c='C1')
+        #ax8.plot(fTimes[np.array(frontpawRungDist[:,1],dtype=int)],frontpawRungDist[:,4],'.',c='C2')
+
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax8,xLabel=r'time (s)',yLabel=r'frontpaw-rung dist (pixel)')
+
+        # first sub-plot #######################################################
+        #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax9 = plt.subplot(gs[13])
+        ax9.set_title('hindpaw-rungs distance')
+        ax9.plot(fTimes[np.array(hindpawRungDist[:,1],dtype=int)],hindpawRungDist[:,2:9],'.',c='C0')
+        #ax9.plot(fTimes[np.array(hindpawRungDist[:,1],dtype=int)],hindpawRungDist[:,3],'.',c='C1')
+        #ax9.plot(fTimes[np.array(hindpawRungDist[:,1],dtype=int)],hindpawRungDist[:,4],'.',c='C2')
+
+
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax9,xLabel=r'time (s)',yLabel=r'hindpaw-rung dist (pixel)')
+
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax14 = plt.subplot(gs[14])
+        ax16 = plt.subplot(gs[16])
+        ax14.set_title('minimal frontpaw-rung distance during stance')
+        ax16.set_title('rung number during frontpaw stance')
+        fpTimes = fTimes[np.array(frontpawRungDist[:,1], dtype=int)]
+        #minfpRDist = np.min(np.abs(frontpawRungDist[:,2:9]),axis=1)
+        minfpRungN = np.argsort(np.abs(frontpawRungDist[:,2:9]),axis=1)
+        fpRungsCrossed =[]
+        for i in range(len(startStopFPStep)+1):
+            if i == len(startStopFPStep):
+                mask = (fpTimes >= startStopFPStep[i-1,3]) & (fpTimes <= fpTimes[-1])
+            elif i == 0:
+                mask = (fpTimes >= fpTimes[0]) & (fpTimes <= startStopFPStep[i,2])
+            else:
+                mask = (fpTimes >= startStopFPStep[i-1,3]) & (fpTimes <= startStopFPStep[i,2])
+            #mask = (fpTimes >= startStopFPStep[i-1,3]) & (fpTimes <= startStopFPStep[i,2])
+            #startIdx = np.where(mask == True)[0][0]
+            if sum(mask)> 1 :
+                llength = len(frontpawRungDist[mask])
+                # generate list of tuples which contain the indices of the first three closest rungs
+                # pdb.set_trace()
+                idx0 = [(x, y) for x, y in zip(range(llength), minfpRungN[mask][:, 0])]
+                idx1 = [(x, y) for x, y in zip(range(llength), minfpRungN[mask][:, 1])]
+                idx2 = [(x, y) for x, y in zip(range(llength), minfpRungN[mask][:, 2])]
+                # hindpawRungDist[mask][:,9:16][tuple(np.array(idx0).T)]
+                ax14.plot(fpTimes[mask], frontpawRungDist[mask][:, 2:9][tuple(np.array(idx0).T)], '.', c='0.5', alpha=0.5)
+                ax14.plot(fpTimes[mask], frontpawRungDist[mask][:, 2:9][tuple(np.array(idx1).T)], '.', c='0.7', alpha=0.5)
+                ax14.plot(fpTimes[mask], frontpawRungDist[mask][:, 2:9][tuple(np.array(idx2).T)], '.', c='0.9', alpha=0.5)
+                # draw a line of the median closest distance during step
+                ax14.plot(fpTimes[mask],np.repeat(np.median(frontpawRungDist[mask][:, 2:9][tuple(np.array(idx0).T)]),llength),lw=2)
+
+                ax16.plot(fpTimes[mask], frontpawRungDist[mask][:, 9:16][tuple(np.array(idx0).T)])
+                fpRungsCrossed.append([np.where((i - 1) > -1, startStopFPStep[i - 1, 3], fpTimes[0]), numpy.bincount(np.array(frontpawRungDist[mask][:, 9:16][tuple(np.array(idx0).T)], dtype=int)).argmax()])
+                #pdb.set_trace()
+                #ax14.plot(fpTimes[mask],np.repeat(np.median(minfpRDist[mask]),len(fpTimes[mask])),c='C0',lw=2)
+            #
+            #pdb.set_trace()
+            #ax16.plot(fpTimes[mask],frontpawRungDist[mask][:,5])
+            #pdb.set_trace()
+            #if sum(mask)> 1 :
+            #    fpRungsCrossed.append([np.where((i-1)>-1,startStopFPStep[i-1,3],fpTimes[0]),numpy.bincount(np.array(frontpawRungDist[mask][:,5],dtype=int)).argmax()])
+        #ax14.set_ylim(-150,150)
+        self.layoutOfPanel(ax14, xLabel=r'time (s)', yLabel=r'min distance (pixel)')
+        self.layoutOfPanel(ax16, xLabel=r'time (s)', yLabel=r'rung number')
+        #ax10.plot(fTimes[np.array(frontpawRungDist[:, 1], dtype=int)], frontpawRungDist[:, 4], '.', c='C2')
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax15 = plt.subplot(gs[15])
+        ax17 = plt.subplot(gs[17])
+        ax15.set_title('minimal hindpaw-rung distance during stance')
+        ax17.set_title('rung number during hindpaw stance')
+        hpTimes = fTimes[np.array(hindpawRungDist[:, 1], dtype=int)]
+        # minhpRDist = np.min(np.abs(hindpawRungDist[:,2:5]),axis=1)
+        minhpRungN = np.argsort(np.abs(hindpawRungDist[:,2:9]),axis=1)
+        hpRungsCrossed = []
+        for i in range(len(startStopHPStep)+1):
+            if i == len(startStopHPStep):
+                mask = (hpTimes >= startStopHPStep[i-1,3]) & (hpTimes <= hpTimes[-1])
+            elif i == 0:
+                mask = (hpTimes >= hpTimes[0]) & (hpTimes <= startStopHPStep[i,2])
+            else:
+                mask = (hpTimes >= startStopHPStep[i-1,3]) & (hpTimes <= startStopHPStep[i,2])
+            if sum(mask)>1:
+                #ax15.plot(hpTimes[mask], hindpawRungDist[mask][:,2:9],'.',c='0.5', alpha=0.5)
+                llength = len(hindpawRungDist[mask])
+                # generate list of tuples which contain the indices of the first three closest rungs
+                #pdb.set_trace()
+                idx0 = [(x,y) for x,y in zip(range(llength),minhpRungN[mask][:,0])]
+                idx1 = [(x,y) for x,y in zip(range(llength),minhpRungN[mask][:,1])]
+                idx2 = [(x,y) for x,y in zip(range(llength),minhpRungN[mask][:,2])]
+                #hindpawRungDist[mask][:,9:16][tuple(np.array(idx0).T)]
+                ax15.plot(hpTimes[mask], hindpawRungDist[mask][:,2:9][tuple(np.array(idx0).T)],'.',c='0.5', alpha=0.5)
+                ax15.plot(hpTimes[mask], hindpawRungDist[mask][:,2:9][tuple(np.array(idx1).T)],'.',c='0.7', alpha=0.5)
+                ax15.plot(hpTimes[mask], hindpawRungDist[mask][:,2:9][tuple(np.array(idx2).T)],'.',c='0.9', alpha=0.5)
+
+                ax15.plot(hpTimes[mask],np.repeat(np.median(hindpawRungDist[mask][:,2:9][tuple(np.array(idx0).T)]),llength),lw=2)
+                #ax15.plot(hpTimes[mask], minhpRDist[mask],'.',c='0.5', alpha=0.5)  # ax0.plot(fp[:,2],yMax-fp[:,3],'.')
+                #np.min(np.abs(hindpawRungDist[mask][:,2:9]),axis=1)
+                #ax15.plot(hpTimes[mask],np.repeat(np.median(np.min(minhpRDist[mask]),len(hpTimes[mask])),c='C0',lw=2)
+                #
+                ax17.plot(hpTimes[mask],hindpawRungDist[mask][:,9:16][tuple(np.array(idx0).T)])
+                hpRungsCrossed.append([np.where((i-1)>-1,startStopHPStep[i-1,3],hpTimes[0]),numpy.bincount(np.array(hindpawRungDist[mask][:,9:16][tuple(np.array(idx0).T)],dtype=int)).argmax()])
+        #ax15.set_ylim(-150,150)
+        self.layoutOfPanel(ax15, xLabel=r'time (s)', yLabel=r'min distance (pixel)')
+        self.layoutOfPanel(ax17, xLabel=r'time (s)', yLabel=r'rung number')
+        #ax10.plot(fTimes[np.array(frontpawRungDist[:, 1], dtype=int)], frontpawRungDist[:, 4], '.', c='C2')
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax18 = plt.subplot(gs[18])
+        ax18.set_title('frontpaw : rungs crossed during swing')
+        # ax16.set_title('frontpaw linearized swings speed')
+        #fpTimes = fTimes[np.array(frontpawRungDist[:, 1], dtype=int)]
+        #minfpRDist = np.min(np.abs(frontpawRungDist[:, 2:5]), axis=1)
+        #minfpRungN = np.argmin(np.abs(frontpawRungDist[:, 2:5]), axis=1)
+        # fpRungsCrossed
+        fpRungsCrossed = np.asarray(fpRungsCrossed)
+        #for i in range(1,len(fpRungsCrossed)):
+        ax18.plot(fpRungsCrossed[:,0][1:],np.diff(fpRungsCrossed[:,1]),'o-')
+
+
+        self.layoutOfPanel(ax18, xLabel=r'time (s)', yLabel=r'rungs crossed')
+        # ax10.plot(fTimes[np.array(frontpawRungDist[:, 1], dtype=int)], frontpawRungDist[:, 4], '.', c='C2')
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax19 = plt.subplot(gs[19])
+        ax19.set_title('hindpaw : rungs crossed during swing')
+        # ax16.set_title('frontpaw linearized swings speed')
+        # hpTimes = fTimes[np.array(hindpawRungDist[:, 1], dtype=int)]
+        # minhpRDist = np.min(np.abs(hindpawRungDist[:, 2:5]), axis=1)
+        # minhpRungN = np.argmin(np.abs(hindpawRungDist[:, 2:5]), axis=1)
+        hpRungsCrossed = np.asarray(hpRungsCrossed)
+        #for i in range(1,len(hpRungsCrossed)):
+        ax19.plot(hpRungsCrossed[:,0][1:],np.diff(hpRungsCrossed[:,1]),'o-')
+
+        self.layoutOfPanel(ax19, xLabel=r'time (s)', yLabel=r'rungs crossed')
+        # ax10.plot(fTimes[np.array(frontpawRungDist[:, 1], dtype=int)], frontpawRungDist[:, 4], '.', c='C2')
+
+
+        ## save figure ############################################################
+        fname = self.determineFileName(date, 'paw-movement', reco=rec)
+        #plt.show()
+        #plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')

@@ -1,14 +1,20 @@
 import time
 import numpy as np
 import sys
-import scipy
+import scipy, scipy.io
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import tifffile as tiff
+import pdb
+import scipy.ndimage
+import itertools
 
 def getSpeed(angles,times,circumsphere):
     angleJumps = angles[np.concatenate((([False]),np.diff(angles)!=0.))]
     timePoints = times[np.concatenate((([False]),np.diff(angles)!=0.))]
-    angularSpeed = np.diff(angleJumps)/np.diff(timePoints)
+    angularSpeed = np.diff(angleJumps[::2])/np.diff(timePoints[::2])
     linearSpeed = angularSpeed*circumsphere/360.
-    speedTimes = timePoints[1:]
+    speedTimes = timePoints[::2][1:]
     return (angularSpeed,linearSpeed,speedTimes)
 
 
@@ -157,3 +163,136 @@ def detectSpikeTimes(tresh,eDataHP,ephysTimes,positive=True):
     # detectionTreshold = tresh
     spikeTimes = ephysTimes[np.array(spikeT,dtype=int)]
     return spikeTimes
+
+#################################################################################
+# maps an abritray input array to the entire range of X-bit encoding
+#################################################################################
+def mapToXbit(inputArray,xBitEncoding):
+    oldMin = np.min(inputArray)
+    oldMax = np.max(inputArray)
+    newMin = 0.
+    newMax = 2**xBitEncoding-1.
+    normXBit = newMin + (inputArray - oldMin) * newMax / (oldMax - oldMin)
+    normXBitInt = np.array(normXBit, dtype=int)
+    return normXBitInt
+
+#################################################################################
+# detect spikes in ephys trace
+#################################################################################
+def applyImageNormalizationMask(frames,imageMetaInfo,normFrame,normImageMetaInfo,mouse, date, rec):
+    print imageMetaInfo, normImageMetaInfo
+
+    pixelRange = 10
+    print 'small, large frame : ', np.shape(frames), np.shape(normFrame)
+    print 'pixel-ratio, x-ratio, y-ratio',  imageMetaInfo[4]/normImageMetaInfo[4],
+    fig = plt.figure()
+    rect1 = patches.Rectangle(normImageMetaInfo[:2], normImageMetaInfo[2], normImageMetaInfo[3],linewidth=1,edgecolor='C0',facecolor='none')
+    rect2 = patches.Rectangle(imageMetaInfo[:2],imageMetaInfo[2],imageMetaInfo[3],linewidth=1,edgecolor='C1',facecolor='none')
+
+    framesF = np.array(frames,dtype=float)
+    avgFrame = np.average(frames[:,:,:,0],axis=0)
+    # rescale image stack to the resolution of the normalization image
+    framesRescaled = scipy.ndimage.zoom(framesF, [1,imageMetaInfo[4]/normImageMetaInfo[4],imageMetaInfo[4]/normImageMetaInfo[4],1], order=3)
+
+    # average across all time points of image stack
+    #avgFrameZ = np.average(framesRescaled[:,:,:,0],axis=0)
+    # rescale the average image to match pixel-size of normalization image, the re-scaling factor of the ratio of the pixel-sizes : stack/norm
+    avgFrameZ = scipy.ndimage.zoom(avgFrame, imageMetaInfo[4]/normImageMetaInfo[4], order=3)
+    # x,y location in pixel indices of the stack in the normalization image
+    xLoc = int(np.round((imageMetaInfo[0] - normImageMetaInfo[0]) / normImageMetaInfo[4]))
+    yLoc = int(np.round((imageMetaInfo[1] - normImageMetaInfo[1]) / normImageMetaInfo[4]))
+
+    # dimensions of the rescaled image
+    xDim = np.shape(avgFrameZ)[0]
+    yDim = np.shape(avgFrameZ)[1]
+
+    #####################
+    ax0 = fig.add_subplot(2,3,4)
+    ax0.set_title('avg. of image stack',size=7)
+    ax0.imshow(np.transpose(avgFrame))
+
+    ax1 = fig.add_subplot(2,3,5)
+    ax1.set_title('avg. of image stack : rescaled to norm. image pixel size',size=7)
+    ax1.imshow(np.transpose(avgFrameZ))
+
+    print 'image stack : ', np.shape(framesRescaled)
+    scipy.io.savemat('%s_%s_%s_imageStackBeforeRescaling.mat' % (mouse, date, rec), mdict={'dataArray': framesF})
+    scipy.io.savemat('%s_%s_%s_imageStack.mat' % (mouse, date, rec), mdict={'dataArray': framesRescaled})
+
+    #img_stack_uint8 = mapToXbit(avgFrameZ,8)
+    #pdb.set_trace()
+    #tiff.imsave('avg_imageStack_scaled.tif', np.array(img_stack_uint8, dtype=np.uint8))
+
+    ax2 = fig.add_subplot(2,3,1)
+    ax2.set_title('normalization image with image stack rectangle',size=7)
+    ret = patches.Rectangle([(imageMetaInfo[0]-normImageMetaInfo[0])/normImageMetaInfo[4],(imageMetaInfo[1]-normImageMetaInfo[1])/normImageMetaInfo[4]],imageMetaInfo[2]/normImageMetaInfo[4],imageMetaInfo[3]/normImageMetaInfo[4],linewidth=1,edgecolor='r',facecolor='none')
+    ax2.imshow(np.transpose(normFrame[0,:,:,0]))
+    ax2.add_patch(ret)
+    scipy.io.savemat('%s_%s_%s_registrationImage.mat' % (mouse, date, rec), mdict={'dataArray': normFrame[0,:,:,0]})
+
+
+    ax2 = fig.add_subplot(2,3,6)
+    ax2.set_title('area of image stack from normalization image',size=7)
+    #ret = patches.Rectangle([(imageMetaInfo[1]-normImageMetaInfo[1])/normImageMetaInfo[4],(imageMetaInfo[0]-normImageMetaInfo[0])/normImageMetaInfo[4]],imageMetaInfo[3]/normImageMetaInfo[4],imageMetaInfo[2]/normImageMetaInfo[4],linewidth=1,edgecolor='r',facecolor='none')
+    ax2.imshow(np.transpose(normFrame[0,xLoc:(xLoc+xDim),yLoc:(yLoc+yDim),0]))
+    #ax2.add_patch(ret)
+    print 'norm. image : ', np.shape(normFrame[0,xLoc:(xLoc+xDim),yLoc:(yLoc+yDim),0])
+    scipy.io.savemat('%s_%s_%s_normalizationImage.mat' % (mouse, date, rec), mdict={'dataArray': normFrame[0,xLoc:(xLoc+xDim),yLoc:(yLoc+yDim),0]})
+
+
+
+
+    normFrameF = np.array(normFrame, dtype=float)
+    test1 = scipy.ndimage.gaussian_filter1d(normFrameF[:,xLoc:(xLoc+xDim),yLoc:(yLoc+yDim),:], 2, axis=1)
+    test2 = scipy.ndimage.gaussian_filter1d(test1, 2, axis=2)
+
+    #test1 = scipy.ndimage.gaussian_filter1d(framesF, 2, axis=1)
+    #test2 = scipy.ndimage.gaussian_filter1d(test1, 2, axis=2)
+
+    #norm8bit = mapToXbit(test2,8)
+
+    filter1D = scipy.ndimage.gaussian_filter1d(framesRescaled, 2, axis=1)
+    filter2D = scipy.ndimage.gaussian_filter1d(filter1D, 2, axis=2)
+
+    norm = filter2D / test2
+    norm8bit = mapToXbit(norm,8)
+
+    ax2 = fig.add_subplot(2,3,2)
+    ax2.set_title('normalized average image',size=7)
+    #ret = patches.Rectangle([(imageMetaInfo[1]-normImageMetaInfo[1])/normImageMetaInfo[4],(imageMetaInfo[0]-normImageMetaInfo[0])/normImageMetaInfo[4]],imageMetaInfo[3]/normImageMetaInfo[4],imageMetaInfo[2]/normImageMetaInfo[4],linewidth=1,edgecolor='r',facecolor='none')
+    ax2.imshow(np.transpose(np.average(norm[:,:,:,0],axis=0)))
+
+    plt.show()
+    #pdb.set_trace()
+
+    errMatrix = np.zeros((pixelRange*2+1,pixelRange*2+1))
+    # #row, col = np.indices(err)
+    xRange = np.arange(pixelRange*2+1)
+    yRange = np.copy(xRange)
+    # #avgFrameZ = np.copy(normFrame[0,xLoc:(xLoc+xDim),yLoc:(yLoc+yDim),0])
+    for xy in itertools.product(xRange, yRange):
+
+         #err = np.abs((normFrame[0,xLoc:(xLoc+xDim),yLoc:(yLoc+yDim),0] - avgFrameZ) ** 2).sum() / (xDim*yDim)
+         xStart = xLoc + xy[0] - pixelRange
+         yStart = yLoc + xy[1] - pixelRange
+         normImg = normFrameF[0,xStart:(xStart+xDim),yStart:(yStart+yDim),0]
+         normImgNorm = mapToXbit(normImg,8) #normImg - np.average(normImg)
+         avgFrameZNorm = mapToXbit(np.average(framesRescaled[:,:,:,0],axis=0),8) #avgFrameZ - np.average(avgFrameZ)
+         errMatrix[xy[0],xy[1]] = ((normImgNorm - avgFrameZNorm) ** 2).sum() / (xDim*yDim)
+
+    minimumIndices = np.argwhere(errMatrix == np.min(errMatrix))
+
+    print 'MI :', minimumIndices
+    #pdb.set_trace()
+
+
+    #xNorm = np.linspace(normImageMetaInfo[0],normImageMetaInfo[0]+
+    #ax.add_patch(rect1)
+    #ax.add_patch(rect2)
+    #ax.set_ylim(normImageMetaInfo[1]-10,normImageMetaInfo[1]+normImageMetaInfo[3]+10)
+    #ax.set_xlim(normImageMetaInfo[0]-10,normImageMetaInfo[0]+normImageMetaInfo[2]+10)
+    #plt.patches.Rectangle(normImageMetaInfo[:2],normImageMetaInfo[2],normImageMetaInfo[3])
+    #plt.patches.Rectangle(imageMetaInfo[:2],imageMetaInfo[2],imageMetaInfo[3])
+    #plt.show()
+    #pdb.set_trace()
+    return norm8bit

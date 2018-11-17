@@ -9,6 +9,7 @@ import sima.segment
 import time
 import pdb
 import cv2
+import pickle
 
 from tools.h5pyTools import h5pyTools
 import tools.googleDocsAccess as googleDocsAccess
@@ -16,17 +17,21 @@ from tools.pyqtgraph.configfile import *
 
 
 class extractSaveData:
-    def __init__(self, mouse):
+    def __init__(self, mouse,expDate):
 
         self.h5pyTools = h5pyTools()
 
         # determine location of data files and store location
-        if platform.node() == 'thinkpadX1' :
+        if platform.node() == 'thinkpadX1' or platform.node() == 'thinkpadX1B':
             laptop = True
             self.analysisBase = '/media/HDnyc_data/'
         elif platform.node() == 'otillo':
             laptop = False
             self.analysisBase = '/media/mgraupe/nyc_data/'
+        elif platform.node() == 'yamal':
+            laptop = False
+            self.analysisBase = '/media/HDnyc_data/'
+            
         elif platform.node() == 'bs-analysis':
             laptop = False
             self.analysisBase = '/home/mgraupe/nyc_data/'
@@ -34,14 +39,18 @@ class extractSaveData:
             print 'Run this script on a server or laptop. Otherwise, adapt directory locations.'
             sys.exit(1)
 
-        self.dataBase     = '/media/invivodata/'
+        if expDate < 181023:
+            self.dataBase     = '/media/invivodata/'
+        else:
+            self.dataBase     = '/media/invivodata2/'
+
         # check if directory is mounted
         if not os.listdir(self.dataBase):
             os.system('mount %s' % self.dataBase)
         if not os.listdir(self.analysisBase):
             os.system('mount %s' % self.analysisBase)
 
-        if int(mouse[:6]) >= 170829:
+        if int(mouse[:6]) >= 170829 :
             self.dataBase +=  'altair_data/dataMichael/'
         else:
             self.dataBase += 'altair_data/experiments/data_Michael/acq4/'
@@ -153,10 +162,13 @@ class extractSaveData:
                     expDateList.append(d)
             else:
                 expDateList.append(expDate)
+            #print expDateList
+            #pdb.set_trace()
             for eD in expDateList:
+                print expDateList, self.listOfAllExpts[mouse]['dates'], len(self.listOfAllExpts[mouse]['dates'])
                 if eD in self.listOfAllExpts[mouse]['dates']:
                     dataFolders = self.listOfAllExpts[mouse]['dates'][eD]['folders']
-                    #print eD, dataFolders
+                    #print eD, self.listOfAllExpts[mouse]['dates']
                     for fold in dataFolders:
                         self.dataLocation = self.dataBase + fold + '/'
 
@@ -271,6 +283,7 @@ class extractSaveData:
         pixWidth  = config['.']['Scanner']['program'][0]['scanInfo']['pixelWidth'][0]*conversion
         pixHeight = config['.']['Scanner']['program'][0]['scanInfo']['pixelHeight'][0]*conversion
         dimensionXY =  np.array(config['.']['Scanner']['program'][0]['roi']['size'])*conversion
+        position = np.array(config['.']['Scanner']['program'][0]['roi']['pos'])*conversion
 
         if pixWidth == pixHeight:
             deltaPix = pixWidth
@@ -279,24 +292,33 @@ class extractSaveData:
             sys.exit(1)
 
         #print r'dimensions (x,y, pixelsize in um) : ', np.hstack((dimensionXY,deltaPix))
-        return np.hstack((dimensionXY,deltaPix))
+        return np.hstack((position,dimensionXY,deltaPix))
         #self.h5pyTools.createOverwriteDS(dataGroup,dataSetName,hstack((dimensionXY,deltaPix)))
 
     ############################################################
-    def saveImageStack(self,frames,fTimes,imageMetaInfo,groupName,motionCorrection=[]):
-        grp_name = self.f.require_group(groupName)
-        self.h5pyTools.createOverwriteDS(grp_name,'caImaging',frames)
-        self.h5pyTools.createOverwriteDS(grp_name,'caImagingTime', fTimes)
-        self.h5pyTools.createOverwriteDS(grp_name,'caImagingField', imageMetaInfo)
+    def saveImageStack(self,frames,fTimes,imageMetaInfo,groupNames,motionCorrection=[]):
+        (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
+        self.h5pyTools.createOverwriteDS(grpHandle,'caImaging',frames)
+        self.h5pyTools.createOverwriteDS(grpHandle,'caImagingTime', fTimes)
+        self.h5pyTools.createOverwriteDS(grpHandle,'caImagingField', imageMetaInfo)
         if len(motionCorrection)>1:
-            self.h5pyTools.createOverwriteDS(grp_name,'motionCoordinates', motionCorrection)
+            self.h5pyTools.createOverwriteDS(grpHandle,'motionCoordinates', motionCorrection)
 
     ############################################################
-    def saveWalkingActivity(self,angularSpeed,linearSpeed,wTimes,startTime,monitor,groupNames):
+    def readImageStack(self, groupNames):
+        (grpName, test) = self.h5pyTools.getH5GroupName(self.f,groupNames)
+        frames = self.f[grpName + '/caImaging'].value
+        fTimes = self.f[grpName + '/caImagingTime'].value
+        imageMetaInfo = self.f[grpName + '/caImagingField'].value
+        return (frames,fTimes,imageMetaInfo)
+
+    ############################################################
+    def saveWalkingActivity(self,angularSpeed,linearSpeed,wTimes,angles,aTimes,startTime,monitor,groupNames):
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         self.h5pyTools.createOverwriteDS(grpHandle,'angularSpeed',angularSpeed,['monitor',monitor])
         self.h5pyTools.createOverwriteDS(grpHandle,'linearSpeed', linearSpeed)
         self.h5pyTools.createOverwriteDS(grpHandle,'walkingTimes', wTimes, ['startTime',startTime])
+        self.h5pyTools.createOverwriteDS(grpHandle,'anglesTimes', np.column_stack((aTimes,angles)), ['startTime',startTime])
 
     ############################################################
     def getWalkingActivity(self,groupNames):
@@ -307,13 +329,23 @@ class extractSaveData:
         linearSpeed = self.f[grpName+'/linearSpeed'].value
         wTimes = self.f[grpName+'/walkingTimes'].value
         startTime = self.f[grpName+'/walkingTimes'].attrs['startTime']
-        return (angularSpeed,linearSpeed,wTimes,startTime,monitor)
-
+        angleTimes = self.f[grpName+'/anglesTimes'].value
+        return (angularSpeed,linearSpeed,wTimes,startTime,monitor,angleTimes)
 
     ############################################################
-    def saveTif(self,frames,mouse,date,rec):
+    def getPawRungPickleData(self,date,rec):
+        frontpawPos = pickle.load(open(self.analysisLocation + '%s_%s_%s_frontpawLocations.p' % (self.mouse,date,rec), 'rb'))
+        hindpawPos = pickle.load(open(self.analysisLocation + '%s_%s_%s_hindpawLocations.p' % (self.mouse,date,rec), 'rb'))
+        rungs = pickle.load(open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (self.mouse,date,rec), 'rb'))
+        return (frontpawPos,hindpawPos,rungs)
+
+    ############################################################
+    def saveTif(self,frames,mouse,date,rec,norm=None):
         img_stack_uint8 = np.array(frames, dtype=np.uint8)
-        tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
+        if norm:
+            tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack%s.tif' % (mouse, date, rec,norm), img_stack_uint8)
+        else:
+            tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
 
     ############################################################
     def readTif(self,frames,mouse,date,rec):
@@ -329,8 +361,15 @@ class extractSaveData:
         videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
 
+        #vlength = int(self.video.get(cv2.CAP_PROP_FRAME_COUNT))
+        #self.Vwidth = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
+        #self.Vheight = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        #self.Vfps = self.video.get(cv2.CAP_PROP_FPS)
+
+        vLength = np.shape(framesRaw)[0]
         width  = np.shape(framesRaw)[1]
         heigth = np.shape(framesRaw)[2]
+
         fps    = 80.
         #w = 480
         #h = 640
@@ -340,23 +379,28 @@ class extractSaveData:
         out = cv2.VideoWriter(videoFileName, fourcc, fps, (width, heigth))
 
         ret = True
+        nF = 0
         for i in range(len(framesRaw)):
             #frameRaw = np.random.rand(w, h) * 255.
 
             frame8bit = np.array(np.transpose(framesRaw[i]), dtype=np.uint8)
             # ret, frame = cap.read()
             frame = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2RGB)
+            cv2.putText(frame, 'time %s sec' % round(frameTimes[i],1), (10,20), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
+            cv2.putText(frame, 'frame %04d / %s' % (nF,vLength), (10,40), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
+            #cv2.putText(frame, FrameStr, (0, self.Vheight-20), cv2.QT_FONT_NORMAL, 0.45, color=(255, 255, 255))
             #if ret == True:
                 # frame = cv2.flip(frame,0)
 
                 # write the flipped frame
             out.write(frame)
-
+            nF += 1
             #   cv2.imshow('frame', frame)
             #    if cv2.waitKey(1) & 0xFF == ord('q'):
             #        break
             #else:
             #    break
+
 
         # Release everything if job is finished
         #cap.release()

@@ -4,16 +4,16 @@ tools.argparser.add_argument("-d","--date", help="specify name of the mouse", re
 args = tools.argparser.parse_args()
 
 import tools.extractSaveData as extractSaveData
-#import tools.dataAnalysis as dataAnalysis
+import tools.dataAnalysis as dataAnalysis
+import tools.openCVImageProcessingTools as openCVImageProcessingTools
 import pdb
-import sys
 
-#mouse = '170927_m68'
-#expDate = '171115'
+mouseD = '180107_m27'
+expDateD = '180214'
 #mouse = '171126_m90'
 #expDate = '180118'
-mouseD = '180824_f13'
-expDateD = '181025'
+#mouse = '171218_f8'
+#expDate = '180123'
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -27,18 +27,16 @@ else:
     expDate = args.date
 
 
-#print mouse, expDate
-#sys.exit(0) #pdb.set_trace()
-eSD         = extractSaveData.extractSaveData(mouse,expDate)  # find data folder of specific mouse, create data folder, and hdf5 handle
+eSD         = extractSaveData.extractSaveData(mouse)
 (foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
 
-# loop over all recording folders
+cv2Tools = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
 
-for f in range(len(foldersRecordings)):
-    for r in range(1,len(foldersRecordings[f][2])):
+for f in range(len(foldersRecordings)) :
+    for r in range(8,len(foldersRecordings[f][2])): # for r in recordings[f][1]:
+        print foldersRecordings[f][2][r]
         (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior')
+        print existence
         if existence:
-            #print 'exists'
-            (frames,fTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior',fileHandle)
-            eSD.saveBehaviorVideo(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],frames,fTimes,imageMetaInfo)
-            #pdb.set_trace()
+            cv2Tools.trackPawsAndRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r])
+        pdb.set_trace()
