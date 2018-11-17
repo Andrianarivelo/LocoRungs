@@ -17,12 +17,12 @@ from tools.pyqtgraph.configfile import *
 
 
 class extractSaveData:
-    def __init__(self, mouse):
+    def __init__(self, mouse,expDate):
 
         self.h5pyTools = h5pyTools()
 
         # determine location of data files and store location
-        if platform.node() == 'thinkpadX1' :
+        if platform.node() == 'thinkpadX1' or platform.node() == 'thinkpadX1B':
             laptop = True
             self.analysisBase = '/media/HDnyc_data/'
         elif platform.node() == 'otillo':
@@ -39,14 +39,18 @@ class extractSaveData:
             print 'Run this script on a server or laptop. Otherwise, adapt directory locations.'
             sys.exit(1)
 
-        self.dataBase     = '/media/invivodata/'
+        if expDate < 181023:
+            self.dataBase     = '/media/invivodata/'
+        else:
+            self.dataBase     = '/media/invivodata2/'
+
         # check if directory is mounted
         if not os.listdir(self.dataBase):
             os.system('mount %s' % self.dataBase)
         if not os.listdir(self.analysisBase):
             os.system('mount %s' % self.analysisBase)
 
-        if int(mouse[:6]) >= 170829:
+        if int(mouse[:6]) >= 170829 :
             self.dataBase +=  'altair_data/dataMichael/'
         else:
             self.dataBase += 'altair_data/experiments/data_Michael/acq4/'
@@ -161,6 +165,7 @@ class extractSaveData:
             #print expDateList
             #pdb.set_trace()
             for eD in expDateList:
+                print expDateList, self.listOfAllExpts[mouse]['dates'], len(self.listOfAllExpts[mouse]['dates'])
                 if eD in self.listOfAllExpts[mouse]['dates']:
                     dataFolders = self.listOfAllExpts[mouse]['dates'][eD]['folders']
                     #print eD, self.listOfAllExpts[mouse]['dates']
