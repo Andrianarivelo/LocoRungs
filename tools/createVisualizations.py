@@ -21,7 +21,7 @@ from collections import OrderedDict
 #import sima.segment
 from scipy.stats.stats import pearsonr
 from scipy.interpolate import interp1d
-from mtspec import mt_coherence
+#from mtspec import mt_coherence
 
 import tools.dataAnalysis as dataAnalysis
 from tools.pyqtgraph.configfile import *
@@ -2647,4 +2647,60 @@ class createVisualizations:
         fname = self.determineFileName(date, 'paw-movement', reco=rec)
         #plt.show()
         #plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+
+    ##########################################################################################
+    def generateHistogram(self,mouse,date,rec,gData):
+
+        # pdb.set_trace()
+        # figure #################################
+        fig_width = 10  # width in inches
+        fig_height = 8  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14, 'axes.titlesize': 13, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(1, 1  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.14, right=0.92, top=0.91, bottom=0.15)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.96, '%s   %s   %s' % (self.mouse, date, rec), clip_on=False, color='black', size=14)
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        ax0 = plt.subplot(gs[0])
+        ss = ['850','800','750','700','650','600']
+        for i in range(len(gData)):
+            print i
+            ax0.hist(gData[i][2][0],bins=100,range=[-1.75,0.],histtype='step',label='%s mV' % ss[i])
+
+        # removes upper and right axes
+        # and moves left and bottom axes away
+        self.layoutOfPanel(ax0, xLabel=r'value (V)', yLabel=r'occurrence',Leg=[2,9])
+        ax0.set_yscale('log')
+        ## save figure ############################################################
+        fname = self.determineFileName(date, 'preAmpOutput', reco=rec)
+        # plt.show()
+        # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')

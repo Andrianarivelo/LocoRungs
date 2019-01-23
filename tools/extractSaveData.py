@@ -39,7 +39,7 @@ class extractSaveData:
             print 'Run this script on a server or laptop. Otherwise, adapt directory locations.'
             sys.exit(1)
 
-        if expDate < 181023:
+        if int(expDate) < 181023:
             self.dataBase     = '/media/invivodata/'
         else:
             self.dataBase     = '/media/invivodata2/'
@@ -195,6 +195,8 @@ class extractSaveData:
             
         if device in ['CameraGigEBehavior','CameraPixelfly']:
             pathToFile = recLocation + device + '/' + 'frames.ma'
+        elif device is 'PreAmpInput':
+            pathToFile = recLocation + '%s.ma' % 'DaqDevice'
         else:
             pathToFile = recLocation + '%s.ma' % device
         #print pathToFile
@@ -274,6 +276,10 @@ class extractSaveData:
             imageMetaInfo = np.array([xSize*xPixelSize,ySize*yPixelSize,xPixelSize,yPixelSize])
             print 'done'
             return (frames,frameTimes,imageMetaInfo)
+        elif device =='PreAmpInput':
+            values = fData['data'].value
+            valueTimes = fData['info/1/values'].value
+            return (values,valueTimes)
 
     ############################################################
     def readMetaInformation(self,filePath):
