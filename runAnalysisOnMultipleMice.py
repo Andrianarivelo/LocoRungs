@@ -36,12 +36,13 @@ mouseList = [#'180107_m27',
              ]
 
 script = 'getRawBehaviorImagesSaveVideo'
+expDate = '181017'
 
 commandHist = []
 
 # loop over mice
 for m in mouseList:
-    eSD         = extractSaveData.extractSaveData(m)
+    eSD         = extractSaveData.extractSaveData(m,expDate)
     (recordings,dataFolder) = eSD.getRecordingsList(m) # get recordings for specific mouse and date
     # loop over recording dates of the current mouse
     for n in range(len(recordings)):
