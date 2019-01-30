@@ -29,7 +29,7 @@ eSD         = extractSaveData.extractSaveData(mouse,expDate)
 cV      = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
 genericData = []
-for f in range(len(foldersRecordings)):
+for f in [2]: #len(foldersRecordings)):
     for r in range(len(foldersRecordings[f][2])):
         (existence, fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'PreAmpInput')
         if existence:
@@ -37,5 +37,6 @@ for f in range(len(foldersRecordings)):
             genericData.append([foldersRecordings[f][0],foldersRecordings[f][2][r],values, vTimes])
 
 #pdb.set_trace()
-cV.generateHistogram(mouse,expDate,foldersRecordings[f][0],genericData)
+cV.generateHistogram(mouse,expDate,foldersRecordings[f][0],genericData[:6])
+cV.generateHistogram(mouse,expDate,foldersRecordings[f][0],genericData[6:])
 del eSD
