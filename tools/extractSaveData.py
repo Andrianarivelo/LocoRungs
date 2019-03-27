@@ -4,8 +4,8 @@ from skimage import io
 import tifffile as tiff
 import numpy as np
 import glob
-import sima
-import sima.segment
+#import sima
+#import sima.segment
 import time
 import pdb
 import cv2
@@ -17,7 +17,7 @@ from tools.pyqtgraph.configfile import *
 
 
 class extractSaveData:
-    def __init__(self, mouse,expDate):
+    def __init__(self, mouse):
 
         self.h5pyTools = h5pyTools()
 
@@ -36,17 +36,21 @@ class extractSaveData:
             laptop = False
             self.analysisBase = '/home/mgraupe/nyc_data/'
         else:
-            print 'Run this script on a server or laptop. Otherwise, adapt directory locations.'
+            print('Run this script on a server or laptop. Otherwise, adapt directory locations.')
             sys.exit(1)
 
-        if int(expDate) < 181023:
-            self.dataBase     = '/media/invivodata/'
-        else:
-            self.dataBase     = '/media/invivodata2/'
+        self.listOfAllExpts = googleDocsAccess.getExperimentSpreadsheet()
+
+        # lilith backup
+        self.dataBase     = '/media/invivodata/'
+        # spetses backup
+        self.dataBase2     = '/media/invivodata2/'
 
         # check if directory is mounted
         if not os.listdir(self.dataBase):
             os.system('mount %s' % self.dataBase)
+        if not os.listdir(self.dataBase2):
+            os.system('mount %s' % self.dataBase2)
         if not os.listdir(self.analysisBase):
             os.system('mount %s' % self.analysisBase)
 
@@ -54,6 +58,7 @@ class extractSaveData:
             self.dataBase +=  'altair_data/dataMichael/'
         else:
             self.dataBase += 'altair_data/experiments/data_Michael/acq4/'
+        self.dataBase2 += 'altair_data/dataMichael/'
 
         self.analysisLocation = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsData/%s/' % mouse
         self.figureLocation   = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsFigures/%s/' % mouse
@@ -63,8 +68,6 @@ class extractSaveData:
         if not os.path.isdir(self.analysisLocation):
             os.system('mkdir %s' % self.figureLocation)
 
-        self.listOfAllExpts = googleDocsAccess.getExperimentSpreadsheet()
-
         fName = self.analysisLocation+'analysis.hdf5'
         #if os.path.isfile(fName):
         self.f = h5py.File(fName,'a')
@@ -73,8 +76,8 @@ class extractSaveData:
     ############################################################
     def __del__(self):
         self.f.flush()
-        self.f.close()
-        print 'on exit'
+        #self.f.close()
+        print('on exit')
 
     ############################################################
     def getMotioncorrectedStack(self,folder,rec,suffix):
@@ -94,12 +97,12 @@ class extractSaveData:
     def extractRoiSignals(self,folder,rec,tifFile):
 
         self.simaPath = self.analysisLocation+'%s_%s_%s' % (self.mouse, folder, rec)
-        print self.simaPath
+        print(self.simaPath)
         if os.path.isdir(self.simaPath+'.sima'):
-            print 'sima dir exists'
+            print('sima dir exists')
             dataSet = sima.ImagingDataset.load(self.simaPath+'.sima')
         else:
-            print 'create sima dir'
+            print('create sima dir')
             sequences = [sima.Sequence.create('TIFF', tifFile)]
             dataSet = sima.ImagingDataset(sequences, self.simaPath, channel_names=['GCaMP6F'])
 
@@ -108,21 +111,21 @@ class extractSaveData:
         self.simaPath = self.simaPath+'.sima/'
         overwrite = True
         if os.path.isfile(self.simaPath + 'rois.pkl'):
-            print 'rois already exist'
+            print('rois already exist')
             input_ = raw_input('rois traces exist already, do you want to overwrite? (type \'y\' to overwrite, any character if not) : ')
             if input_ != 'y':
                 overwrite = False
         if overwrite:
-            print 'create rois with roibuddy'
+            print('create rois with roibuddy')
             segmentation_approach = sima.segment.STICA(
                 channel='GCaMP6F',
                 components=1,
                 mu=0.9,# weighting between spatial - 1 - and temporal - 0 - information
                 #spatial_sep=0.8
             )
-            print 'segmenting calcium image ... ',
+            print('segmenting calcium image ... ', end =" ")
             dataSet.segment(segmentation_approach, 'GCaMP6F_signals',planes=[0])
-            print 'done'
+            print('done')
             while True:
                 input_ = raw_input('Please check ROIs in \'roibuddy\' (type \'exit\' to halt) : ')
                 if input_ == 'exit':
@@ -150,48 +153,119 @@ class extractSaveData:
         return (img,rois,raw_signals)
 
     ############################################################
-    def getRecordingsList(self,mouse,expDate=None):
+    def getRecordingsList(self,mouse,expDate='all',recordings='all'):
 
         folderRec = []
         if mouse in self.listOfAllExpts:
             #print mouse
             #print expDate, self.listOfAllExpts[mouse]['dates']
             expDateList = []
-            if expDate == None :
+            #pdb.set_trace()
+            # provide choice of which days to include in analysis
+            if expDate=='some':
+                print('Dates when experiments where performed with animal %s :' % mouse)
+                didx = 0
                 for d in self.listOfAllExpts[mouse]['dates']:
+                    print('  %s %d' % (d,didx))
+                    didx+=1
+                print('Choose the dates for analysis by typing the index, e.g, \'1\', or \'0,1,3,5\' : ', end='')
+                daysInput = input()
+                daysInputIdx = [int(i) for i in daysInput.split(',')]
+                #print(daysInputIdx,daysInputIdx[0],type(daysInputIdx))
+            # generate list of days to analyze
+            if expDate == 'all' :
+                for d in self.listOfAllExpts[mouse]['dates']:
+                    #print(d)
                     expDateList.append(d)
+            elif expDate=='some':
+                didx = 0
+                for d in self.listOfAllExpts[mouse]['dates']:
+                    if didx in daysInputIdx:
+                        #print(d)
+                        expDateList.append(d)
+                    didx+=1
             else:
                 expDateList.append(expDate)
-            #print expDateList
+            print('Selected dates :', expDateList)
             #pdb.set_trace()
-            for eD in expDateList:
-                print expDateList, self.listOfAllExpts[mouse]['dates'], len(self.listOfAllExpts[mouse]['dates'])
-                if eD in self.listOfAllExpts[mouse]['dates']:
+            if recordings=='some':
+                # first show all recordings for a given date
+                print('Choose recording to analyze')
+                recIdx = 0
+                for eD in expDateList:
                     dataFolders = self.listOfAllExpts[mouse]['dates'][eD]['folders']
-                    #print eD, self.listOfAllExpts[mouse]['dates']
                     for fold in dataFolders:
-                        self.dataLocation = self.dataBase + fold + '/'
-
-                        if os.path.exists(self.dataLocation):
-                            print 'experiment %s exists' % fold
-                        else:
-                            print 'Problem, experiment does not exist'
-                        #recList = OrderedDict()
-                        recList = [os.path.join(o) for o in os.listdir(self.dataLocation) if os.path.isdir(os.path.join(self.dataLocation,o))]
-                        #recList = glob(self.dataLocation + '*')
-                        recList.sort()
-                        folderRec.append([fold,eD,recList])
-
+                        print(' ',fold)
+                        self.dataLocation = (self.dataBase2 + fold + '/') if eD >= '181018' else (self.dataBase + fold + '/')
+                        #print(self.dataLocation)
+                        if not os.path.exists(self.dataLocation):
+                            #    print('experiment %s exists' % fold)
+                            #else:
+                            print('Problem, experiment does not exist')
+                        # recList = OrderedDict()
+                        recList = self.getDirectories(self.dataLocation)
+                        for r in recList:
+                            print('    %s  %s' %(r,recIdx))
+                            recIdx+=1
+                print('Choose the recordings for analysis by typing the index, e.g, \'1\', or \'0,1,3,5\' : ', end='')
+                recInput = input()
+                recInputIdx = [int(i) for i in recInput.split(',')]
+            #pdb.set_trace()
+            # then compile a list the selected recordings
+            recIdx = 0
+            for eD in expDateList:
+                #print(expDateList, self.listOfAllExpts[mouse]['dates'], len(self.listOfAllExpts[mouse]['dates']))
+                dataFolders = self.listOfAllExpts[mouse]['dates'][eD]['folders']
+                #print eD, self.listOfAllExpts[mouse]['dates']
+                for fold in dataFolders:
+                    self.dataLocation = (self.dataBase2 + fold + '/') if eD >= '181018' else (self.dataBase + fold + '/')
+                    if not os.path.exists(self.dataLocation):
+                        #print('experiment %s exists' % fold)
+                        #else:
+                        print('Problem, experiment does not exist')
+                    recList = self.getDirectories(self.dataLocation)
+                    if recordings=='some':
+                        tempRecList = []
+                        for r in recList:
+                            # only add recordings which were previously selected
+                            if recIdx in recInputIdx:
+                                if r[:-4] == 'locomotionTriggerSIAndMotor':
+                                    subFolders = self.getDirectories(self.dataLocation+'/'+r)
+                                    for i in range(len(subFolders)):
+                                        tempRecList.append(r+'/'+subFolders[i])
+                                else:
+                                    tempRecList.append(r)
+                            recIdx += 1
+                        folderRec.append([fold,eD,tempRecList])
+                    elif recordings=='all':
+                        tempRecList = []
+                        for r in recList:
+                            if r[:-4] == 'locomotionTriggerSIAndMotor':
+                                subFolders = self.getDirectories(self.dataLocation + '/' + r)
+                                for i in range(len(subFolders)):
+                                    tempRecList.append(r + '/' + subFolders[i])
+                            else:
+                                tempRecList.append(r)
+                        folderRec.append([fold,eD,tempRecList])
+                        #folderRec.append([fold,eD,recList])
         return (folderRec,dataFolders)
 
     ############################################################
-    def checkIfDeviceWasRecorded(self,fold,recording, device):
-        recLocation =  self.dataBase + '/' + fold + '/' + recording + '/'
-        #print recLocation
+    def getDirectories(self, location):
+        #seqFolder = self.dataLocation + '/' + r
+        subFolders = [os.path.join(o) for o in os.listdir(location) if os.path.isdir(os.path.join(location, o))]
+        subFolders.sort()
+        return subFolders
+
+
+    ############################################################
+    def checkIfDeviceWasRecorded(self,fold,eD,recording, device):
+        recLocation =  (self.dataBase2 + '/' + fold + '/' + recording + '/') if eD >= '181018' else (self.dataBase2 + '/' + fold + '/' + recording + '/')
+        #print(recLocation)
         if os.path.exists(recLocation):
-            print '%s exists in %s , ' % (recording,fold),
+            print('%s exists in %s , ' % (recording,fold), end =" ")
         else:
-            print 'Problem, recording does not exist'
+            print('Problem, recording does not exist')
             
         if device in ['CameraGigEBehavior','CameraPixelfly']:
             pathToFile = recLocation + device + '/' + 'frames.ma'
@@ -206,20 +280,19 @@ class extractSaveData:
             try:
                 kk = fData['data']
             except KeyError:
-                print 'Device %s was acquired but NO data exists' % device
+                print('Device %s was acquired but NO data exists' % device)
                 return (False,None)
             else:
-                print 'Device %s was acquired' % device
+                print('Device %s was acquired' % device)
                 return (True,fData)
         else:
-            print 'Device %s was NOT acquired' % device
+            print('Device %s was NOT acquired' % device)
             return (False,None)
 
     ############################################################
-    def readRawData(self, fold, recording, device, fData , readRawData = True):
-
-        recLocation = self.dataBase + '/' + fold + '/' + recording + '/'
-        print recLocation
+    def readRawData(self, fold, eD, recording, device, fData , readRawData = True):
+        recLocation = (self.dataBase2 + '/' + fold + '/' + recording + '/') if eD >= '181018' else (self.dataBase2 + '/' + fold + '/' + recording + '/')
+        #print(recLocation)
         if device == 'RotaryEncoder':
             # data from activity monitor
             if len(fData['data'])==1:
@@ -253,17 +326,17 @@ class extractSaveData:
             imageMetaInfo = self.readMetaInformation(recLocation)
             return (frames,frameTimes,imageMetaInfo)
         elif device == 'CameraGigEBehavior':
-            print 'reading raw GigE data ...',
+            print('reading raw GigE data ...', end =" ")
             if readRawData:
                 frames     = fData['data'].value
             else:
                 frames = np.empty([2, 2])
             frameTimes = fData['info/0/values'].value
             imageMetaInfo = [None] #self.readMetaInformation(recLocation)
-            print 'done'
+            print('done')
             return (frames,frameTimes,imageMetaInfo)
         elif device == 'CameraPixelfly':
-            print 'reading raw Pixelfly data ...',
+            print('reading raw Pixelfly data ...', end =" ")
             if readRawData :
                 frames     = fData['data'].value
             else:
@@ -274,7 +347,7 @@ class extractSaveData:
             xSize = fData['info/3/region'].attrs['2']
             ySize = fData['info/3/region'].attrs['3']
             imageMetaInfo = np.array([xSize*xPixelSize,ySize*yPixelSize,xPixelSize,yPixelSize])
-            print 'done'
+            print('done')
             return (frames,frameTimes,imageMetaInfo)
         elif device =='PreAmpInput':
             values = fData['data'].value
@@ -294,7 +367,7 @@ class extractSaveData:
         if pixWidth == pixHeight:
             deltaPix = pixWidth
         else:
-            print 'Pixel height and width are not equal.'
+            print('Pixel height and width are not equal.')
             sys.exit(1)
 
         #print r'dimensions (x,y, pixelsize in um) : ', np.hstack((dimensionXY,deltaPix))
@@ -329,7 +402,7 @@ class extractSaveData:
     ############################################################
     def getWalkingActivity(self,groupNames):
         (grpName,test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
-        print grpName
+        print(grpName)
         angularSpeed = self.f[grpName+'/angularSpeed'].value
         monitor = self.f[grpName+'/angularSpeed'].attrs['monitor']
         linearSpeed = self.f[grpName+'/linearSpeed'].value
@@ -364,6 +437,8 @@ class extractSaveData:
         #pdb.set_trace()
         #img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
         #tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
+        # replace possible backslashes from subdirectory structure and
+        rec = rec.replace('/','-')
         videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
 
@@ -381,7 +456,9 @@ class extractSaveData:
         #h = 640
         #pdb.set_trace()
         # Define the codec and create VideoWriter object
-        fourcc = cv2.VideoWriter_fourcc(*'DIVX')  # (*'XVID')
+        #fourcc = cv2.VideoWriter_fourcc(*'DIVX')  # (*'XVID')
+        #fourcc = cv2.VideoWriter_fourcc(*'MPEG')  # (*'XVID')
+        fourcc = cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
         out = cv2.VideoWriter(videoFileName, fourcc, fps, (width, heigth))
 
         ret = True

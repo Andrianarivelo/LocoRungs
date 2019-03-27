@@ -1,17 +1,17 @@
+import weakref
+import numpy as np
 from ..Qt import QtGui, QtCore
 from ..python2_3 import sortList
 from .. import functions as fn
 from .GraphicsObject import GraphicsObject
 from .GraphicsWidget import GraphicsWidget
 from ..widgets.SpinBox import SpinBox
-import weakref
 from ..pgcollections import OrderedDict
 from ..colormap import ColorMap
+from ..python2_3 import cmp
 
-import numpy as np
 
 __all__ = ['TickSliderItem', 'GradientEditorItem']
-
 
 Gradients = OrderedDict([
     ('thermal', {'ticks': [(0.3333, (185, 0, 0, 255)), (0.6666, (255, 220, 0, 255)), (1, (255, 255, 255, 255)), (0, (0, 0, 0, 255))], 'mode': 'rgb'}),
@@ -22,9 +22,20 @@ Gradients = OrderedDict([
     ('cyclic', {'ticks': [(0.0, (255, 0, 4, 255)), (1.0, (255, 0, 0, 255))], 'mode': 'hsv'}),
     ('greyclip', {'ticks': [(0.0, (0, 0, 0, 255)), (0.99, (255, 255, 255, 255)), (1.0, (255, 0, 0, 255))], 'mode': 'rgb'}),
     ('grey', {'ticks': [(0.0, (0, 0, 0, 255)), (1.0, (255, 255, 255, 255))], 'mode': 'rgb'}),
+    # Perceptually uniform sequential colormaps from Matplotlib 2.0
+    ('viridis', {'ticks': [(0.0, (68, 1, 84, 255)), (0.25, (58, 82, 139, 255)), (0.5, (32, 144, 140, 255)), (0.75, (94, 201, 97, 255)), (1.0, (253, 231, 36, 255))], 'mode': 'rgb'}),
+    ('inferno', {'ticks': [(0.0, (0, 0, 3, 255)), (0.25, (87, 15, 109, 255)), (0.5, (187, 55, 84, 255)), (0.75, (249, 142, 8, 255)), (1.0, (252, 254, 164, 255))], 'mode': 'rgb'}),
+    ('plasma', {'ticks': [(0.0, (12, 7, 134, 255)), (0.25, (126, 3, 167, 255)), (0.5, (203, 71, 119, 255)), (0.75, (248, 149, 64, 255)), (1.0, (239, 248, 33, 255))], 'mode': 'rgb'}),
+    ('magma', {'ticks': [(0.0, (0, 0, 3, 255)), (0.25, (80, 18, 123, 255)), (0.5, (182, 54, 121, 255)), (0.75, (251, 136, 97, 255)), (1.0, (251, 252, 191, 255))], 'mode': 'rgb'}),
 ])
 
-
+def addGradientListToDocstring():
+    """Decorator to add list of current pre-defined gradients to the end of a function docstring."""
+    def dec(fn):
+        if fn.__doc__ is not None:
+            fn.__doc__ = fn.__doc__ + str(Gradients.keys()).strip('[').strip(']')
+        return fn
+    return dec
 
 
 
@@ -241,13 +252,6 @@ class TickSliderItem(GraphicsWidget):
             pos.setX(min(max(pos.x(), 0), self.length))
             self.addTick(pos.x()/self.length)
         elif ev.button() == QtCore.Qt.RightButton:
-            #if self.moving:
-                #ev.accept()
-                #self.setPos(self.startPosition)
-                #self.moving = False
-                #self.sigMoving.emit(self)
-                #self.sigMoved.emit(self)
-            #else:
             self.showMenu(ev)
 
         #if  ev.button() == QtCore.Qt.RightButton:
@@ -479,11 +483,12 @@ class GradientEditorItem(TickSliderItem):
         act = self.sender()
         self.loadPreset(act.name)
         
+    @addGradientListToDocstring()
     def loadPreset(self, name):
         """
-        Load a predefined gradient. 
-    
-        """ ## TODO: provide image with names of defined gradients
+        Load a predefined gradient. Currently defined gradients are: 
+        """## TODO: provide image with names of defined gradients
+        
         #global Gradients
         self.restoreState(Gradients[name])
     
@@ -820,7 +825,7 @@ class Tick(QtGui.QGraphicsWidget):  ## NOTE: Making this a subclass of GraphicsO
         self.pg.lineTo(QtCore.QPointF(scale/3**0.5, scale))
         self.pg.closeSubpath()
         
-        QtGui.QGraphicsObject.__init__(self)
+        QtGui.QGraphicsWidget.__init__(self)
         self.setPos(pos[0], pos[1])
         if self.movable:
             self.setZValue(1)

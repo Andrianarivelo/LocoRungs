@@ -33,7 +33,159 @@ class openCVImageProcessingTools:
         self.video.release()
 
         cv2.destroyAllWindows()
-        print 'on exit'
+        print('on exit')
+
+
+    ############################################################
+    def openVideo(self,pathAndFileName,outputProps=True):
+
+        # get properties
+        self.video = cv2.VideoCapture(pathAndFileName)
+        self.Vlength = int(self.video.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.Vwidth = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.Vheight = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.Vfps = self.video.get(cv2.CAP_PROP_FPS)
+        if outputProps:
+            print('Video properties : %s frames, %s pixels width, %s pixels height, %s fps' % (self.Vlength, self.Vwidth, self.Vheight, self.Vfps))
+
+        if not self.video.isOpened():
+            print('Could not open video')
+            sys.exit()
+        # read first video frame
+        ok, img = self.video.read()
+        if not ok:
+            print('Cannot read video file')
+            sys.exit()
+
+        # Return an array representing the indices of a grid.
+        self.imgGrid = np.indices((self.Vheight, self.Vwidth))
+
+        return (img)
+
+    ############################################################
+    def cropImg(self, img,Ycoordinates=None):
+
+        if Ycoordinates is None:
+            leftY = 215
+            rightY = 215
+            Npix = 5
+            continueLoop = True
+            # optimize with keyboard
+            while continueLoop:
+                #rungs = []
+                imgLine = img.copy()
+                cv2.line(imgLine, (0, leftY), (self.Vwidth, rightY), (255, 0, 0), 2)
+
+                cv2.imshow("Rungs", imgLine)
+                #print 'current xPosition, yPostion : ', xPosition, yPosition
+                PressedKey = cv2.waitKey(0)
+                if PressedKey == 56 or PressedKey ==82: #UP arrow
+                    leftY -= Npix
+                elif PressedKey == 50 or PressedKey ==84: #DOWN arrow
+                    leftY += Npix
+                elif PressedKey == 54 or PressedKey ==83: #RIGHT arrow
+                    rightY += Npix
+                elif PressedKey == 52 or PressedKey ==81: #LEFT arrow
+                    rightY -= Npix
+                elif PressedKey == 13 or PressedKey == 32: # Enter or Space
+                    continueLoop = False
+                elif PressedKey == 27: # Escape
+                    continueLoop = False
+                else:
+                    pass
+                cv2.destroyWindow("Rungs")
+        else:
+            leftY = Ycoordinates[0]
+            rightY = Ycoordinates[1]
+
+        print('Left, right Y :', leftY,rightY)
+        mask = np.zeros((self.Vheight, self.Vwidth))
+
+        # create masks for mouse area and for lower area
+        maskGrid = ((self.imgGrid[1] - 0.)*(rightY-leftY) - (self.imgGrid[0] -leftY)*(self.Vwidth - 0)) < 0
+        #maskInv = np.sqrt((imgGrid[1] - xCenter) ** 2 + (imgGrid[0] - yCenter) ** 2) < Radius
+        mask[maskGrid] = 1
+        #wheelMaskInv[maskInv] = 1
+        mask = np.array(mask, dtype=np.uint8)
+        #wheelMaskInv = np.array(wheelMaskInv, dtype=np.uint8)
+        return (mask)
+
+
+    ############################################################
+    def trackRungs(self, mouse, date, rec, **kwargs):
+        badVideo = 0
+        stopProgram = False
+        # tracking parameters #########################
+        self.thresholdValue = 0.7  # in %
+        self.minContourArea = 40  # square pixels
+
+        self.scoreWeights = {'distanceWeight': 5, 'areaWeight': 1}
+        ###############################################
+        rec = rec.replace('/', '-')
+        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
+        firstImg = self.openVideo(videoFileName)
+
+        # create video output streams
+        fourcc = cv2.VideoWriter_fourcc(*'MPEG')
+        self.outRung = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_rungTracking.avi' % (mouse, date, rec), fourcc, 20.0, (self.Vwidth, self.Vheight))
+
+
+        # Crop image ######################
+        #mask = self.cropImg(firstImg,[215,215])
+        #imgBottom = cv2.bitwise_and(firstImg, firstImg, mask=mask)
+        #cv2.imshow("Crop", imgBottom)
+        #PressedKey = cv2.waitKey(0)
+        #cv2.destroyWindow("Crop")
+
+        pdb.set_trace()
+        # Save some images #################
+        saveImgIdx = [0,1000,4000]
+        idx = 0
+        while True:
+            ok, img = self.video.read()
+            if not ok:
+                break
+
+            if idx in saveImgIdx:
+
+                #plt.plot(average(img[])
+                cv2.imwrite( self.analysisLocation + '%s_%s_%s_image#%s.png' %(mouse,date,rec,idx), img )
+            idx+=1
+
+        pdb.set_trace()
+        # Find lines in image #############
+        imgRungs = firstImg.copy()
+        imgBottomGray = cv2.cvtColor(imgBottom, cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(imgBottomGray,50,150 ,apertureSize = 3)
+        minLineLength = 40
+        maxLineGap = 20
+        cv2.imshow('Edges', edges)
+        PressedKey = cv2.waitKey(0)
+        cv2.destroyWindow('Edges')
+        #pdb.set_trace()
+        lines = cv2.HoughLinesP(edges,1,np.pi/(2*180),15,minLineLength,maxLineGap)
+        if lines is not None:
+            #pdb.set_trace()
+            print('number of detected lines :',len(lines[0]))
+            #for rho,theta in lines[0]:
+            for x1, y1, x2, y2 in lines[0]:
+                # a = np.cos(theta)
+                # b = np.sin(theta)
+                # x0 = a*rho
+                # y0 = b*rho
+                # x1 = int(x0 + 1000*(-b))
+                # y1 = int(y0 + 1000*(a))
+                # x2 = int(x0 - 1000*(-b))
+                # y2 = int(y0 - 1000*(a))
+                cv2.line(imgRungs,(x1,y1),(x2,y2),(0,255,0),2)
+
+        cv2.imshow('Rungs', imgRungs)
+        PressedKey = cv2.waitKey(0)
+        cv2.destroyWindow('Rungs')
+
+
+
+
 
     ############################################################
     def trackPawsAndRungs(self,mouse,date,rec, **kwargs):
@@ -45,29 +197,19 @@ class openCVImageProcessingTools:
 
         self.scoreWeights = {'distanceWeight':5,'areaWeight':1}
         ###############################################
-
+        rec = rec.replace('/', '-')
         videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
-
-        self.video = cv2.VideoCapture(videoFileName)
-        self.Vlength = int(self.video.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.Vwidth = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.Vheight = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.Vfps = self.video.get(cv2.CAP_PROP_FPS)
-
-        print 'Video properties : %s frames, %s pixels width, %s pixels height, %s fps' % (self.Vlength, self.Vwidth, self.Vheight, self.Vfps)
-        if not self.video.isOpened():
-            print "Could not open video"
-            sys.exit()
+        firstImg = self.openVideo(videoFileName)
 
         # create video output streams
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.outPaw = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawTracking.avi' % (mouse, date, rec), fourcc, 20.0, (self.Vwidth, self.Vheight))
-        self.outPawRung  = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_pawRungTracking.avi' % (mouse, date, rec),fourcc, 20.0, (self.Vwidth, self.Vheight))
+        self.outRung  = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_rungTracking.avi' % (mouse, date, rec),fourcc, 20.0, (self.Vwidth, self.Vheight))
 
         # read first video frame
         ok, img = self.video.read()
         if not ok:
-            print 'Cannot read video file'
+            print('Cannot read video file')
             sys.exit()
 
         
@@ -130,7 +272,7 @@ class openCVImageProcessingTools:
             else:
                 pass
             #nIt +=1
-        print 'masking after loop, Radius = %s, xCenter %s, yCenter = %s' % (Radius, xCenter, yCenter)
+        print('masking after loop, Radius = %s, xCenter %s, yCenter = %s' % (Radius, xCenter, yCenter))
 
         wheelMask = np.zeros((self.Vheight, self.Vwidth))
         wheelMaskInv = np.zeros((self.Vheight, self.Vwidth))
@@ -212,7 +354,7 @@ class openCVImageProcessingTools:
         recs = []
         if not stopProgram:
             bboxFront = cv2.selectROI("Select dot for FRONT paw \n mouse %s - rec = %s // %s" % (mouse, date, rec), img, False)
-            print recs
+            print(recs)
             bboxHind = cv2.selectROI("Select dot for HIND paw", img, False)
             cv2.destroyAllWindows()
             #print 'front, hind paw bounding boxes : ', bboxFront, bboxHind
@@ -234,7 +376,7 @@ class openCVImageProcessingTools:
         #########################################################################
         # loop over all images in video
         print("Mouse : %s\nRecording : %s // %s" % (mouse, date, rec))
-        print ("Running the tracking algorithm...")
+        print("Running the tracking algorithm...")
         while not stopProgram:
             #os.system('clear')
             #print("Mouse : %s\nRecording : %s // %s" % (mouse, date, rec))
@@ -500,7 +642,7 @@ class openCVImageProcessingTools:
                 #dret = decideonAndAddPawPositions(frontpawPos,fcheckPos,rois)
 
             else:
-                print 'failure no rois'
+                print('failure no rois')
                 frontpawPos.append([nF, 'f', [-1,-1], -1, -1])
                 hindpawPos.append([nF,'f', [-1,-1], -1, -1])
                 fcheckPos -= 1
@@ -695,7 +837,7 @@ class openCVImageProcessingTools:
         Ri_2b = calc_R(*center_2b)
         R_2b = Ri_2b.mean()
         pixToCmConversion = 12.5/R_2b
-        print 'Center, Radius of fitted circle : ', center_2b, R_2b, pixToCmConversion
+        print('Center, Radius of fitted circle : ', center_2b, R_2b, pixToCmConversion)
 
         ###########################################################
         # exclude points which are too far away from the circle fit line
@@ -866,7 +1008,7 @@ class openCVImageProcessingTools:
 
             #if i == 30 :
             #    pdb.set_trace()
-        print 'rung number per image : ', pC
+        print('rung number per image : ', pC)
         #pdb.set_trace()
         frontpawRungDist = np.asarray(frontpawRungDist)
         hindpawRungDist = np.asarray(hindpawRungDist)
@@ -874,7 +1016,7 @@ class openCVImageProcessingTools:
         # substract rotation
 
         if len(frameNumbers) != len(fTimes):
-            print 'problem with frame number length'
+            print('problem with frame number length')
             pdb.set_trace()
 
         #pdb.set_trace()
@@ -921,7 +1063,7 @@ class openCVImageProcessingTools:
             # rotational coordinates to straight motion : distance is y
             fpLinear.append([frameNumbers[i],fTimes[i],dfp,(calculateDist(rfp,center_2b)-R_2b)*pixToCmConversion,newAngles[i],degreesTurned])
             hpLinear.append([frameNumbers[i],fTimes[i],dhp,(calculateDist(rhp,center_2b)-R_2b)*pixToCmConversion,newAngles[i],degreesTurned])
-            print i,degreesTurned,afp,dfp,ahp,dhp, rotationsFP, rotationsHP,newAngles[i]
+            print(i,degreesTurned,afp,dfp,ahp,dhp, rotationsFP, rotationsHP,newAngles[i])
             oldAfp = afp
             oldAhp = ahp
 

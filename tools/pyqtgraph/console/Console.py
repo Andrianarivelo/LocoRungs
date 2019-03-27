@@ -1,16 +1,20 @@
-
-from ..Qt import QtCore, QtGui, USE_PYSIDE, USE_PYQT5
 import sys, re, os, time, traceback, subprocess
-if USE_PYSIDE:
+import pickle
+
+from ..Qt import QtCore, QtGui, QT_LIB
+from ..python2_3 import basestring
+from .. import exceptionHandling as exceptionHandling
+from .. import getConfigOption
+from ..functions import SignalBlock
+if QT_LIB == 'PySide':
     from . import template_pyside as template
-elif USE_PYQT5:
+elif QT_LIB == 'PySide2':
+    from . import template_pyside2 as template
+elif QT_LIB == 'PyQt5':
     from . import template_pyqt5 as template
 else:
     from . import template_pyqt as template
-    
-from .. import exceptionHandling as exceptionHandling
-import pickle
-from .. import getConfigOption
+
 
 class ConsoleWidget(QtGui.QWidget):
     """
@@ -30,6 +34,7 @@ class ConsoleWidget(QtGui.QWidget):
     - ability to add extra features like exception stack introspection
     - ability to have multiple interactive prompts, including for spawned sub-processes
     """
+    _threadException = QtCore.Signal(object)
     
     def __init__(self, parent=None, namespace=None, historyFile=None, text=None, editor=None):
         """
@@ -47,6 +52,7 @@ class ConsoleWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         if namespace is None:
             namespace = {}
+        namespace['__console__'] = self
         self.localNamespace = namespace
         self.editor = editor
         self.multiline = None
@@ -85,6 +91,9 @@ class ConsoleWidget(QtGui.QWidget):
         self.ui.onlyUncaughtCheck.toggled.connect(self.updateSysTrace)
         
         self.currentTraceback = None
+
+        # send exceptions raised in non-gui threads back to the main thread by signal.
+        self._threadException.connect(self._threadExceptionHandler)
         
     def loadHistory(self):
         """Return the list of previously-invoked command strings (or None)."""
@@ -97,7 +106,6 @@ class ConsoleWidget(QtGui.QWidget):
             pickle.dump(open(self.historyFile, 'wb'), history)
         
     def runCmd(self, cmd):
-        #cmd = str(self.input.lastCmd)
         self.stdout = sys.stdout
         self.stderr = sys.stderr
         encCmd = re.sub(r'>', '&gt;', re.sub(r'<', '&lt;', cmd))
@@ -110,22 +118,20 @@ class ConsoleWidget(QtGui.QWidget):
             sys.stdout = self
             sys.stderr = self
             if self.multiline is not None:
-                self.write("<br><b>%s</b>\n"%encCmd, html=True)
+                self.write("<br><b>%s</b>\n"%encCmd, html=True, scrollToBottom=True)
                 self.execMulti(cmd)
             else:
-                self.write("<br><div style='background-color: #CCF'><b>%s</b>\n"%encCmd, html=True)
+                self.write("<br><div style='background-color: #CCF; color: black'><b>%s</b>\n"%encCmd, html=True, scrollToBottom=True)
                 self.inCmd = True
                 self.execSingle(cmd)
             
             if not self.inCmd:
-                self.write("</div>\n", html=True)
+                self.write("</div>\n", html=True, scrollToBottom=True)
                 
         finally:
             sys.stdout = self.stdout
             sys.stderr = self.stderr
             
-            sb = self.output.verticalScrollBar()
-            sb.setValue(sb.maximum())
             sb = self.ui.historyList.verticalScrollBar()
             sb.setValue(sb.maximum())
             
@@ -134,7 +140,7 @@ class ConsoleWidget(QtGui.QWidget):
         if frame is not None and self.ui.runSelectedFrameCheck.isChecked():
             return self.currentFrame().f_globals
         else:
-            return globals()
+            return self.localNamespace
         
     def locals(self):
         frame = self.currentFrame()
@@ -145,10 +151,11 @@ class ConsoleWidget(QtGui.QWidget):
             
     def currentFrame(self):
         ## Return the currently selected exception stack frame (or None if there is no exception)
-        if self.currentTraceback is None:
-            return None
         index = self.ui.exceptionStackList.currentRow()
-        return self.frames[index]
+        if index >= 0 and index < len(self.frames):
+            return self.frames[index]
+        else:
+            return None
         
     def execSingle(self, cmd):
         try:
@@ -196,22 +203,37 @@ class ConsoleWidget(QtGui.QWidget):
             self.displayException()
             self.multiline = None
 
-    def write(self, strn, html=False):
+    def write(self, strn, html=False, scrollToBottom='auto'):
+        """Write a string into the console.
+
+        If scrollToBottom is 'auto', then the console is automatically scrolled
+        to fit the new text only if it was already at the bottom.
+        """
         isGuiThread = QtCore.QThread.currentThread() == QtCore.QCoreApplication.instance().thread()
         if not isGuiThread:
             self.stdout.write(strn)
             return
+
+        sb = self.output.verticalScrollBar()
+        scroll = sb.value()
+        if scrollToBottom == 'auto':
+            atBottom = scroll == sb.maximum()
+            scrollToBottom = atBottom
+
         self.output.moveCursor(QtGui.QTextCursor.End)
         if html:
             self.output.textCursor().insertHtml(strn)
         else:
             if self.inCmd:
                 self.inCmd = False
-                self.output.textCursor().insertHtml("</div><br><div style='font-weight: normal; background-color: #FFF;'>")
-                #self.stdout.write("</div><br><div style='font-weight: normal; background-color: #FFF;'>")
+                self.output.textCursor().insertHtml("</div><br><div style='font-weight: normal; background-color: #FFF; color: black'>")
             self.output.insertPlainText(strn)
-        #self.stdout.write(strn)
-    
+
+        if scrollToBottom:
+            sb.setValue(sb.maximum())
+        else:
+            sb.setValue(scroll)
+
     def displayException(self):
         """
         Display the current exception and stack.
@@ -243,9 +265,12 @@ class ConsoleWidget(QtGui.QWidget):
         If True, the console will catch all unhandled exceptions and display the stack
         trace. Each exception caught clears the last.
         """
-        self.ui.catchAllExceptionsBtn.setChecked(catch)
+        with SignalBlock(self.ui.catchAllExceptionsBtn.toggled, self.catchAllExceptions):
+            self.ui.catchAllExceptionsBtn.setChecked(catch)
+        
         if catch:
-            self.ui.catchNextExceptionBtn.setChecked(False)
+            with SignalBlock(self.ui.catchNextExceptionBtn.toggled, self.catchNextException):
+                self.ui.catchNextExceptionBtn.setChecked(False)
             self.enableExceptionHandling()
             self.ui.exceptionBtn.setChecked(True)
         else:
@@ -256,9 +281,11 @@ class ConsoleWidget(QtGui.QWidget):
         If True, the console will catch the next unhandled exception and display the stack
         trace.
         """
-        self.ui.catchNextExceptionBtn.setChecked(catch)
+        with SignalBlock(self.ui.catchNextExceptionBtn.toggled, self.catchNextException):
+            self.ui.catchNextExceptionBtn.setChecked(catch)
         if catch:
-            self.ui.catchAllExceptionsBtn.setChecked(False)
+            with SignalBlock(self.ui.catchAllExceptionsBtn.toggled, self.catchAllExceptions):
+                self.ui.catchAllExceptionsBtn.setChecked(False)
             self.enableExceptionHandling()
             self.ui.exceptionBtn.setChecked(True)
         else:
@@ -274,6 +301,7 @@ class ConsoleWidget(QtGui.QWidget):
         
     def clearExceptionClicked(self):
         self.currentTraceback = None
+        self.frames = []
         self.ui.exceptionInfoLabel.setText("[No current exception]")
         self.ui.exceptionStackList.clear()
         self.ui.clearExceptionBtn.setEnabled(False)
@@ -310,13 +338,23 @@ class ConsoleWidget(QtGui.QWidget):
             else:
                 sys.settrace(self.systrace)
         
-    def exceptionHandler(self, excType, exc, tb, systrace=False):
+    def exceptionHandler(self, excType, exc, tb, systrace=False, frame=None):
+        if frame is None:
+            frame = sys._getframe()
+
+        # exceptions raised in non-gui threads must be handled separately
+        isGuiThread = QtCore.QThread.currentThread() == QtCore.QCoreApplication.instance().thread()
+        if not isGuiThread:
+            # sending a frame from one thread to another.. probably not safe, but better than just
+            # dropping the exception?
+            self._threadException.emit((excType, exc, tb, systrace, frame.f_back))
+            return
+
         if self.ui.catchNextExceptionBtn.isChecked():
             self.ui.catchNextExceptionBtn.setChecked(False)
         elif not self.ui.catchAllExceptionsBtn.isChecked():
             return
         
-        self.ui.clearExceptionBtn.setEnabled(True)
         self.currentTraceback = tb
         
         excMessage = ''.join(traceback.format_exception_only(excType, exc))
@@ -325,10 +363,13 @@ class ConsoleWidget(QtGui.QWidget):
         if systrace:
             # exceptions caught using systrace don't need the usual 
             # call stack + traceback handling
-            self.setStack(sys._getframe().f_back.f_back)
+            self.setStack(frame.f_back.f_back)
         else:
-            self.setStack(frame=sys._getframe().f_back, tb=tb)
+            self.setStack(frame=frame.f_back, tb=tb)
     
+    def _threadExceptionHandler(self, args):
+        self.exceptionHandler(*args)
+
     def setStack(self, frame=None, tb=None):
         """Display a call stack and exception traceback.
 
@@ -341,6 +382,8 @@ class ConsoleWidget(QtGui.QWidget):
         the end of the stack list. If *tb* is None, then sys.exc_info() will 
         be checked instead.
         """
+        self.ui.clearExceptionBtn.setEnabled(True)
+        
         if frame is None:
             frame = sys._getframe().f_back
 
@@ -352,6 +395,10 @@ class ConsoleWidget(QtGui.QWidget):
 
         # Build stack up to this point
         for index, line in enumerate(traceback.extract_stack(frame)):
+            # extract_stack return value changed in python 3.5
+            if 'FrameSummary' in str(type(line)):
+                line = (line.filename, line.lineno, line.name, line._line)
+            
             self.ui.exceptionStackList.addItem('File "%s", line %s, in %s()\n  %s' % line)
         while frame is not None:
             self.frames.insert(0, frame)
@@ -363,10 +410,15 @@ class ConsoleWidget(QtGui.QWidget):
         self.ui.exceptionStackList.addItem('-- exception caught here: --')
         item = self.ui.exceptionStackList.item(self.ui.exceptionStackList.count()-1)
         item.setBackground(QtGui.QBrush(QtGui.QColor(200, 200, 200)))
+        item.setForeground(QtGui.QBrush(QtGui.QColor(50, 50, 50)))
         self.frames.append(None)
 
         # And finish the rest of the stack up to the exception
         for index, line in enumerate(traceback.extract_tb(tb)):
+            # extract_stack return value changed in python 3.5
+            if 'FrameSummary' in str(type(line)):
+                line = (line.filename, line.lineno, line.name, line._line)
+            
             self.ui.exceptionStackList.addItem('File "%s", line %s, in %s()\n  %s' % line)
         while tb is not None:
             self.frames.append(tb.tb_frame)

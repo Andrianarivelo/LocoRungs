@@ -37,9 +37,6 @@ class GraphicsItem(object):
         if register:
             GraphicsScene.registerObject(self)  ## workaround for pyqt bug in graphicsscene.items()
                     
-
-                    
-                    
     def getViewWidget(self):
         """
         Return the view widget for this item. 
@@ -94,7 +91,6 @@ class GraphicsItem(object):
 
     def forgetViewBox(self):
         self._viewBox = None
-        
         
     def deviceTransform(self, viewportTransform=None):
         """
@@ -448,6 +444,10 @@ class GraphicsItem(object):
     def _updateView(self):
         ## called to see whether this item has a new view to connect to
         ## NOTE: This is called from GraphicsObject.itemChange or GraphicsWidget.itemChange.
+
+        if not hasattr(self, '_connectedView'):
+            # Happens when Python is shutting down.
+            return
 
         ## It is possible this item has moved to a different ViewBox or widget;
         ## clear out previously determined references to these.

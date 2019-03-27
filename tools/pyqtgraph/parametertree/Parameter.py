@@ -1,7 +1,7 @@
 from ..Qt import QtGui, QtCore
 import os, weakref, re
 from ..pgcollections import OrderedDict
-from ..python2_3 import asUnicode
+from ..python2_3 import asUnicode, basestring
 from .ParameterItem import ParameterItem
 
 PARAM_TYPES = {}
@@ -180,7 +180,7 @@ class Parameter(QtCore.QObject):
             raise Exception("Parameter must have a string name specified in opts.")
         self.setName(name)
         
-        self.addChildren(self.opts.get('children', []))
+        self.addChildren(self.opts.pop('children', []))
         
         self.opts['value'] = None
         if value is not None:
@@ -209,9 +209,6 @@ class Parameter(QtCore.QObject):
     def setName(self, name):
         """Attempt to change the name of this parameter; return the actual name. 
         (The parameter may reject the name change or automatically pick a different name)"""
-        if 'frame exposure' in name:
-            import traceback
-            traceback.print_stack()
         if self.opts['strictNaming']:
             if len(name) < 1 or re.search(r'\W', name) or re.match(r'\d', name[0]):
                 raise Exception("Parameter name '%s' is invalid. (Must contain only alphanumeric and underscore characters and may not start with a number)" % name)
@@ -264,6 +261,7 @@ class Parameter(QtCore.QObject):
         try:
             if blockSignal is not None:
                 self.sigValueChanged.disconnect(blockSignal)
+            value = self._interpretValue(value)
             if self.opts['value'] == value:
                 return value
             self.opts['value'] = value
@@ -273,6 +271,9 @@ class Parameter(QtCore.QObject):
                 self.sigValueChanged.connect(blockSignal)
             
         return value
+
+    def _interpretValue(self, v):
+        return v
 
     def value(self):
         """
@@ -321,7 +322,8 @@ class Parameter(QtCore.QObject):
         If blockSignals is True, no signals will be emitted until the tree has been completely restored. 
         This prevents signal handlers from responding to a partially-rebuilt network.
         """
-        childState = state.get('children', [])
+        state = state.copy()
+        childState = state.pop('children', [])
         
         ## list of children may be stored either as list or dict.
         if isinstance(childState, dict):

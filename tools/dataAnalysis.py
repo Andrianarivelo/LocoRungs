@@ -25,7 +25,7 @@ def crosscorr(deltat, y0, y1, correlationRange=1.5, fast=False):
     """
 
     if len(y0) != len(y1):
-        print 'Data to be correlated has different dimensions!'
+        print('Data to be correlated has different dimensions!')
         sys.exit(1)
 
     y0mean = y0.mean()
@@ -72,7 +72,7 @@ def crosscorr(deltat, y0, y1, correlationRange=1.5, fast=False):
                 # if n < 10 :
                 #       print n, ncorrrange, n+ncorrrange, ycorr[n+ncorrrange], float(pointnumber1-1)
             else:
-                print 'Problem!'
+                print('Problem!')
                 exit(1)
             # print n , ycorr[n+ncorrrange]
 
@@ -153,7 +153,7 @@ def detectSpikeTimes(tresh,eDataHP,ephysTimes,positive=True):
     if (spikeEnd[-1] - spikeStart[-1]) < 0.:  # if trace ends below threshold
         spikeStart = spikeStart[:-1]
     if len(spikeStart) != len(spikeEnd):  # unequal lenght of starts and ends is a problem of course
-        print 'problem in length of spikeStart and spikeEnd'
+        print('problem in length of spikeStart and spikeEnd')
         sys.exit(1)
     spikeT = []
     for i in range(len(spikeStart)):
@@ -180,11 +180,11 @@ def mapToXbit(inputArray,xBitEncoding):
 # detect spikes in ephys trace
 #################################################################################
 def applyImageNormalizationMask(frames,imageMetaInfo,normFrame,normImageMetaInfo,mouse, date, rec):
-    print imageMetaInfo, normImageMetaInfo
+    print(imageMetaInfo, normImageMetaInfo)
 
     pixelRange = 10
-    print 'small, large frame : ', np.shape(frames), np.shape(normFrame)
-    print 'pixel-ratio, x-ratio, y-ratio',  imageMetaInfo[4]/normImageMetaInfo[4],
+    print('small, large frame : ', np.shape(frames), np.shape(normFrame))
+    print('pixel-ratio, x-ratio, y-ratio',  imageMetaInfo[4]/normImageMetaInfo[4],end='')
     fig = plt.figure()
     rect1 = patches.Rectangle(normImageMetaInfo[:2], normImageMetaInfo[2], normImageMetaInfo[3],linewidth=1,edgecolor='C0',facecolor='none')
     rect2 = patches.Rectangle(imageMetaInfo[:2],imageMetaInfo[2],imageMetaInfo[3],linewidth=1,edgecolor='C1',facecolor='none')
@@ -215,7 +215,7 @@ def applyImageNormalizationMask(frames,imageMetaInfo,normFrame,normImageMetaInfo
     ax1.set_title('avg. of image stack : rescaled to norm. image pixel size',size=7)
     ax1.imshow(np.transpose(avgFrameZ))
 
-    print 'image stack : ', np.shape(framesRescaled)
+    print('image stack : ', np.shape(framesRescaled))
     scipy.io.savemat('%s_%s_%s_imageStackBeforeRescaling.mat' % (mouse, date, rec), mdict={'dataArray': framesF})
     scipy.io.savemat('%s_%s_%s_imageStack.mat' % (mouse, date, rec), mdict={'dataArray': framesRescaled})
 
@@ -236,7 +236,7 @@ def applyImageNormalizationMask(frames,imageMetaInfo,normFrame,normImageMetaInfo
     #ret = patches.Rectangle([(imageMetaInfo[1]-normImageMetaInfo[1])/normImageMetaInfo[4],(imageMetaInfo[0]-normImageMetaInfo[0])/normImageMetaInfo[4]],imageMetaInfo[3]/normImageMetaInfo[4],imageMetaInfo[2]/normImageMetaInfo[4],linewidth=1,edgecolor='r',facecolor='none')
     ax2.imshow(np.transpose(normFrame[0,xLoc:(xLoc+xDim),yLoc:(yLoc+yDim),0]))
     #ax2.add_patch(ret)
-    print 'norm. image : ', np.shape(normFrame[0,xLoc:(xLoc+xDim),yLoc:(yLoc+yDim),0])
+    print('norm. image : ', np.shape(normFrame[0,xLoc:(xLoc+xDim),yLoc:(yLoc+yDim),0]))
     scipy.io.savemat('%s_%s_%s_normalizationImage.mat' % (mouse, date, rec), mdict={'dataArray': normFrame[0,xLoc:(xLoc+xDim),yLoc:(yLoc+yDim),0]})
 
 
@@ -282,7 +282,7 @@ def applyImageNormalizationMask(frames,imageMetaInfo,normFrame,normImageMetaInfo
 
     minimumIndices = np.argwhere(errMatrix == np.min(errMatrix))
 
-    print 'MI :', minimumIndices
+    print('MI :', minimumIndices)
     #pdb.set_trace()
 
 
