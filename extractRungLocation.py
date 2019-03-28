@@ -22,7 +22,7 @@ if args.date == None:
     try:
         expDate = expDateD
     except :
-        expDate = None
+        expDate = 'all'
 else:
     expDate = args.date
 

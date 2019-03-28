@@ -8,13 +8,9 @@ import tools.extractSaveData as extractSaveData
 import pdb
 import sys
 
-#mouse = '170927_m68'
-#expDate = '171115'
-#mouse = '171126_m90'
-#expDate = '180118'
-mouseD = '190101_f15'
-expDateD = 'some' #181017'
-recordings='some'
+mouseD = '190101_f15' # id of the mouse to analyze
+expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='some'     # 'all or 'some'
 
 
 # in case mouse, and date were specified as input arguments
@@ -27,7 +23,7 @@ if args.date == None:
     try:
         expDate = expDateD
     except :
-        expDate = None
+        expDate = 'all'
 else:
     expDate = args.date
 

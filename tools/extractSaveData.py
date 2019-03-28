@@ -263,7 +263,7 @@ class extractSaveData:
         recLocation =  (self.dataBase2 + '/' + fold + '/' + recording + '/') if eD >= '181018' else (self.dataBase2 + '/' + fold + '/' + recording + '/')
         #print(recLocation)
         if os.path.exists(recLocation):
-            print('%s exists in %s , ' % (recording,fold), end =" ")
+            print('%s constains %s , ' % (fold, recording), end =" ")
         else:
             print('Problem, recording does not exist')
             
