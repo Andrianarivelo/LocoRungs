@@ -177,6 +177,65 @@ def mapToXbit(inputArray,xBitEncoding):
     return normXBitInt
 
 #################################################################################
+# maps an abritray input array to the entire range of X-bit encoding
+#################################################################################
+# dataAnalysis.determineFrameTimes(exposureArray[0],arrayTimes,frames)
+def determineFrameTimes(exposureArray,arrayTimes,frames,rec=None):
+    display = False
+    #pdb.set_trace()
+    numberOfFrames = len(frames)
+    exposure = exposureArray > 20                # threshold trace
+    exposureInt = np.array(exposure, dtype=int)  # convert boolean array into array of zeros and ones
+    difference = np.diff(exposureInt)            # calculate difference
+    expStart = np.arange(len(exposureArray))[np.concatenate((np.array([False]), difference == 1))]  # a difference of one is the start of a spike
+    expEnd = np.arange(len(exposureArray))[np.concatenate((np.array([False]), difference == -1))]  # a difference of -1 is the spike end
+    if (expEnd[0] - expStart[0]) < 0.:  # if trace starts above threshold
+        expEnd = expEnd[1:]
+    if (expEnd[-1] - expStart[-1]) < 0.:  # if trace ends above threshold
+        expStart = expStart[:-1]
+    frameDuration = expEnd - expStart
+    midExposure = (expStart + expEnd)/2
+    expStartTime = arrayTimes[expStart.astype(int)]
+    expEndTime   = arrayTimes[expEnd.astype(int)]
+    #framesIdxDuringRec = np.array(len(softFrameTimes))[(arrayTimes[expEnd[0]]+0.002) < softFrameTimes]
+    #framesIdxDuringRec = framesIdxDuringRec[:len(expStart)]
+
+    if arrayTimes[int(midExposure[0])]<0.015 and arrayTimes[int(midExposure[0])]>=0.003:
+        recordedFrames = frames[3:(len(midExposure) + 3)]
+    elif arrayTimes[int(midExposure[0])]<0.003:
+        recordedFrames = frames[2:(len(midExposure) + 2)]
+    else:
+        recordedFrames = frames[:len(midExposure)]
+    print('number of tot. frames, recorded frames, exposures start, end :',numberOfFrames,len(recordedFrames), len(expStart), len(expEnd))
+    if display:
+        ledON = np.zeros(len(exposureArray))
+        for i in range(11):
+            ledON[((i*1.)<=arrayTimes) & ((i*1.+0.2)>arrayTimes)] = 1.
+        ledON[29.<=arrayTimes] = 1.
+        data = np.loadtxt('/home/mgraupe/2019.04.01_000-%s.csv' % (rec[-3:]),delimiter=',',skiprows=1,usecols=(0,1))
+        print(len(data))
+        plt.plot(arrayTimes,exposureArray/32.)
+        plt.plot(arrayTimes,ledON)
+        print('fist frame at %s sec' % arrayTimes[int(midExposure[0])],end='')
+        if arrayTimes[int(midExposure[0])]<0.015 and arrayTimes[int(midExposure[0])]>=0.003:
+            plt.plot(arrayTimes[midExposure.astype(int)], (data[3:(len(midExposure) + 3), 1] - 148.6) / 105.4, 'o-')
+            print(3)
+        elif arrayTimes[int(midExposure[0])]<0.003:
+            plt.plot(arrayTimes[midExposure.astype(int)], (data[2:(len(midExposure) + 2), 1] - 148.6) / 105.4, 'o-')
+            print(2)
+        else:
+            plt.plot(arrayTimes[midExposure.astype(int)], (data[:len(midExposure), 1] - 148.6) / 105.4, 'o-')
+            print(0)
+        #plt.plot(softFrameTimes[data[:-6,0].astype(np.int)+6],(data[:-6,1]-148.6)/105.4)
+        #plt.plot(softFrameTimes,np.ones(len(softFrameTimes)),'|')
+        plt.show()
+
+        pdb.set_trace()
+
+    return (expStartTime,expEndTime,recordedFrames)
+
+
+#################################################################################
 # detect spikes in ephys trace
 #################################################################################
 def applyImageNormalizationMask(frames,imageMetaInfo,normFrame,normImageMetaInfo,mouse, date, rec):

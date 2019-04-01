@@ -271,9 +271,11 @@ class extractSaveData:
             pathToFile = recLocation + device + '/' + 'frames.ma'
         elif device is 'PreAmpInput':
             pathToFile = recLocation + '%s.ma' % 'DaqDevice'
+        elif device is 'frameTimes':
+            pathToFile = recLocation + '%s/%s.ma' % ('CameraGigEBehavior','daqResult')
         else:
             pathToFile = recLocation + '%s.ma' % device
-        #print pathToFile
+        print(pathToFile)
 
         if os.path.isfile(pathToFile):
             fData = h5py.File(pathToFile,'r')
@@ -296,11 +298,11 @@ class extractSaveData:
         if device == 'RotaryEncoder':
             # data from activity monitor
             if len(fData['data'])==1:
-                angles = fData['data'].value[0]
+                angles = fData['data'][()][0]
             # data during high-res recording
             else:
                 angles = fData['data'][4]
-            times  = fData['info/1/values'].value
+            times  = fData['info/1/values'][()]
             try :
                 startTime = fData['info/2/DAQ/ChannelA'].attrs['startTime']
             except :
@@ -311,37 +313,37 @@ class extractSaveData:
             return (angles,times,startTime,monitor)
 
         elif device == 'AxoPatch200_2':
-            current  = fData['data'].value[0]
+            current  = fData['data'][()][0]
             #pdb.set_trace()
-            ephysTimes = fData['info/1/values'].value
+            ephysTimes = fData['info/1/values'][()]
             #imageMetaInfo = self.readMetaInformation(recLocation)
             return (current,ephysTimes)
 
         elif device == 'Imaging':
             if readRawData:
-                frames     = fData['data'].value
+                frames     = fData['data'][()]
             else:
                 frames = np.empty([2, 2])
-            frameTimes = fData['info/0/values'].value
+            frameTimes = fData['info/0/values'][()]
             imageMetaInfo = self.readMetaInformation(recLocation)
             return (frames,frameTimes,imageMetaInfo)
         elif device == 'CameraGigEBehavior':
             print('reading raw GigE data ...', end =" ")
             if readRawData:
-                frames     = fData['data'].value
+                frames     = fData['data'][()]
             else:
                 frames = np.empty([2, 2])
-            frameTimes = fData['info/0/values'].value
+            frameTimes = fData['info/0/values'][()]
             imageMetaInfo = [None] #self.readMetaInformation(recLocation)
             print('done')
             return (frames,frameTimes,imageMetaInfo)
         elif device == 'CameraPixelfly':
             print('reading raw Pixelfly data ...', end =" ")
             if readRawData :
-                frames     = fData['data'].value
+                frames     = fData['data'][()]
             else:
                 frames = np.empty([2, 2])
-            frameTimes = fData['info/0/values'].value
+            frameTimes = fData['info/0/values'][()]
             xPixelSize = fData['info/3/pixelSize'].attrs['0']
             yPixelSize = fData['info/3/pixelSize'].attrs['1']
             xSize = fData['info/3/region'].attrs['2']
@@ -349,9 +351,9 @@ class extractSaveData:
             imageMetaInfo = np.array([xSize*xPixelSize,ySize*yPixelSize,xPixelSize,yPixelSize])
             print('done')
             return (frames,frameTimes,imageMetaInfo)
-        elif device =='PreAmpInput':
-            values = fData['data'].value
-            valueTimes = fData['info/1/values'].value
+        elif device =='PreAmpInput' or device=='frameTimes':
+            values = fData['data'][()]
+            valueTimes = fData['info/1/values'][()]
             return (values,valueTimes)
 
     ############################################################
@@ -375,6 +377,15 @@ class extractSaveData:
         #self.h5pyTools.createOverwriteDS(dataGroup,dataSetName,hstack((dimensionXY,deltaPix)))
 
     ############################################################
+    def saveBehaviorVideoData(self,groupNames,frames,expStartTime,expEndTime,imageMetaInfo):
+        # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
+        (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
+        #self.h5pyTools.createOverwriteDS(grpHandle,'behaviorFrames',len(frames))
+        self.h5pyTools.createOverwriteDS(grpHandle,'startExposure', expStartTime)
+        self.h5pyTools.createOverwriteDS(grpHandle,'endExposure', expEndTime)
+
+
+    ############################################################
     def saveImageStack(self,frames,fTimes,imageMetaInfo,groupNames,motionCorrection=[]):
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         self.h5pyTools.createOverwriteDS(grpHandle,'caImaging',frames)
@@ -386,9 +397,9 @@ class extractSaveData:
     ############################################################
     def readImageStack(self, groupNames):
         (grpName, test) = self.h5pyTools.getH5GroupName(self.f,groupNames)
-        frames = self.f[grpName + '/caImaging'].value
-        fTimes = self.f[grpName + '/caImagingTime'].value
-        imageMetaInfo = self.f[grpName + '/caImagingField'].value
+        frames = self.f[grpName + '/caImaging'][()]
+        fTimes = self.f[grpName + '/caImagingTime'][()]
+        imageMetaInfo = self.f[grpName + '/caImagingField'][()]
         return (frames,fTimes,imageMetaInfo)
 
     ############################################################
@@ -403,12 +414,12 @@ class extractSaveData:
     def getWalkingActivity(self,groupNames):
         (grpName,test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
         print(grpName)
-        angularSpeed = self.f[grpName+'/angularSpeed'].value
+        angularSpeed = self.f[grpName+'/angularSpeed'][()]
         monitor = self.f[grpName+'/angularSpeed'].attrs['monitor']
-        linearSpeed = self.f[grpName+'/linearSpeed'].value
-        wTimes = self.f[grpName+'/walkingTimes'].value
+        linearSpeed = self.f[grpName+'/linearSpeed'][()]
+        wTimes = self.f[grpName+'/walkingTimes'][()]
         startTime = self.f[grpName+'/walkingTimes'].attrs['startTime']
-        angleTimes = self.f[grpName+'/anglesTimes'].value
+        angleTimes = self.f[grpName+'/anglesTimes'][()]
         return (angularSpeed,linearSpeed,wTimes,startTime,monitor,angleTimes)
 
     ############################################################
@@ -432,8 +443,11 @@ class extractSaveData:
         tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
 
     ############################################################
-    def saveBehaviorVideo(self, mouse, date, rec, framesRaw, frameTimes, metaInfo):
-
+    # (mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
+    def saveBehaviorVideo(self, mouse, date, rec, framesRaw, expStartTime, expEndTime, imageMetaInfo):
+        #[foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
+        self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
+        midFrameTimes = (expStartTime + expEndTime)/2.
         #pdb.set_trace()
         #img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
         #tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
@@ -442,49 +456,30 @@ class extractSaveData:
         videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
 
-        #vlength = int(self.video.get(cv2.CAP_PROP_FRAME_COUNT))
-        #self.Vwidth = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
-        #self.Vheight = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        #self.Vfps = self.video.get(cv2.CAP_PROP_FPS)
 
         vLength = np.shape(framesRaw)[0]
         width  = np.shape(framesRaw)[1]
         heigth = np.shape(framesRaw)[2]
 
-        fps    = 80.
-        #w = 480
-        #h = 640
-        #pdb.set_trace()
+        #print('number of frames :', vLength)
+        fps    = 80
         # Define the codec and create VideoWriter object
         #fourcc = cv2.VideoWriter_fourcc(*'DIVX')  # (*'XVID')
         #fourcc = cv2.VideoWriter_fourcc(*'MPEG')  # (*'XVID')
-        fourcc = cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
+        # M J P G is working great !! 184 MB per video
+        # H F Y U is working great !! 2.7 GB per video
+        # M P E G has issues !! DON'T USE (frames are missing)
+        # X V I D : frame 3001 missing and last nine frames are screwed
+        # 0 (no compression) : frame 3001 missing last 2 frames are the same
+        fourcc = cv2.VideoWriter_fourcc('M','J','P','G') # cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
         out = cv2.VideoWriter(videoFileName, fourcc, fps, (width, heigth))
 
-        ret = True
-        nF = 0
-        for i in range(len(framesRaw)):
-            #frameRaw = np.random.rand(w, h) * 255.
-
+        for i in np.arange(len(framesRaw)):
             frame8bit = np.array(np.transpose(framesRaw[i]), dtype=np.uint8)
-            # ret, frame = cap.read()
-            frame = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2RGB)
-            cv2.putText(frame, 'time %s sec' % round(frameTimes[i],1), (10,20), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
-            cv2.putText(frame, 'frame %04d / %s' % (nF,vLength), (10,40), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
-            #cv2.putText(frame, FrameStr, (0, self.Vheight-20), cv2.QT_FONT_NORMAL, 0.45, color=(255, 255, 255))
-            #if ret == True:
-                # frame = cv2.flip(frame,0)
-
-                # write the flipped frame
+            frame = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
+            cv2.putText(frame, 'time %s sec' % round(midFrameTimes[i],4), (10,20), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
+            cv2.putText(frame, 'frame %04d / %s' % (i,(vLength-1)), (10,40), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
             out.write(frame)
-            nF += 1
-            #   cv2.imshow('frame', frame)
-            #    if cv2.waitKey(1) & 0xFF == ord('q'):
-            #        break
-            #else:
-            #    break
-
-
         # Release everything if job is finished
         #cap.release()
         out.release()

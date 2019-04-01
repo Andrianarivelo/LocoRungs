@@ -4,7 +4,7 @@ tools.argparser.add_argument("-d","--date", help="specify name of the mouse", re
 args = tools.argparser.parse_args()
 
 import tools.extractSaveData as extractSaveData
-#import tools.dataAnalysis as dataAnalysis
+import tools.dataAnalysis as dataAnalysis
 import pdb
 import sys
 
@@ -41,9 +41,15 @@ eSD         = extractSaveData.extractSaveData(mouse)  # find data folder of spec
 for f in range(len(foldersRecordings)):
     # loop over all recordings in that folder
     for r in range(len(foldersRecordings[f][2])):
-        (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
-        if existence:
+        (existenceFrames,fileHandleFrames) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
+        (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
+        # if camera was recorded
+        if existenceFrames:
             #print('exists',foldersRecordings[f][0],foldersRecordings[f][2][r])
-            (frames,fTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior',fileHandle)
-            eSD.saveBehaviorVideo(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],frames,fTimes,imageMetaInfo)
-            #pdb.set_trace()
+            (frames,softFrameTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior',fileHandleFrames)
+        if existenceFTimes:
+            (exposureArray,arrayTimes) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes',fileHandleFTimes)
+            (expStartTime,expEndTime,framesDuringRecording) = dataAnalysis.determineFrameTimes(exposureArray[0],arrayTimes,frames,rec=foldersRecordings[f][2][r])
+        # save data
+        if existenceFrames and existenceFTimes:
+            eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
