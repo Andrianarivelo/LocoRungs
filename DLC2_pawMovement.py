@@ -57,6 +57,7 @@ for paw in FR_th, FL_th, HR_th, HL_th:
         tmp_speed.append((((paw[i+1, 0]-paw[i, 0])**2+(paw[i+1, 1]-paw[i, 1])**2)**0.5)/(paw[i+1, 2]-paw[i, 2]))
     speed.append(tmp_speed)
 
+# Speed for arduino on 25 is 11.16 cm.s^-1
 
 # Average stride length (intralimb)
 
