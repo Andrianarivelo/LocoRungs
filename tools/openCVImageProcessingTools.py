@@ -61,6 +61,58 @@ class openCVImageProcessingTools:
         self.imgGrid = np.indices((self.Vheight, self.Vwidth))
 
         return (img)
+    ############################################################
+    def findBarsCrossCorr(self, firstImgGray, positions):
+        polyCoeffsBelow = np.array([  2.48892127e-08,   6.18721000e-05,  -5.37723176e-02,9.26067051e+01])
+        polyCoeffsAbove = np.array([ -1.66661173e-08,   9.26715756e-05,  -5.73128529e-02,8.80751777e+01])
+        barWidth = 15
+
+
+
+
+    ############################################################
+    def findHorizontalArea(self, img,Ycoordinates=None):
+
+        if Ycoordinates is None:
+            yPos = 300
+            barWidth = 10
+        else:
+            yPos = Ycoordinates[0]
+            barWidth = Ycoordinates[1]
+
+        Npix = 5
+        continueLoop = True
+        # optimize with keyboard
+        while continueLoop:
+            #rungs = []
+            imgLine = img.copy()
+            cv2.line(imgLine, (0, yPos), (self.Vwidth, yPos), (255, 0, 255), 2)
+            cv2.line(imgLine, (0, yPos+barWidth), (self.Vwidth, yPos+barWidth), (255, 0, 255), 2)
+
+            cv2.imshow("Rungs", imgLine)
+            #print 'current xPosition, yPostion : ', xPosition, yPosition
+            PressedKey = cv2.waitKey(0)
+            if PressedKey == 56 or PressedKey ==82: #UP arrow
+                yPos -= Npix
+            elif PressedKey == 50 or PressedKey ==84: #DOWN arrow
+                yPos += Npix
+            elif PressedKey == 54 or PressedKey ==83: #RIGHT arrow
+                barWidth += Npix
+            elif PressedKey == 52 or PressedKey ==81: #LEFT arrow
+                barWidth -= Npix
+            elif PressedKey == 13 or PressedKey == 32: # Enter or Space
+                continueLoop = False
+            elif PressedKey == 27: # Escape
+                continueLoop = False
+            else:
+                pass
+            cv2.destroyWindow("Rungs")
+
+
+        print('Pos, width Y :', yPos,barWidth)
+        #mask = np.zeros((self.Vheight, self.Vwidth))
+        return (yPos,barWidth)
+
 
     ############################################################
     def cropImg(self, img,Ycoordinates=None):
@@ -124,9 +176,10 @@ class openCVImageProcessingTools:
         rec = rec.replace('/', '-')
         videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
         firstImg = self.openVideo(videoFileName)
-
+        firstImgGray = cv2.cvtColor(firstImg, cv2.COLOR_BGR2GRAY)
+        print('image dims :', np.shape(firstImgGray))
         # create video output streams
-        fourcc = cv2.VideoWriter_fourcc(*'MPEG')
+        fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         self.outRung = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_rungTracking.avi' % (mouse, date, rec), fourcc, 20.0, (self.Vwidth, self.Vheight))
 
 
@@ -137,6 +190,17 @@ class openCVImageProcessingTools:
         #PressedKey = cv2.waitKey(0)
         #cv2.destroyWindow("Crop")
 
+        # Find horizontal areas for paw position extraction ###
+        (yPosAbove,barWidthAbove) = self.findHorizontalArea(firstImgGray,[225,20])
+        (yPosBelow,barWidthBelow) = self.findHorizontalArea(firstImgGray,[565,20])
+
+        self.findBarsCrossCorr(firstImgGray,[yPosAbove,barWidthAbove,yPosBelow,barWidthBelow])
+
+        plt.plot(np.average(firstImgGray[yPosAbove:(yPosAbove+barWidthAbove)],0),label='above')
+        plt.plot(np.average(firstImgGray[yPosBelow:(yPosBelow+barWidthBelow)],0),label='below')
+
+        plt.legend()
+        plt.show()
         pdb.set_trace()
         # Save some images #################
         saveImgIdx = [0,1000,4000]

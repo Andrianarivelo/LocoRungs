@@ -27,7 +27,7 @@ class extractSaveData:
             self.analysisBase = '/media/HDnyc_data/'
         elif platform.node() == 'otillo':
             laptop = False
-            self.analysisBase = '/media/mgraupe/nyc_data/'
+            self.analysisBase = '/media/paris_data/'
         elif platform.node() == 'yamal' or platform.node() == 'cerebellum-HP':
             laptop = False
             self.analysisBase = '/media/HDnyc_data/'
