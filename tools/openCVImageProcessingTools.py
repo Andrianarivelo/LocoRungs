@@ -396,9 +396,9 @@ class openCVImageProcessingTools:
             for i in range(len(barAbove)):
                 #print(i)
                 cv2.line(imgRungs,(int(barAbove[i]),int(yPosAbove+barWidthAbove/2.)),(int(barBelow[i]),int(yPosBelow+barWidthBelow/2.)),(255,0,255),2)
-            cv2.imshow('Rungs', imgRungs)
             #time.sleep(0.1)
             if show:
+                cv2.imshow('Rungs', imgRungs)
                 k = cv2.waitKey(2) & 0xff
                 if k == 27: break
             #PressedKey = cv2.waitKey(0)
