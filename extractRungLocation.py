@@ -38,6 +38,6 @@ for f in range(len(foldersRecordings)) :
         #print foldersRecordings[f][2][r]
         (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
         if existence:
-            cv2Tools.trackRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r])
+            cv2Tools.trackRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],defineROI=False)
             #cv2Tools.trackPawsAndRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r])
-        pdb.set_trace()
+        #pdb.set_trace()
