@@ -30,6 +30,9 @@ class openCVImageProcessingTools:
         self.Vwidth = 816
         self.Vheight = 616
 
+        self.testAboveBarGenerated = False
+        self.testBelowBarGenerated = False
+
     ############################################################
     def __del__(self):
         self.video.release()
@@ -63,12 +66,45 @@ class openCVImageProcessingTools:
         self.imgGrid = np.indices((self.Vheight, self.Vwidth))
 
         return (ok,img)
+    ############################################################
+    def generateTestBarArray(self, yPos, areaWidth, location,shifts):
+
+        yLocation = yPos + areaWidth / 2.
+        yRefBelow = self.Vheight - 0.899
+        yRefAbove = self.Vheight - 381.119
+        polyCoeffsBelow = np.array([5.29427827e-10, -5.44334567e-07, 2.33618937e-04, -6.14393512e-02, 9.09112549e+01])
+        polyCoeffsAbove = np.array([7.56895295e-10, -8.82197309e-07, 3.89379907e-04, -8.41450517e-02, 8.73406737e+01])
+        coeff4 = polyCoeffsBelow[4] + (yLocation - yRefBelow) * (polyCoeffsAbove[4] - polyCoeffsBelow[4]) / (yRefAbove - yRefBelow)
+        if location == 'below':
+            polyCoeffs = np.copy(polyCoeffsBelow)
+        elif location == 'above':
+            polyCoeffs = np.copy(polyCoeffsAbove)
+        polyCoeffs[4] = coeff4
+
+        testArray = np.zeros((shifts, self.Vwidth))
+        midBarArray = []
+        for i in range(shifts):
+            # def generateBarArrayForTest(startIdx):
+            # testArray = np.zeros(self.Vwidth)
+            midBars = []
+            locIdx = i
+            while (locIdx + 18) < self.Vwidth:
+                midBars.append(locIdx + 9)
+                testArray[i, (locIdx + 1):(locIdx + 3)] = np.array([0.33, 0.66])
+                testArray[i, (locIdx + 3):(locIdx + 16)] = 1.
+                testArray[i, (locIdx + 16):(locIdx + 18)] = np.array([0.66, 0.33])
+                distance = scipy.polyval(polyCoeffs, locIdx)
+                locIdx += int(distance + 0.5)
+            midBarArray.append(midBars)  # return(testArray,midBars)
+        return (testArray,midBarArray)
 
     ############################################################
     def findBarsDiffSum(self, firstImgGray, yPos, areaWidth, location):
 
         self.display = False
         bestDiffSum = None
+        shifts = 100
+
         yLocation = yPos+areaWidth/2.
         yRefBelow = self.Vheight - 0.899
         yRefAbove = self.Vheight - 381.119
@@ -76,38 +112,33 @@ class openCVImageProcessingTools:
         polyCoeffsAbove = np.array([7.56895295e-10, -8.82197309e-07, 3.89379907e-04, -8.41450517e-02, 8.73406737e+01])
         coeff4 = polyCoeffsBelow[4] + (yLocation-yRefBelow)*(polyCoeffsAbove[4] - polyCoeffsBelow[4])/(yRefAbove-yRefBelow)
         if location == 'below':
-            polyCoeffs = np.copy(polyCoeffsBelow)
-        elif location == 'above':
-            polyCoeffs = np.copy(polyCoeffsAbove)
-        polyCoeffs[4] = coeff4
+            if not self.testBelowBarGenerated :
+                (self.testArrayBelow,self.midBarArrayBelow) = self.generateTestBarArray( yPos, areaWidth, location,shifts)
+                #print('below test array generated')
+                self.testBelowBarGenerated = True
+            testArr = self.testArrayBelow
+            midBars = self.midBarArrayBelow
 
-        #barWidth = 15
-        def generateBarArrayForTest(startIdx):
-            testArray = np.zeros(self.Vwidth)
-            locIdx = startIdx
-            midBars = []
-            while (locIdx+18)<self.Vwidth:
-                midBars.append(locIdx + 9)
-                testArray[(locIdx+1):(locIdx+3)] = np.array([0.33,0.66])
-                testArray[(locIdx+3):(locIdx+16)] = 1.
-                testArray[(locIdx+16):(locIdx+18)] = np.array([0.66,0.33])
-                distance = scipy.polyval(polyCoeffs, locIdx)
-                locIdx += int(distance+0.5)
-            return(testArray,midBars)
+        elif location == 'above':
+            if not self.testAboveBarGenerated :
+                (self.testArrayAbove,self.midBarArrayAbove) = self.generateTestBarArray( yPos, areaWidth, location,shifts)
+                #print('above test array generated')
+                self.testAboveBarGenerated = True
+            testArr = self.testArrayAbove
+            midBars = self.midBarArrayAbove
 
         intensity = np.log(np.average(firstImgGray[yPos:(yPos+areaWidth)],0))
 
-
         shiftResults = []
-        for i in range(100):
-            (testArr,midBars) = generateBarArrayForTest(i)
-            diffSum = np.abs((intensity - testArr*max(intensity)) ** 2).sum()
+        for i in range(shifts):
+            #(testArr,midBars) = generateBarArrayForTest(i)
+            diffSum = np.abs((intensity - testArr[i]*max(intensity)) ** 2).sum()
             if bestDiffSum is None or diffSum < bestDiffSum:
-                barLocs = midBars
+                barLocs = midBars[i]
                 bestDiffSum = diffSum
-                bestOffset = i
+                #bestOffset = i
                 bestBarArray = testArr
-            shiftResults.append([i,testArr,diffSum,midBars])
+            shiftResults.append([i,testArr,diffSum,midBars[i]])
 
 
         #pdb.set_trace()
@@ -119,12 +150,11 @@ class openCVImageProcessingTools:
             ax0.plot(bestBarArray*max(intensity))
 
             ax1 = fig.add_subplot(2,1,2)
-            for i in range(100):
+            for i in range(shifts):
                 ax1.plot(shiftResults[i][0],shiftResults[i][2],'o',c='C0')
-
-
             plt.show()
             pdb.set_trace()
+
         return np.asarray(barLocs)
 
 
@@ -341,7 +371,8 @@ class openCVImageProcessingTools:
         rungIdx = 0
         pixelsMovedTotal = 0
         while True:
-            #print(nImg)
+            if not (nImg%100):
+                print(nImg)
             if nImg == 0:
                 img = firstImg.copy()
             else:
