@@ -9,14 +9,16 @@ import imutils
 from scipy.spatial import distance as dist
 from scipy import optimize
 import math
+import scipy
 from scipy.interpolate import interp1d
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 import os
+import time
 
+import tools.dataAnalysis as dataAnalysis
 
 (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
-
 
 class openCVImageProcessingTools:
     def __init__(self,analysisLoc, figureLoc, ff, showI = False):
@@ -27,6 +29,9 @@ class openCVImageProcessingTools:
         self.showImages = showI
         self.Vwidth = 816
         self.Vheight = 616
+
+        self.testAboveBarGenerated = False
+        self.testBelowBarGenerated = False
 
     ############################################################
     def __del__(self):
@@ -60,7 +65,221 @@ class openCVImageProcessingTools:
         # Return an array representing the indices of a grid.
         self.imgGrid = np.indices((self.Vheight, self.Vwidth))
 
-        return (img)
+        return (ok,img)
+    ############################################################
+    def generateTestBarArray(self, yPos, areaWidth, location,shifts):
+
+        yLocation = yPos + areaWidth / 2.
+        yRefBelow = self.Vheight - 0.899
+        yRefAbove = self.Vheight - 381.119
+        polyCoeffsBelow = np.array([5.29427827e-10, -5.44334567e-07, 2.33618937e-04, -6.14393512e-02, 9.09112549e+01])
+        polyCoeffsAbove = np.array([7.56895295e-10, -8.82197309e-07, 3.89379907e-04, -8.41450517e-02, 8.73406737e+01])
+        coeff4 = polyCoeffsBelow[4] + (yLocation - yRefBelow) * (polyCoeffsAbove[4] - polyCoeffsBelow[4]) / (yRefAbove - yRefBelow)
+        if location == 'below':
+            polyCoeffs = np.copy(polyCoeffsBelow)
+        elif location == 'above':
+            polyCoeffs = np.copy(polyCoeffsAbove)
+        polyCoeffs[4] = coeff4
+
+        testArray = np.zeros((shifts, self.Vwidth))
+        midBarArray = []
+        for i in range(shifts):
+            # def generateBarArrayForTest(startIdx):
+            # testArray = np.zeros(self.Vwidth)
+            midBars = []
+            locIdx = i
+            while (locIdx + 18) < self.Vwidth:
+                midBars.append(locIdx + 9)
+                testArray[i, (locIdx + 1):(locIdx + 3)] = np.array([0.33, 0.66])
+                testArray[i, (locIdx + 3):(locIdx + 16)] = 1.
+                testArray[i, (locIdx + 16):(locIdx + 18)] = np.array([0.66, 0.33])
+                distance = scipy.polyval(polyCoeffs, locIdx)
+                locIdx += int(distance + 0.5)
+            midBarArray.append(midBars)  # return(testArray,midBars)
+        return (testArray,midBarArray)
+
+    ############################################################
+    def findBarsDiffSum(self, firstImgGray, yPos, areaWidth, location):
+
+        self.display = False
+        bestDiffSum = None
+        shifts = 100
+
+        yLocation = yPos+areaWidth/2.
+        yRefBelow = self.Vheight - 0.899
+        yRefAbove = self.Vheight - 381.119
+        polyCoeffsBelow = np.array([5.29427827e-10, -5.44334567e-07, 2.33618937e-04, -6.14393512e-02, 9.09112549e+01])
+        polyCoeffsAbove = np.array([7.56895295e-10, -8.82197309e-07, 3.89379907e-04, -8.41450517e-02, 8.73406737e+01])
+        coeff4 = polyCoeffsBelow[4] + (yLocation-yRefBelow)*(polyCoeffsAbove[4] - polyCoeffsBelow[4])/(yRefAbove-yRefBelow)
+        if location == 'below':
+            if not self.testBelowBarGenerated :
+                (self.testArrayBelow,self.midBarArrayBelow) = self.generateTestBarArray( yPos, areaWidth, location,shifts)
+                #print('below test array generated')
+                self.testBelowBarGenerated = True
+            testArr = self.testArrayBelow
+            midBars = self.midBarArrayBelow
+
+        elif location == 'above':
+            if not self.testAboveBarGenerated :
+                (self.testArrayAbove,self.midBarArrayAbove) = self.generateTestBarArray( yPos, areaWidth, location,shifts)
+                #print('above test array generated')
+                self.testAboveBarGenerated = True
+            testArr = self.testArrayAbove
+            midBars = self.midBarArrayAbove
+
+        intensity = np.log(np.average(firstImgGray[yPos:(yPos+areaWidth)],0))
+
+        shiftResults = []
+        for i in range(shifts):
+            #(testArr,midBars) = generateBarArrayForTest(i)
+            diffSum = np.abs((intensity - testArr[i]*max(intensity)) ** 2).sum()
+            if bestDiffSum is None or diffSum < bestDiffSum:
+                barLocs = midBars[i]
+                bestDiffSum = diffSum
+                #bestOffset = i
+                bestBarArray = testArr
+            shiftResults.append([i,testArr,diffSum,midBars[i]])
+
+
+        #pdb.set_trace()
+        #print()
+        if self.display:
+            fig = plt.figure()
+            ax0 = fig.add_subplot(2,1,1)
+            ax0.plot(intensity)
+            ax0.plot(bestBarArray*max(intensity))
+
+            ax1 = fig.add_subplot(2,1,2)
+            for i in range(shifts):
+                ax1.plot(shiftResults[i][0],shiftResults[i][2],'o',c='C0')
+            plt.show()
+            pdb.set_trace()
+
+        return np.asarray(barLocs)
+
+
+    ############################################################
+    def findBarsCrossCorr(self, firstImgGray, yPos, areaWidth, location):
+
+        self.display = False
+
+        yLocation = int(yPos + areaWidth / 2.)
+        if location == 'below':
+            polyCoeffs = np.array([ 5.29427827e-10, -5.44334567e-07, 2.33618937e-04, -6.14393512e-02, 9.09112549e+01])
+        elif location == 'above':
+            polyCoeffs = np.array([ 7.56895295e-10, -8.82197309e-07, 3.89379907e-04, -8.41450517e-02, 8.73406737e+01])
+
+
+        barWidth = 15
+
+        testArray = np.zeros(self.Vwidth)
+        locIdx = 0
+        while locIdx<self.Vwidth:
+            testArray[(locIdx+1):(locIdx+3)] = np.array([0.33,0.66])
+            testArray[(locIdx+3):(locIdx+16)] = 1.
+            testArray[(locIdx+16):(locIdx+18)] = np.array([0.66,0.33])
+            distance = scipy.polyval(polyCoeffs, locIdx)
+            locIdx += int(distance+0.5)
+
+        intensity = np.log(np.average(firstImgGray[yPos:(yPos+areaWidth)],0))
+        #intensityBelow = np.average(firstImgGray[yPosBelow:(yPosBelow+barWidthBelow)],0)
+
+        corrBars = dataAnalysis.crosscorr(1,intensity,testArray,100)
+
+        maximaIdx = scipy.signal.argrelextrema(corrBars[:,1],np.greater)
+        #minimaIdx = scipy.signal.argrelextrema(corrBars[:,1],np.less)
+        maximaLocations = corrBars[:, 0][maximaIdx[0]].astype(int)
+        maxima          = corrBars[:, 1][maximaIdx[0]]
+        maximum = np.max(maxima)
+        maximumLoc = maximaLocations[np.argmax(maxima)]
+        #loc = np.argmax(corrBars[:, 1][maximaIdx[0]].astype(int))
+        barLocation = []
+        if maximumLoc < 0:
+            bL = maximumLoc#+9
+        elif maximumLoc >= 0:
+            bL = (-maximumLoc)
+        barLocation.append(bL)
+        while barLocation[-1]<self.Vwidth:
+            distance = scipy.polyval(polyCoeffs, barLocation[-1])
+            nL = distance + barLocation[-1]
+            barLocation.append(nL)
+
+        barLocation=np.asarray(barLocation)
+
+        #print(maximaStats)
+        #pdb.set_trace()
+        #print()
+        if self.display:
+            fig = plt.figure()
+            ax0 = fig.add_subplot(2,1,1)
+            ax0.plot(intensity)
+            for i in maximaLocations:
+                x = np.arange(len(testArray))
+                y = testArray
+                if i < 0:
+                    x = x[abs(i):]
+                    y = y[:-abs(i)]
+                elif i >= 0:
+                    x = x[:-abs(i)]
+                    y = y[abs(i):]
+                ax0.plot(x,y*max(intensity),label='%s, %s' % (i,i))
+            plt.legend()
+            ax1 = fig.add_subplot(2,1,2)
+            ax1.plot(corrBars[:,0],corrBars[:,1])
+
+            plt.show()
+            pdb.set_trace()
+        return barLocation
+
+    ############################################################
+    def findHorizontalArea(self, img, coordinates=None,orientation='horizontal'):
+
+        if coordinates is None:
+            pos = 300
+            areaWidth = 10
+        else:
+            pos = coordinates[0]
+            areaWidth = coordinates[1]
+
+        Npix = 5
+        continueLoop = True
+        # optimize with keyboard
+        while continueLoop:
+            #rungs = []
+            imgLine = img.copy()
+            if orientation=='horizontal':
+                cv2.line(imgLine, (0, pos), (self.Vwidth, pos), (255, 0, 255), 2)
+                cv2.line(imgLine, (0, pos+areaWidth), (self.Vwidth, pos+areaWidth), (255, 0, 255), 2)
+            elif orientation == 'vertical':
+                cv2.line(imgLine, (pos, 0), (pos, self.Vheight), (255, 0, 255), 2)
+                cv2.line(imgLine, (pos+areaWidth, 0), (pos+areaWidth, self.Vheight), (255, 0, 255), 2)
+
+            cv2.imshow("Rungs", imgLine)
+            #print 'current xPosition, yPostion : ', xPosition, yPosition
+            PressedKey = cv2.waitKey(0)
+            if PressedKey == 56 or PressedKey ==82: #UP arrow
+                pos -= Npix
+            elif PressedKey == 50 or PressedKey ==84: #DOWN arrow
+                pos += Npix
+            elif PressedKey == 54 or PressedKey ==83: #RIGHT arrow
+                areaWidth += Npix
+            elif PressedKey == 52 or PressedKey ==81: #LEFT arrow
+                areaWidth -= Npix
+            elif PressedKey == 13 or PressedKey == 32: # Enter or Space
+                continueLoop = False
+            elif PressedKey == 27: # Escape
+                continueLoop = False
+            else:
+                pass
+            cv2.destroyWindow("Rungs")
+
+        if orientation == 'horizontal':
+            print('y Pos, width  :', pos,areaWidth)
+        elif orientation == 'vertical':
+            print('x Pos, width  :', pos,areaWidth)
+        #mask = np.zeros((self.Vheight, self.Vwidth))
+        return (pos,areaWidth)
+
 
     ############################################################
     def cropImg(self, img,Ycoordinates=None):
@@ -112,7 +331,8 @@ class openCVImageProcessingTools:
 
 
     ############################################################
-    def trackRungs(self, mouse, date, rec, **kwargs):
+    def trackRungs(self, mouse, date, rec, defineROI=False):
+        show = False
         badVideo = 0
         stopProgram = False
         # tracking parameters #########################
@@ -123,69 +343,105 @@ class openCVImageProcessingTools:
         ###############################################
         rec = rec.replace('/', '-')
         videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
-        firstImg = self.openVideo(videoFileName)
-
+        (ok,firstImg) = self.openVideo(videoFileName)
+        firstImgGray = cv2.cvtColor(firstImg, cv2.COLOR_BGR2GRAY)
+        print('image dims :', np.shape(firstImgGray))
         # create video output streams
-        fourcc = cv2.VideoWriter_fourcc(*'MPEG')
-        self.outRung = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_rungTracking.avi' % (mouse, date, rec), fourcc, 20.0, (self.Vwidth, self.Vheight))
+        fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
+        self.outRung = cv2.VideoWriter(self.analysisLocation + '%s_%s_%s_rungTracking.avi' % (mouse, date, rec), fourcc, 40.0, (self.Vwidth, self.Vheight))
 
+        # Find horizontal areas for paw position extraction ###
+        if defineROI:
+            (yPosAbove,barWidthAbove) = self.findHorizontalArea(firstImgGray,[270,30],orientation='horizontal')
+            (yPosBelow,barWidthBelow) = self.findHorizontalArea(firstImgGray,[565,30],orientation='horizontal')
+        else:
+            (yPosAbove,barWidthAbove) = [270,30]
+            (yPosBelow,barWidthBelow) = [565,30]
+        #(xPos,barVerticalWidth) = self.findHorizontalArea(firstImgGray,[285,340],orientation='vertical')
 
-        # Crop image ######################
-        #mask = self.cropImg(firstImg,[215,215])
-        #imgBottom = cv2.bitwise_and(firstImg, firstImg, mask=mask)
-        #cv2.imshow("Crop", imgBottom)
-        #PressedKey = cv2.waitKey(0)
-        #cv2.destroyWindow("Crop")
-
-        pdb.set_trace()
-        # Save some images #################
-        saveImgIdx = [0,1000,4000]
-        idx = 0
+        #above = (np.average(firstImgGray[yPosAbove:(yPosAbove+barWidthAbove)],0))
+        #below = (np.average(firstImgGray[yPosBelow:(yPosBelow + barWidthBelow)], 0))
+        #np.save('above.npy',above)
+        #np.save('below.npy',below)
+        #plt.show()
+        #pdb.set_trace()
+        nImg = 0
+        #saveImgIdx = [0, 1000, 2000, 3000, 4000, 5000]
+        rungPositions = []
+        rungIdx = 0
+        pixelsMovedTotal = 0
         while True:
-            ok, img = self.video.read()
+            if not (nImg%100):
+                print(nImg)
+            if nImg == 0:
+                img = firstImg.copy()
+            else:
+                ok, img = self.video.read()
             if not ok:
                 break
-
-            if idx in saveImgIdx:
-
-                #plt.plot(average(img[])
-                cv2.imwrite( self.analysisLocation + '%s_%s_%s_image#%s.png' %(mouse,date,rec,idx), img )
-            idx+=1
-
-        pdb.set_trace()
-        # Find lines in image #############
-        imgRungs = firstImg.copy()
-        imgBottomGray = cv2.cvtColor(imgBottom, cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(imgBottomGray,50,150 ,apertureSize = 3)
-        minLineLength = 40
-        maxLineGap = 20
-        cv2.imshow('Edges', edges)
-        PressedKey = cv2.waitKey(0)
-        cv2.destroyWindow('Edges')
-        #pdb.set_trace()
-        lines = cv2.HoughLinesP(edges,1,np.pi/(2*180),15,minLineLength,maxLineGap)
-        if lines is not None:
-            #pdb.set_trace()
-            print('number of detected lines :',len(lines[0]))
-            #for rho,theta in lines[0]:
-            for x1, y1, x2, y2 in lines[0]:
-                # a = np.cos(theta)
-                # b = np.sin(theta)
-                # x0 = a*rho
-                # y0 = b*rho
-                # x1 = int(x0 + 1000*(-b))
-                # y1 = int(y0 + 1000*(a))
-                # x2 = int(x0 - 1000*(-b))
-                # y2 = int(y0 - 1000*(a))
-                cv2.line(imgRungs,(x1,y1),(x2,y2),(0,255,0),2)
-
-        cv2.imshow('Rungs', imgRungs)
-        PressedKey = cv2.waitKey(0)
-        cv2.destroyWindow('Rungs')
+            imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 
+            #if nImg in saveImgIdx:
+            #    #plt.plot(average(img[])
+            #    cv2.imwrite(self.analysisLocation + '%s_%s_%s_img#%s.png' % (mouse, date, rec, nImg), img)
+            #barAbove  = self.findBarsCrossCorr(imgGray,yPosAbove,barWidthAbove,location='above')
+            #barBelow  = self.findBarsCrossCorr(imgGray,yPosBelow,barWidthBelow,location='below')
+            barAbove = self.findBarsDiffSum(imgGray, yPosAbove, barWidthAbove, location='above')
+            barBelow = self.findBarsDiffSum(imgGray, yPosBelow, barWidthBelow, location='below')
+
+            # align both detected bar arrays
+            midPointAbove = int(len(barAbove)/2.)
+            midPointBelow = np.argmin(abs(barBelow-barAbove[midPointAbove]))
+            # bring both arrays to the same length
+            if midPointAbove < midPointBelow:
+                barBelow = barBelow[(midPointBelow-midPointAbove):]
+            elif midPointAbove > midPointBelow:
+                barAbove = barAbove[(midPointAbove-midPointBelow):]
+            barAbove = barAbove[:min(len(barAbove),len(barBelow))]
+            barBelow = barBelow[:min(len(barAbove),len(barBelow))]
+            barLocs = np.column_stack((barAbove,np.repeat(int(yPosAbove+barWidthAbove/2.),len(barAbove)),barBelow,np.repeat(int(yPosBelow + barWidthBelow/2.),len(barAbove))))
+            #for i in range(len(barAbove)):
+            #    barLocs = .append([barAbove[i],int(yPosAbove+barWidthAbove/2.),barBelow[i],int(yPosBelow + barWidthBelow/2.)])
+            # save extracted rung positions
+            # rung movement is based on the bar detection above
+            if nImg == 0:
+                barLocsOld = barLocs[0,0]
+            pixelDifference = barLocs[0,0]-barLocsOld
+            pixelsMovedTotal -= pixelDifference
+            if pixelDifference < -20.:  # a bar moved into the frame from the left
+                rungIdx -=1
+                pixelsMovedTotal -= (barAbove[1] - barAbove[0])
+            elif pixelDifference > 20.: # a bar left the frame on the left corner
+                rungIdx +=1
+                pixelsMovedTotal += (barAbove[1] - barAbove[0])
+            #dD.append(degreeDifference[0])
+            #rungsNumbered.append([i,frameNumbers[i],len(ppF),d1,degreeDifference[0],rungCounter,numberedR,ppF[:,:2]])
+            rungIdentity = np.arange(rungIdx,rungIdx+len(barAbove))
+            rungPositions.append([nImg,len(rungIdentity),rungIdentity,barLocs,pixelDifference,pixelsMovedTotal])
+            #print(nImg,rungIdentity,pixelDifference,pixelsMovedTotal,barLocs[0,0])
+            barLocsOld = barLocs[0,0]
+
+            # generate video where rungs are marked by lines
+            imgRungs = img.copy()
+            for i in range(len(barAbove)):
+                #print(i)
+                cv2.line(imgRungs,(int(barAbove[i]),int(yPosAbove+barWidthAbove/2.)),(int(barBelow[i]),int(yPosBelow+barWidthBelow/2.)),(255,0,255),2)
+            #time.sleep(0.1)
+            if show:
+                cv2.imshow('Rungs', imgRungs)
+                k = cv2.waitKey(2) & 0xff
+                if k == 27: break
+            #PressedKey = cv2.waitKey(0)
+            #cv2.destroyWindow('Rungs')
+            #imgRungsColor = cv2.cvtColor(imgRungs, cv2.COLOR_GRAY2BGR)
+            self.outRung.write(imgRungs)
+            nImg+=1
 
 
+        self.outRung.release()
+        cv2.destroyAllWindows()
+        pickle.dump(rungPositions, open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb'))
 
     ############################################################
     def trackPawsAndRungs(self,mouse,date,rec, **kwargs):

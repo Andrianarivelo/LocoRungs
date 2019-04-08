@@ -27,7 +27,7 @@ class extractSaveData:
             self.analysisBase = '/media/HDnyc_data/'
         elif platform.node() == 'otillo':
             laptop = False
-            self.analysisBase = '/media/mgraupe/nyc_data/'
+            self.analysisBase = '/media/paris_data/'
         elif platform.node() == 'yamal' or platform.node() == 'cerebellum-HP':
             laptop = False
             self.analysisBase = '/media/HDnyc_data/'
@@ -471,6 +471,7 @@ class extractSaveData:
         # M P E G has issues !! DON'T USE (frames are missing)
         # X V I D : frame 3001 missing and last nine frames are screwed
         # 0 (no compression) : frame 3001 missing last 2 frames are the same
+        #fourcc = cv2.VideoWriter_fourcc('H','F','Y','U')
         fourcc = cv2.VideoWriter_fourcc('M','J','P','G') # cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
         out = cv2.VideoWriter(videoFileName, fourcc, fps, (width, heigth))
 
