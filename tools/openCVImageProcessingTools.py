@@ -35,7 +35,10 @@ class openCVImageProcessingTools:
 
     ############################################################
     def __del__(self):
-        self.video.release()
+        try :
+            self.video.release()
+        except:
+            pass
 
         cv2.destroyAllWindows()
         print('on exit')
