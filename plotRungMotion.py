@@ -34,10 +34,11 @@ eSD         = extractSaveData.extractSaveData(mouse)
 cv2Tools = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
 cV       = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
-rungMotion = []
+
 # loop over all folders, mostly days but sometimes there were two recording sessions per day
 for f in range(len(foldersRecordings)) :
     # loop over all recordings in that folder
+    rungMotion = []
     for r in range(len(foldersRecordings[f][2])): # for r in recordings[f][1]:
         #print foldersRecordings[f][2][r]
         (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
@@ -47,4 +48,5 @@ for f in range(len(foldersRecordings)) :
             #cv2Tools.trackRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],defineROI=False)
             #cv2Tools.trackPawsAndRungs(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r])
     cV.generateRungMotionPlot(rungMotion)
+    del(rungMotion)
 
