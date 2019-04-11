@@ -2310,7 +2310,7 @@ class createVisualizations:
                 #pdb.set_trace()
                 nRungs = len(rungMotion[i][3][n][3][:,0])
                 colors = cm.rainbow((rungMotion[i][3][n][2]%colorCycle)/colorCycle)
-                ax0.scatter(np.repeat(rungMotion[i][3][n][0],nRungs),rungMotion[i][3][n][3][:,0],c=colors,s=0.5)
+                ax0.scatter(np.repeat(rungMotion[i][3][n][0],nRungs),rungMotion[i][3][n][3][:,0],c=colors,s=0.3)
 
             if i ==(nRecordings-1):
                 self.layoutOfPanel(ax0, xLabel=r'frame number', yLabel=r'x location (pixel)')
