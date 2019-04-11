@@ -441,7 +441,8 @@ class openCVImageProcessingTools:
 
         self.outRung.release()
         cv2.destroyAllWindows()
-        pickle.dump(rungPositions, open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb'))
+        # pickle.dump(rungPositions, open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb'))
+        return rungPositions
 
     ############################################################
     def trackPawsAndRungs(self,mouse,date,rec, **kwargs):

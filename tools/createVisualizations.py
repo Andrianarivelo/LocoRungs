@@ -15,6 +15,7 @@ import tifffile as tiff
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import matplotlib.cm as cm
 from collections import OrderedDict
 #import sima
 #import sima.motion
@@ -173,7 +174,7 @@ class createVisualizations:
         #raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
         deltaX= imageMetaInfo[2]
         #deltaX = (data['raw_data/caImagingField'].value)[2]
-        print 'deltaX ' , deltaX
+        print('deltaX ' , deltaX)
         
         # figure #################################
         fig_width = 7 # width in inches
@@ -251,7 +252,7 @@ class createVisualizations:
         plt.xlabel(r'x ($\mu$m)')
         plt.ylabel(r'y ($\mu$m)')
         
-        print nFigs, nRois
+        print(nFigs, nRois)
         # third sub-plot #######################################################
         gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1],hspace=0.2)
         # sub-panel 1 #############################################
@@ -288,7 +289,7 @@ class createVisualizations:
         for n in range(len(rois)):
             fff = int(n/(plotsPerFig))
             colors = plt.cm.jet(float(n)/float(nRois-1))
-            print n, fff, nFigs
+            print(n, fff, nFigs)
             if fff == 0:
                 ax10.plot(ttime,raw_signals[0][n],c=colors,label=str(rois[n].label + ' %.3f' % pearsonr(motionCoordinates[:,2],raw_signals[0][n])[0]))
             elif fff == 1:
@@ -373,7 +374,7 @@ class createVisualizations:
         # raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
         deltaX = imageMetaInfo[2]
         # deltaX = (data['raw_data/caImagingField'].value)[2]
-        print 'deltaX ', deltaX
+        print('deltaX ', deltaX)
 
         # figure #################################
         fig_width = 7  # width in inches
@@ -449,7 +450,7 @@ class createVisualizations:
         plt.xlabel(r'x ($\mu$m)')
         plt.ylabel(r'y ($\mu$m)')
 
-        print nFigs, nRois
+        print(nFigs, nRois)
         # third sub-plot #######################################################
         #gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1], hspace=0.2)
         # sub-panel 1 #############################################
@@ -494,7 +495,7 @@ class createVisualizations:
         for n in range(len(rois)):
             fff = int(n / (plotsPerFig))
             colors = plt.cm.jet(float(n) / float(nRois - 1))
-            print n, fff, nFigs
+            print(n, fff, nFigs)
             if n >2 and n<5:
                 ax02.plot(ttime, raw_signals[0][n], c=colors)
             if fff == 0:
@@ -750,7 +751,7 @@ class createVisualizations:
         # raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
         deltaX = imageMetaInfo[2]
         # deltaX = (data['raw_data/caImagingField'].value)[2]
-        print 'deltaX ', deltaX
+        print('deltaX ', deltaX)
 
         # figure #################################
         fig_width = 7  # width in inches
@@ -890,7 +891,7 @@ class createVisualizations:
         # raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
         deltaX = imageMetaInfo[2]
         # deltaX = (data['raw_data/caImagingField'].value)[2]
-        print 'deltaX ', deltaX
+        print('deltaX ', deltaX)
 
         # figure #################################
         fig_width = 6  # width in inches
@@ -1031,7 +1032,7 @@ class createVisualizations:
         tracksN.sort(key=lambda x: x[1])
         #pdb.set_trace()
         startTime = tracksN[0][1]
-        print 'monitor N : ', tracksN
+        print('monitor N : ', tracksN)
 
         # figure #################################
         fig_width = 12  # width in inches
@@ -1089,7 +1090,7 @@ class createVisualizations:
                 for n in range(len(pausesIndex)-1):
                     start = pausesIndex[n]+1
                     end   = pausesIndex[n+1]
-                    print start, end, pausesIndex
+                    print(start, end, pausesIndex)
                     ax0.plot((tracks[i][2][start:end]+(tracks[i][3]-startTime))/60.,tracks[i][1][start:end],color=colors)
             else:
                 timeDiff = np.diff(tracks[i][2])
@@ -1099,7 +1100,7 @@ class createVisualizations:
         # and moves left and bottom axes away
         self.layoutOfPanel(ax0,xLabel='time (min)',yLabel='speed (cm/s)')
 
-        print nFigs, nRecs
+        print(nFigs, nRecs)
 
         # high-res panels #############################################
         gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1], hspace=0.2)
@@ -1136,7 +1137,7 @@ class createVisualizations:
             if not tracks[n][4]:
                 fff = int(n / (plotsPerFig))
                 colors = plt.cm.jet(float(n) / float(nRecs - 1))
-                print n, fff, nFigs
+                print(n, fff, nFigs)
                 w = np.concatenate((np.array([tracks[n][2][0]]), np.diff(tracks[n][2])))
                 if fff == 0:
                     ax10.plot(tracks[n][2],tracks[n][1],label='%s' % tracks[n][5])
@@ -1229,7 +1230,7 @@ class createVisualizations:
         img = data['analyzed_data/motionCorrectedImages/timeAverage'].value
         caTime = data['raw_data/caImagingTime'].value
         deltaX = (data['raw_data/caImagingField'].value)[2]
-        print 'deltaX ' , deltaX
+        print('deltaX ' , deltaX)
         
         ephysHP = data['analyzed_data/spiking_data/ephys_data_high-pass'].value
         ephysTime = data['raw_data/ephysTime'].value
@@ -1467,7 +1468,7 @@ class createVisualizations:
         img = data['analyzed_data/motionCorrectedImages/timeAverage'].value
         caTime = data['raw_data/caImagingTime'].value
         deltaX = (data['raw_data/caImagingField'].value)[2]
-        print 'deltaX ' , deltaX
+        print('deltaX ' , deltaX)
         
         ephysHP = data['analyzed_data/spiking_data/ephys_data_high-pass'].value
         ephysTime = data['raw_data/ephysTime'].value
@@ -1931,7 +1932,7 @@ class createVisualizations:
         
         deltaX = (rawData['raw_data/caImagingField'].value)[2]
         
-        print 'delta T , X: ', deltaT, deltaX
+        print('delta T , X: ', deltaT, deltaX)
         #pdb.set_trace()
         imgYProj = average(images,axis=2)
         
@@ -1956,7 +1957,7 @@ class createVisualizations:
         y = imgYProjNorm[int(fitStart/deltaT):,verticalCutN]
         x = arange(len(y))*deltaT
         p1, success = scipy.optimize.leastsq(errfunc, p0.copy(),args=(x,y))
-        print 'fit parameter : ', p1
+        print('fit parameter : ', p1)
         yFit = fitfunc(p1, x)
         
         ################################################################
@@ -2253,6 +2254,74 @@ class createVisualizations:
 
         plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
+    ##########################################################################################
+    def generateRungMotionPlot(self,rungMotion):
+
+        nRecordings = len(rungMotion)
+
+
+        date = rungMotion[0][1]
+        recA  = rungMotion[0][2]
+        recB  = rungMotion[-1][2]
+
+
+        # pdb.set_trace()
+        # figure #################################
+        fig_width = 10  # width in inches
+        fig_height = 20  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14, 'axes.titlesize': 13, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(5, 1  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.14, right=0.92, top=0.98, bottom=0.05)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.99, '%s   %s   %s-%s' % (self.mouse, date, recA,recB[-3:]), clip_on=False, color='black', size=14)
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+        colorCycle = 10
+        for i in range(nRecordings):
+            ax0 = plt.subplot(gs[i])
+            print('rec #%s' % i)
+            for n in range(len(rungMotion[i][3])):
+                #pdb.set_trace()
+                nRungs = len(rungMotion[i][3][n][3][:,0])
+                colors = cm.rainbow((rungMotion[i][3][n][2]%colorCycle)/colorCycle)
+                ax0.scatter(np.repeat(rungMotion[i][3][n][0],nRungs),rungMotion[i][3][n][3][:,0],c=colors,s=0.5)
+
+            if i ==(nRecordings-1):
+                self.layoutOfPanel(ax0, xLabel=r'frame number', yLabel=r'x location (pixel)')
+            else:
+                self.layoutOfPanel(ax0, xLabel=None, yLabel=r'x location (pixel)')
+
+        ## save figure ############################################################
+        fname = self.determineFileName(date, 'rung-motion', reco=recA[:-4])
+        # plt.show()
+        # plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
 
     ##########################################################################################
     def generatePawMovementFigure(self,date,rec, fp, hp,rungs,fTimes,centerR,radius,rungsNumbered,fpLinear,hpLinear,linearSpeed,sTimes,frontpawRungDist,hindpawRungDist,startStopFPStep,startStopHPStep):
@@ -2272,7 +2341,7 @@ class createVisualizations:
         frac = linearSpeed/newWheelSpeed
 
         pixToCmScaling = 1./np.mean(frac)
-        print pixToCmScaling
+        print(pixToCmScaling)
 
         #pdb.set_trace()
         # figure #################################
@@ -2391,7 +2460,7 @@ class createVisualizations:
         self.layoutOfPanel(ax5, xLabel=r'x (pixel)', yLabel=r'y (pixel)')
 
 
-        print len(fp), len(fpLinear), len(hp), len(hpLinear)
+        print(len(fp), len(fpLinear), len(hp), len(hpLinear))
         # first sub-plot #######################################################
         # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
         ax6 = plt.subplot(gs[6])
@@ -2692,7 +2761,7 @@ class createVisualizations:
         ax0 = plt.subplot(gs[0])
         ss = ['850','800','750','700','650','600']
         for i in range(len(gData)):
-            print i
+            print(i)
             ax0.hist(gData[i][2][0],bins=100,range=[-1.75,0.],histtype='step',label='%s mV' % ss[i])
 
         # removes upper and right axes

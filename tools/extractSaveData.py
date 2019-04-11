@@ -94,6 +94,17 @@ class extractSaveData:
         return (imStack,motionCoor,allFiles[0])
 
     ############################################################
+    def saveRungMotionData(self,mouse,date,rec,rungPositions):
+        rec = rec.replace('/', '-')
+        pickle.dump(rungPositions, open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb'))
+
+    ############################################################
+    def getRungMotionData(self,mouse,date,rec):
+        rec = rec.replace('/', '-')
+        rungPositions = pickle.load(open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'rb'))
+        return rungPositions
+
+    ############################################################
     def extractRoiSignals(self,folder,rec,tifFile):
 
         self.simaPath = self.analysisLocation+'%s_%s_%s' % (self.mouse, folder, rec)
