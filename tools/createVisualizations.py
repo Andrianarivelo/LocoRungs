@@ -173,7 +173,7 @@ class createVisualizations:
         #raw_signals = dataSet.signals('GCaMP6F')['GCaMP6F_signals']['raw']
         deltaX= imageMetaInfo[2]
         #deltaX = (data['raw_data/caImagingField'].value)[2]
-        print 'deltaX ' , deltaX
+        print ('deltaX ' , deltaX)
         
         # figure #################################
         fig_width = 7 # width in inches

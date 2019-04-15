@@ -58,7 +58,11 @@ class extractSaveData:
             self.dataBase +=  'altair_data/dataMichael/'
         else:
             self.dataBase += 'altair_data/experiments/data_Michael/acq4/'
-        self.dataBase2 += 'altair_data/dataMichael/'
+
+        if int(mouse[:6]) == 190409 :
+            self.dataBase2 += 'behaviorPC_data/dataMichael/'
+        else:
+            self.dataBase2 += 'altair_data/dataMichael/'
 
         self.analysisLocation = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsData/%s/' % mouse
         self.figureLocation   = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsFigures/%s/' % mouse

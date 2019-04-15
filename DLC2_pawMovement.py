@@ -1,24 +1,51 @@
+from oauth2client import tools
+tools.argparser.add_argument("-m","--mouse", help="specify name of the mouse", required=False)
+tools.argparser.add_argument("-d","--date", help="specify name of the mouse", required=False)
+args = tools.argparser.parse_args()
+
+import tools.extractSaveData as extractSaveData
+import tools.dataAnalysis as dataAnalysis
+import pdb
+import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 from sh import mount
 import numpy as np
 from scipy.signal import find_peaks
 
-try:
-    mount('/media/otillo/')
-    print('/media/otillo/ successfully mounted')
-except:
-    print('/media/otillo/ already mounted')
+mouseD = '190101_f15' # id of the mouse to analyze
+expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='all'     # 'all or 'some'
 
-mouseID = '180824_f14'
-expDay = '2018.10.17_004'
-expTrial = '000'
-h5file = '/media/otillo/analysis/videos_101/' + mouseID + '/' + mouseID + '_' + expDay + '_l_R_M_' + expTrial + '_r_b.avifolder/' + mouseID + '_' + expDay + '_l_R_M_' + expTrial + '_r_bDeepCut_resnet101_DLC2_101Feb21shuffle1_1030000.h5' #find the correct DLC2 HDF5 file
+
+# in case mouse, and date were specified as input arguments
+if args.mouse == None:
+    mouse = mouseD
+else:
+    mouse = args.mouse
+
+if args.date == None:
+    try:
+        expDate = expDateD
+    except :
+        expDate = 'all'
+else:
+    expDate = args.date
+
+eSD         = extractSaveData.extractSaveData(mouse)
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
+
+for f in range(len(foldersRecordings)):
+    # loop over all recordings in that folder
+    for r in range(len(foldersRecordings[f][2])):
+        (existenceFrames,fileHandleFrames) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
+        if existenceFrames:
+
 
 paws_data = np.column_stack((pd.read_hdf(h5file).values[:, [0, 1, 3, 4, 6, 7, 9, 10]], np.arange(pd.read_hdf(h5file).values.shape[0])))   # import HDF5 file into numpy array
 FR, FL, HR, HL = paws_data[:, [0, 1]], paws_data[:, [2, 3]], paws_data[:, [4, 5]], paws_data[:, [6, 7]]
 
-# Removing outliers frames along x eucliedean distance threshold
+# Removing outliers frames along x euclidean distance threshold
 
 dist_x = []
 for paw in FR, FL, HR, HL:

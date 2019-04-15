@@ -8,8 +8,8 @@ import tools.dataAnalysis as dataAnalysis
 import pdb
 
 mouseD = '190101_f15' # id of the mouse to analyze
-expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='some'     # 'all or 'some'
+expDateD = 'all'      # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings = 'all'     # 'all or 'some'
 
 if args.mouse == None:
     mouse = mouseD
