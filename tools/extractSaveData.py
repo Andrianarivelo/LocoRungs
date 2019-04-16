@@ -488,3 +488,7 @@ class extractSaveData:
         #cap.release()
         out.release()
         cv2.destroyAllWindows()
+
+    ##########################################################
+    def getDLC2TrackingFiles(self, mouse, date, rec):
+        self.analysisLocation +
