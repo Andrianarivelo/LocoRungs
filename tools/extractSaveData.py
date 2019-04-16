@@ -490,5 +490,15 @@ class extractSaveData:
         cv2.destroyAllWindows()
 
     ##########################################################
-    def getDLC2TrackingFiles(self, mouse, date, rec):
-        self.analysisLocation +
+    def checkIfDLC2TrackingDone(self, mouse, date, rec):
+        tracking_path = glob.glob(self.analysisLocation + '%s_%s_%s_raw_behavior*.h5' % (mouse, date, rec))
+        try :
+            DLC2_Data = h5py.File(tracking_path,'r')
+        except :
+            print(tracking_path)
+            print('No DLC2 tracking analyzis for this recording')
+            return (False, None)
+        else :
+            print(tracking_path)
+            print('DCL2 tracking analyzis done for this recording')
+            return (True, tracking_path)
