@@ -94,6 +94,17 @@ class extractSaveData:
         return (imStack,motionCoor,allFiles[0])
 
     ############################################################
+    def saveRungMotionData(self,mouse,date,rec,rungPositions):
+        rec = rec.replace('/', '-')
+        pickle.dump(rungPositions, open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb'))
+
+    ############################################################
+    def getRungMotionData(self,mouse,date,rec):
+        rec = rec.replace('/', '-')
+        rungPositions = pickle.load(open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'rb'))
+        return rungPositions
+
+    ############################################################
     def extractRoiSignals(self,folder,rec,tifFile):
 
         self.simaPath = self.analysisLocation+'%s_%s_%s' % (self.mouse, folder, rec)
@@ -453,7 +464,7 @@ class extractSaveData:
         #tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
         # replace possible backslashes from subdirectory structure and
         rec = rec.replace('/','-')
-        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
+        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior_hfyu.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
 
 
@@ -471,8 +482,8 @@ class extractSaveData:
         # M P E G has issues !! DON'T USE (frames are missing)
         # X V I D : frame 3001 missing and last nine frames are screwed
         # 0 (no compression) : frame 3001 missing last 2 frames are the same
-        #fourcc = cv2.VideoWriter_fourcc('H','F','Y','U')
-        fourcc = cv2.VideoWriter_fourcc('M','J','P','G') # cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
+        fourcc = cv2.VideoWriter_fourcc('H','F','Y','U')
+        #fourcc = cv2.VideoWriter_fourcc('M','J','P','G') # cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
         out = cv2.VideoWriter(videoFileName, fourcc, fps, (width, heigth))
 
         for i in np.arange(len(framesRaw)):
