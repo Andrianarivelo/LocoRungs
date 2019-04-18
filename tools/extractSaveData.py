@@ -58,7 +58,11 @@ class extractSaveData:
             self.dataBase +=  'altair_data/dataMichael/'
         else:
             self.dataBase += 'altair_data/experiments/data_Michael/acq4/'
-        self.dataBase2 += 'altair_data/dataMichael/'
+
+        if int(mouse[:6]) == 190409 :
+            self.dataBase2 += 'behaviorPC_data/dataMichael/'
+        else:
+            self.dataBase2 += 'altair_data/dataMichael/'
 
         self.analysisLocation = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsData/%s/' % mouse
         self.figureLocation   = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsFigures/%s/' % mouse
@@ -221,6 +225,7 @@ class extractSaveData:
                 print('Choose the recordings for analysis by typing the index, e.g, \'1\', or \'0,1,3,5\' : ', end='')
                 recInput = input()
                 recInputIdx = [int(i) for i in recInput.split(',')]
+            #
             #pdb.set_trace()
             # then compile a list the selected recordings
             recIdx = 0
@@ -242,8 +247,12 @@ class extractSaveData:
                             if recIdx in recInputIdx:
                                 if r[:-4] == 'locomotionTriggerSIAndMotor':
                                     subFolders = self.getDirectories(self.dataLocation+'/'+r)
+                                    r = [r]
+                                    sf = []
                                     for i in range(len(subFolders)):
-                                        tempRecList.append(r+'/'+subFolders[i])
+                                        sf.append(subFolders[i])
+                                    r.append(sf)
+                                    tempRecList.append(r)
                                 else:
                                     tempRecList.append(r)
                             recIdx += 1
@@ -253,8 +262,12 @@ class extractSaveData:
                         for r in recList:
                             if r[:-4] == 'locomotionTriggerSIAndMotor':
                                 subFolders = self.getDirectories(self.dataLocation + '/' + r)
+                                r = [r]
+                                sf = []
                                 for i in range(len(subFolders)):
-                                    tempRecList.append(r + '/' + subFolders[i])
+                                    sf.append(subFolders[i])
+                                r.append(sf)
+                                tempRecList.append(r)
                             else:
                                 tempRecList.append(r)
                         folderRec.append([fold,eD,tempRecList])
@@ -580,3 +593,17 @@ class extractSaveData:
         #cap.release()
         out.release()
         cv2.destroyAllWindows()
+
+    ##########################################################
+    def getDLC2TrackingFiles(self, mouse, date, rec, session):
+        tracking_path = ''.join(glob.glob(self.analysisLocation + '%s_%s_%s-%s*.h5' % (mouse, date, rec, session)))
+        try :
+            DLC2_Data = h5py.File(tracking_path,'r')
+        except :
+            print(tracking_path)
+            print('No DLC2 tracking analyzis for this recording')
+            return (False, None)
+        else :
+            print(tracking_path)
+            print('DCL2 tracking analyzis done for this recording')
+            return (True, tracking_path)
