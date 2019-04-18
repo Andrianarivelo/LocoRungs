@@ -236,8 +236,12 @@ class extractSaveData:
                             if recIdx in recInputIdx:
                                 if r[:-4] == 'locomotionTriggerSIAndMotor':
                                     subFolders = self.getDirectories(self.dataLocation+'/'+r)
+                                    r = [r]
+                                    sf = []
                                     for i in range(len(subFolders)):
-                                        tempRecList.append(r+'/'+subFolders[i])
+                                        sf.append(subFolders[i])
+                                    r.append(sf)
+                                    tempRecList.append(r)
                                 else:
                                     tempRecList.append(r)
                             recIdx += 1
@@ -247,8 +251,12 @@ class extractSaveData:
                         for r in recList:
                             if r[:-4] == 'locomotionTriggerSIAndMotor':
                                 subFolders = self.getDirectories(self.dataLocation + '/' + r)
+                                r = [r]
+                                sf = []
                                 for i in range(len(subFolders)):
-                                    tempRecList.append(r + '/' + subFolders[i])
+                                    sf.append(subFolders[i])
+                                r.append(sf)
+                                tempRecList.append(r)
                             else:
                                 tempRecList.append(r)
                         folderRec.append([fold,eD,tempRecList])
@@ -491,8 +499,8 @@ class extractSaveData:
         cv2.destroyAllWindows()
 
     ##########################################################
-    def getDLC2TrackingFiles(self, mouse, date, rec):
-        tracking_path = ''.join(glob.glob(self.analysisLocation + '%s_%s_%s*.h5' % (mouse, date, rec)))
+    def getDLC2TrackingFiles(self, mouse, date, rec, session):
+        tracking_path = ''.join(glob.glob(self.analysisLocation + '%s_%s_%s-%s*.h5' % (mouse, date, rec, session)))
         try :
             DLC2_Data = h5py.File(tracking_path,'r')
         except :
