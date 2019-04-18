@@ -355,3 +355,76 @@ def applyImageNormalizationMask(frames,imageMetaInfo,normFrame,normImageMetaInfo
     #plt.show()
     #pdb.set_trace()
     return norm8bit
+
+#################################################################################
+# detect spikes in ephys trace
+#################################################################################
+def detectPawTrackingOutlies(pawTraces,pawMetaData,showFig=True):
+    jointNames = pawMetaData['data']['DLC-model-config file']['all_joints_names']
+    threshold = 40
+
+    #pdb.set_trace()
+    def findOutliersBasedOnMaxSpeed(onePawData,jointName): # should be an 3 column array frame#, x, y
+        frDisplOrig = np.sqrt((np.diff(onePawData[:, 1])) ** 2 + (np.diff(onePawData[:, 2])) ** 2) / np.diff(onePawData[:, 0])
+        onePawDataTmp = np.copy(onePawData)
+        onePawIndicies = np.arange(len(onePawData))
+        # excursionsBoolOld = np.zeros(len(pawDataTmp)-1,dtype=bool)
+        nIt = 0
+        while True:  # cycle as long as there are large displacements
+
+            frDispl = np.sqrt((np.diff(onePawDataTmp[:,1])) ** 2 + (np.diff(onePawDataTmp[:,2])) ** 2) / np.diff(onePawDataTmp[:, 0])  # calcuate displacement
+            excursionsBoolTmp = frDispl > threshold  # threshold displacement
+            print(nIt, sum(excursionsBoolTmp))
+            nIt += 1
+            if sum(excursionsBoolTmp) == 0:  # no excursions above threshold are found anymore -> exit loop
+                break
+            else:
+                onePawDataTmp = onePawDataTmp[np.concatenate((np.array([True]), np.invert(excursionsBoolTmp)))]
+                onePawIndicies = onePawIndicies[np.concatenate((np.array([True]), np.invert(excursionsBoolTmp)))]
+
+        print('%s # of positions, # of detected mis-trackings, fraction : ' % (jointName), len(onePawData), len(onePawData) - len(onePawDataTmp), (len(onePawData) - len(onePawDataTmp)) / len(onePawData))
+
+        if showFig:
+            fig = plt.figure(figsize=(11,11))
+            fig.set_title(jointName)
+            ax0 = fig.add_subplot(3, 2, 1)
+            ax0.plot(onePawData[:, 0], onePawData[:,1], c='0.5')
+            ax0.plot(onePawDataTmp[:, 0], onePawDataTmp[:, 1])
+            ax0.set_ylabel('x (pixel)')
+
+            ax1 = fig.add_subplot(3, 2, 3)
+            ax1.plot(onePawData[:, 0], onePawData[:, 2], c='0.5')
+            ax1.plot(onePawDataTmp[:, 0], onePawDataTmp[:, 2])
+            ax1.set_ylabel('y (pixel)')
+
+            ax2 = fig.add_subplot(3, 2, 2)
+            ax2.plot(onePawData[:, 1], onePawData[:,2], c='0.5')
+            ax2.plot(onePawDataTmp[:, 1], onePawDataTmp[:,2])
+            ax2.set_xlabel('x (pixel)')
+            ax2.set_ylabel('y (pixel)')
+
+            ax3 = fig.add_subplot(3, 2, 4)
+            ax3.plot(onePawData[:-1, 0], frDisplOrig, c='0.5')
+            ax3.plot(onePawDataTmp[:-1, 0], frDispl, c='C0')
+            ax3.set_xlabel('frame #')
+            ax3.set_ylabel('movement speed (pixel/frame)')
+
+            ax4 = fig.add_subplot(3, 2, 5)
+            ax4.hist(frDisplOrig, bins=300, color='0.5')
+            ax4.hist(frDispl, bins=300, range=(min(frDisplOrig), max(frDisplOrig)))
+            ax4.set_xlabel('displacement (pixel)')
+            ax4.set_ylabel('occurrence')
+            ax4.set_yscale('log')
+
+            plt.show()
+
+
+        return (len(onePawData),len(onePawDataTmp),onePawIndicies)
+
+    pawTrackingOutliers = []
+    for i in range(4):
+        (tot,correct,correctIndicies) = findOutliersBasedOnMaxSpeed(np.column_stack((pawTraces[:,0],pawTraces[:,(i*3+1)],pawTraces[:,(i*3+2)])),jointNames[i])
+        pawTrackingOutliers.append([i,tot,correct,correctIndicies])
+
+    return pawTrackingOutliers
+    #pdb.set_trace()
