@@ -214,6 +214,7 @@ class extractSaveData:
                 print('Choose the recordings for analysis by typing the index, e.g, \'1\', or \'0,1,3,5\' : ', end='')
                 recInput = input()
                 recInputIdx = [int(i) for i in recInput.split(',')]
+            #
             #pdb.set_trace()
             # then compile a list the selected recordings
             recIdx = 0
@@ -490,8 +491,8 @@ class extractSaveData:
         cv2.destroyAllWindows()
 
     ##########################################################
-    def checkIfDLC2TrackingDone(self, mouse, date, rec):
-        tracking_path = glob.glob(self.analysisLocation + '%s_%s_%s_raw_behavior*.h5' % (mouse, date, rec))
+    def getDLC2TrackingFiles(self, mouse, date, rec):
+        tracking_path = ''.join(glob.glob(self.analysisLocation + '%s_%s_%s*.h5' % (mouse, date, rec)))
         try :
             DLC2_Data = h5py.File(tracking_path,'r')
         except :
