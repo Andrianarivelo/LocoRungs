@@ -277,7 +277,7 @@ class extractSaveData:
             print('%s constains %s , ' % (fold, recording), end =" ")
         else:
             print('Problem, recording does not exist')
-            
+
         if device in ['CameraGigEBehavior','CameraPixelfly']:
             pathToFile = recLocation + device + '/' + 'frames.ma'
         elif device is 'PreAmpInput':
@@ -300,6 +300,22 @@ class extractSaveData:
                 return (True,fData)
         else:
             print('Device %s was NOT acquired' % device)
+            return (False,None)
+
+    ############################################################
+    def checkIfPawPositionWasExtracted(self,fold,eD,recording):
+
+        rec = recording.replace('/','-')
+        fName = self.analysisLocation + '%s_%s_%s_*.h5' % (self.mouse,fold,rec)
+        fList = glob.glob(fName)
+        if len(fList)>1 :
+            print('more than one file exist matching the file pattern %s' % fName)
+            return (False,None)
+        elif len(fList)==1 :
+            print('paw data extraced and saved in %s' % fList[0])
+            return (True,fList[0])
+        else:
+            print('no extraced paw data found for %s' % fName)
             return (False,None)
 
     ############################################################
@@ -367,6 +383,20 @@ class extractSaveData:
             valueTimes = fData['info/1/values'][()]
             return (values,valueTimes)
 
+        elif device == 'pawTraces':
+            pawF = h5py.File(fData,'a')
+            pawTraces = pawF['df_with_missing']['table'][()]
+            pawTracesA = pawTraces.view((float, (len(pawTraces[0][1]) + 1)))
+            pawTracesA[:, 0] = np.arange(len(pawTraces))
+
+            pFileName = '%s*.pickle' % fData[:-3]
+            pfList = glob.glob(pFileName)
+            if len(pfList)==1:
+                pawMetaData = pickle.load(open(pfList[0],'rb'))
+            else:
+                pawMetaData = None
+            return (pawTracesA,pawMetaData)
+
     ############################################################
     def readMetaInformation(self,filePath):
         # convert to um
@@ -395,6 +425,13 @@ class extractSaveData:
         self.h5pyTools.createOverwriteDS(grpHandle,'startExposure', expStartTime)
         self.h5pyTools.createOverwriteDS(grpHandle,'endExposure', expEndTime)
 
+    ############################################################
+    def readBehaviorVideoData(self, groupNames, frames, expStartTime, expEndTime, imageMetaInfo):
+        # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
+        (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+        # self.h5pyTools.createOverwriteDS(grpHandle,'behaviorFrames',len(frames))
+        self.h5pyTools.createOverwriteDS(grpHandle, 'startExposure', expStartTime)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'endExposure', expEndTime)
 
     ############################################################
     def saveImageStack(self,frames,fTimes,imageMetaInfo,groupNames,motionCorrection=[]):
@@ -454,6 +491,53 @@ class extractSaveData:
         tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
 
     ############################################################
+    def savePawTrackingData(self,mouse, date, rec, pawPositions,pawTrackingOutliers,pawMetaData,generateVideo=True):
+        #pdb.set_trace()
+        jointNames = pawMetaData['data']['DLC-model-config file']['all_joints_names']
+        jointIdx   = pawMetaData['data']['DLC-model-config file']['all_joints']
+        cropping   = pawMetaData['data']['cropping_parameters']
+        print('cropping parameters',cropping)
+        #pdb.set_trace()
+        rec = rec.replace('/','-')
+        (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,[date,rec,'pawTrackingData'])
+        self.h5pyTools.createOverwriteDS(grpHandle,'rawPawPositionsFromDLC',pawPositions)
+        for i in range(4):
+            self.h5pyTools.createOverwriteDS(grpHandle,'pawTrackingOutliers%s'%i, pawTrackingOutliers[i][3],['PawID',jointNames[i]])
+        if generateVideo:
+            fps = 80
+            width = 800
+            heigth = 600
+            colors = [(255,0,255),(255,0,0),(255,255,0),(0,0,255)]
+            indicatorPositions = [(270,15),(270,35),(240,35),(240,15)]
+            sourceVideoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
+            outputVideoFileName = self.analysisLocation + '%s_%s_%s_paw_tracking.avi' % (mouse, date, rec)
+            fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
+            #fourcc = cv2.VideoWriter_fourcc('H','F','Y','U')
+            #print('1',fourcc,fps,width,heigth)
+            out = cv2.VideoWriter(outputVideoFileName, fourcc, fps, (width, heigth))
+            source = cv2.VideoCapture(sourceVideoFileName)
+            nFrame = 0
+            while(source.isOpened()):
+                ret, frame = source.read()
+                if ret == True:
+                    #cv2.putText(frame, 'time %s sec' % round(midFrameTimes[i],4), (10,20), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
+                    for i in range(4):
+                        #print(int(pawPositions[nFrame, 3 * i + 1]+0.5),int(pawPositions[nFrame, 3 * i + 2]+0.5))
+                        cv2.drawMarker(frame, (cropping[0]+int(pawPositions[nFrame, 3 * i + 1]+0.5),cropping[2]+int(pawPositions[nFrame, 3 * i + 2]+0.5)), colors[i], cv2.MARKER_CROSS, 20,2)
+                        if nFrame in pawTrackingOutliers[i][3]:
+                            cv2.circle(frame, indicatorPositions[i], 7, (0, 255,0), -1)
+                        else:
+                            cv2.circle(frame, indicatorPositions[i], 7, (0, 0,255), -1)
+                    out.write(frame)
+                else:
+                    break
+                #print(nFrame)
+                nFrame+=1
+            out.release()
+            source.release()
+
+
+    ############################################################
     # (mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
     def saveBehaviorVideo(self, mouse, date, rec, framesRaw, expStartTime, expEndTime, imageMetaInfo):
         #[foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
@@ -464,7 +548,7 @@ class extractSaveData:
         #tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
         # replace possible backslashes from subdirectory structure and
         rec = rec.replace('/','-')
-        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior_hfyu.avi' % (mouse, date, rec)
+        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
 
 
@@ -482,8 +566,8 @@ class extractSaveData:
         # M P E G has issues !! DON'T USE (frames are missing)
         # X V I D : frame 3001 missing and last nine frames are screwed
         # 0 (no compression) : frame 3001 missing last 2 frames are the same
-        fourcc = cv2.VideoWriter_fourcc('H','F','Y','U')
-        #fourcc = cv2.VideoWriter_fourcc('M','J','P','G') # cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
+        #fourcc = cv2.VideoWriter_fourcc('H','F','Y','U')
+        fourcc = cv2.VideoWriter_fourcc('M','J','P','G') # cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
         out = cv2.VideoWriter(videoFileName, fourcc, fps, (width, heigth))
 
         for i in np.arange(len(framesRaw)):
