@@ -66,7 +66,7 @@ for paw in FR, FL, HL, HR:
 dist_x = np.asarray(dist_x).transpose()
 
 
-th = 35
+th = 40
 bool_x = dist_x < th  # boolean array
 bool_x = np.insert(bool_x, 0, [True, True, True, True], axis=0)  # add a row to harmonize shapes
 bounds = range(0, paws_data.shape[0])  # Need to be better defined
