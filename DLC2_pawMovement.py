@@ -59,7 +59,7 @@ FR, FL, HL, HR = paws_data[:, [0, 1, 8]], paws_data[:, [2, 3, 8]], paws_data[:, 
 FR_th, FL_th, HL_th, HR_th = FR, FL, HL, HR
 bool_dist = False
 i = 1
-while np.any(bool_dist == False):
+while np.any(bool_dist == False):  # loop until no value above threshold
     dist = []
     print('%snd loop' % i)
     i = i+1
