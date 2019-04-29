@@ -7,7 +7,7 @@ import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import pdb
 
-mouseD = '190101_f15' # id of the mouse to analyze
+mouseD = '190409_st1' # id of the mouse to analyze
 expDateD = 'all'      # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings = 'all'     # 'all or 'some'
 
@@ -35,7 +35,7 @@ for f in range(len(foldersRecordings)):
         (existence, fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'RotaryEncoder')
         if existence:
             (angles, aTimes,timeStamp,monitor) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'RotaryEncoder',fileHandle)
-            (angularSpeed, linearSpeed, sTimes)  = dataAnalysis.getSpeed(angles,aTimes,wheelCircumsphere)
+            (angularSpeed, linearSpeed, sTimes) = dataAnalysis.getSpeed(angles,aTimes,wheelCircumsphere)
             #pdb.set_trace()
             eSD.saveWalkingActivity(angularSpeed, linearSpeed, sTimes, angles, aTimes, timeStamp,monitor, [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity'])  # save motion corrected image stack
 

@@ -15,7 +15,7 @@ cV      = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 for f in range(len(foldersRecordings)):
     tracks = []
     for r in range(len(foldersRecordings[f][2])):
-        (existence, fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'RotaryEncoder1')
+        (existence, fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'RotaryEncoder')
         if existence:  #angularSpeed,linearSpeed,wTimes,startTime,monitor
             (angluarSpeed,linearSpeed,sTimes,timeStamp,monitor) = eSD.getWalkingActivity([foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity'])
             tracks.append([angluarSpeed,linearSpeed,sTimes,timeStamp,monitor,foldersRecordings[f][2][r]])

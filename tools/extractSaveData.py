@@ -246,13 +246,9 @@ class extractSaveData:
                             # only add recordings which were previously selected
                             if recIdx in recInputIdx:
                                 if r[:-4] == 'locomotionTriggerSIAndMotor':
-                                    subFolders = self.getDirectories(self.dataLocation+'/'+r)
-                                    r = [r]
-                                    sf = []
+                                    subFolders = self.getDirectories(self.dataLocation + '/' + r)
                                     for i in range(len(subFolders)):
-                                        sf.append(subFolders[i])
-                                    r.append(sf)
-                                    tempRecList.append(r)
+                                        tempRecList.append(r + '/' + subFolders[i])
                                 else:
                                     tempRecList.append(r)
                             recIdx += 1
@@ -262,12 +258,8 @@ class extractSaveData:
                         for r in recList:
                             if r[:-4] == 'locomotionTriggerSIAndMotor':
                                 subFolders = self.getDirectories(self.dataLocation + '/' + r)
-                                r = [r]
-                                sf = []
                                 for i in range(len(subFolders)):
-                                    sf.append(subFolders[i])
-                                r.append(sf)
-                                tempRecList.append(r)
+                                    tempRecList.append(r + '/' + subFolders[i])
                             else:
                                 tempRecList.append(r)
                         folderRec.append([fold,eD,tempRecList])
@@ -447,6 +439,14 @@ class extractSaveData:
         self.h5pyTools.createOverwriteDS(grpHandle, 'endExposure', expEndTime)
 
     ############################################################
+    def getBehaviorVideoData(self, groupNames):
+        (grpName, test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+        print(grpName)
+        startExposure = self.f[grpName + '/startExposure'][()]
+        endExposure = self.f[grpName + '/endExposure'][()]
+        return (startExposure, endExposure)
+
+    ############################################################
     def saveImageStack(self,frames,fTimes,imageMetaInfo,groupNames,motionCorrection=[]):
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         self.h5pyTools.createOverwriteDS(grpHandle,'caImaging',frames)
@@ -595,8 +595,8 @@ class extractSaveData:
         cv2.destroyAllWindows()
 
     ##########################################################
-    def getDLC2TrackingFiles(self, mouse, date, rec, session):
-        tracking_path = ''.join(glob.glob(self.analysisLocation + '%s_%s_%s-%s*.h5' % (mouse, date, rec, session)))
+    def getDLC2TrackingFiles(self, mouse, date, rec):
+        tracking_path = ''.join(glob.glob(self.analysisLocation + '%s_%s_%s*.h5' % (mouse, date, rec)))
         try :
             DLC2_Data = h5py.File(tracking_path,'r')
         except :
