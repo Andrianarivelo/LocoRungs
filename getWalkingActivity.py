@@ -7,7 +7,7 @@ import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import pdb
 
-mouseD = '190409_st1' # id of the mouse to analyze
+mouseD = '190101_f15' # id of the mouse to analyze
 expDateD = 'all'      # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings = 'all'     # 'all or 'some'
 
