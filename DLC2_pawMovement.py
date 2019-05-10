@@ -45,12 +45,13 @@ for f in range(len(foldersRecordings)):
         if existencePawPos:
             (pawPositions,pawMetaData) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r][:-4] + '-' + foldersRecordings[f][2][r][-3:],'pawTraces',PawFileHandle)
             pawTrackingOutliers = dataAnalysis.detectPawTrackingOutlies(pawPositions,pawMetaData,showFig=False)
-            (FR_th, FL_th, HL_th, HR_th) = pawPositions[pawTrackingOutliers[0][3],:][:, [1, 2, 0]], pawPositions[pawTrackingOutliers[1][3],:][:, [4, 5, 0]], pawPositions[pawTrackingOutliers[2][3],:][:, [7, 8, 0]], pawPositions[pawTrackingOutliers[3][3],:][:, [10, 11, 0]]
+            (FR_th, FL_th, HL_th, HR_th) = pawPositions[pawTrackingOutliers[0][3],:][:, [1, 2, 0]], pawPositions[pawTrackingOutliers[1][3],:][:, [4, 5, 0]], pawPositions[pawTrackingOutliers[2][3],:][:, [7, 8, 0]], pawPositions[pawTrackingOutliers[3][3],:][:, [10, 11, 0]] # Remove outlier data
+            # (FR_th, FL_th, HL_th, HR_th) = FR_th[(FR_th[:, 2] > 2160) & (FR_th[:, 2] < 4560)], FL_th[(FL_th[:, 2] > 2160) & (FL_th[:, 2] < 4560)], HL_th[(HL_th[:, 2] > 2160) & (HL_th[:, 2] < 4560)], HR_th[(HR_th[:, 2] > 2160) & (HR_th[:, 2] < 4560)]# Keep data at max wheel speed
             day_OF.append(pawTrackingOutliers)
             recordingsD.append([FR_th, FL_th, HL_th, HR_th])
     mouse_OF.append(day_OF)
     recordingsM.append(recordingsD)
-del FR_th, FL_th, HL_th, HR_th, recordingsD
+# del FR_th, FL_th, HL_th, HR_th, recordingsD
 
 #########################################################
 
@@ -105,12 +106,14 @@ for d in range(len(recordingsM)):
 
 # bounds have to be determined
 
-
-mouse_step = []
-for d in range(len(recordingsM)):
-    day_step = []
-    for s in range(len(recordingsM[d])):
-        day_step.append([np.mean(recordingsM[d][s][0][:, 0][mouse_peaks[d][s][0]])-np.mean(recordingsM[d][s][1][:, 0][mouse_peaks[d][s][0]]), np.mean(recordingsM[d][s][1][:, 0][mouse_peaks[d][s][1]])-np.mean(recordingsM[d][s][0][:, 0][mouse_peaks[d][s][1]]), np.mean(recordingsM[d][s][2][:, 0][mouse_peaks[d][s][2]])-np.mean(recordingsM[d][s][3][:, 0][mouse_peaks[d][s][2]]), np.mean(recordingsM[d][s][3][:, 0][mouse_peaks[d][s][3]])-np.mean(recordingsM[d][s][2][:, 0][mouse_peaks[d][s][3]])])
+try :
+    mouse_step = []
+    for d in range(len(recordingsM)):
+        day_step = []
+        for s in range(len(recordingsM[d])):
+            day_step.append([np.mean(recordingsM[d][s][0][:, 0][mouse_peaks[d][s][0]])-np.mean(recordingsM[d][s][1][:, 0][mouse_peaks[d][s][0]]), np.mean(recordingsM[d][s][1][:, 0][mouse_peaks[d][s][1]])-np.mean(recordingsM[d][s][0][:, 0][mouse_peaks[d][s][1]]), np.mean(recordingsM[d][s][2][:, 0][mouse_peaks[d][s][2]])-np.mean(recordingsM[d][s][3][:, 0][mouse_peaks[d][s][2]]), np.mean(recordingsM[d][s][3][:, 0][mouse_peaks[d][s][3]])-np.mean(recordingsM[d][s][2][:, 0][mouse_peaks[d][s][3]])])
+except IndexError:
+    print(IndexError)
 
 # step_diff = np.diff([FR[:, 0], FL[:, 0]], axis=0), np.diff([HR[:, 0], HL[:, 0]], axis=0)
 
@@ -141,7 +144,7 @@ for f in range(len(foldersRecordings)):
 #########################################################
 
 # Plots for a single session
-plt.plot(mouse_tracks[0][0][1],mouse_tracks[0][0][0]*10, mouse_tracks[0][0][2][mouse_OF[0][0][0][3]], recordingsM[0][0][0][:, 0])
+# plt.plot(mouse_tracks[0][0][1],mouse_tracks[0][0][0]*10, mouse_tracks[0][0][2][mouse_OF[0][0][0][3]], recordingsM[0][0][0][:, 0])
 # row = 3
 # col = 4
 # plt.figure()
@@ -176,3 +179,8 @@ plt.plot(mouse_tracks[0][0][1],mouse_tracks[0][0][0]*10, mouse_tracks[0][0][2][m
 #########################################################
 
 # Plots for multiple sessions
+
+# TTL pulse at 5s (index 1000), wheel accelerate at 7s (index 1400), max speed at 10.8 (index 2160) during 12s, wheel decelerate at 22.8 (index 4560), wheel disconnect at 26.6 (index 5320)
+for i in range(len(mouse_stride)):
+    for j in range(len(mouse_stride[i])):
+        plt.scatter(i/(1+j), mouse_stride[i][j][0])
