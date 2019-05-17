@@ -8,6 +8,7 @@ import tifffile as tiff
 import pdb
 import scipy.ndimage
 import itertools
+from scipy.signal import find_peaks
 
 def getSpeed(angles,times,circumsphere):
     angleJumps = angles[np.concatenate((([False]),np.diff(angles)!=0.))]
@@ -361,7 +362,7 @@ def applyImageNormalizationMask(frames,imageMetaInfo,normFrame,normImageMetaInfo
 #################################################################################
 def detectPawTrackingOutlies(pawTraces,pawMetaData,showFig=True):
     jointNames = pawMetaData['data']['DLC-model-config file']['all_joints_names']
-    threshold = 40
+    threshold = 60
 
     #pdb.set_trace()
     def findOutliersBasedOnMaxSpeed(onePawData,jointName): # should be an 3 column array frame#, x, y
@@ -428,3 +429,57 @@ def detectPawTrackingOutlies(pawTraces,pawMetaData,showFig=True):
 
     return pawTrackingOutliers
     #pdb.set_trace()
+
+##########################################################
+# Get absolute speed of paws
+def getPawSpeed(recordingsM, showFig=False):
+    mouse_speed = []
+    for d in range(len(recordingsM)):
+        day_speed = []
+        for s in range(len(recordingsM[d])):
+            sess_speed = []
+            for p in range(len(recordingsM[d][s])):
+                paw_speed = np.sqrt((np.diff(recordingsM[d][s][p][:, 0])) ** 2 + (np.diff(recordingsM[d][s][p][:, 1])) ** 2) / np.diff(recordingsM[d][s][p][:, 2])
+                sess_speed.append(paw_speed)
+            day_speed.append(sess_speed)
+        mouse_speed.append(day_speed)
+    return mouse_speed
+##########################################################
+# Get average stride length and min/max values
+def getStride(recordingsM, showFig=False):
+    dist, wth = 10, 10  # Good parameters for forepaws
+    mouse_stride = []
+    mouse_peaks = []
+    mouse_peaks_inv = []
+    for d in range(len(recordingsM)):
+        day_stride = []
+        day_peaks = []
+        day_peaks_inv = []
+        for s in range(len(recordingsM[d])):
+            sess_stride = []
+            sess_peaks = []
+            sess_peaks_inv = []
+            for p in range(len(recordingsM[d][s])):
+                paw_peaks, _ = find_peaks(recordingsM[d][s][p][:, 0][(recordingsM[d][s][p][:, 2]>2160) & (recordingsM[d][s][p][:, 2]<4560)], distance=dist, width=wth)
+                paw_peaks_inv, _ = find_peaks(1/recordingsM[d][s][p][:, 0][(recordingsM[d][s][p][:, 2]>2160) & (recordingsM[d][s][p][:, 2]<4560)], distance=dist, width=wth)
+                sess_peaks.append((paw_peaks+recordingsM[d][s][p][:, 2][(recordingsM[d][s][p][:, 2]>2160)][0]).astype(int))
+                sess_peaks_inv.append((paw_peaks_inv+recordingsM[d][s][p][:, 2][(recordingsM[d][s][p][:, 2]>2160)][0]).astype(int))
+                sess_stride.append(abs(np.mean(recordingsM[d][s][p][:, 0][paw_peaks_inv]) - np.mean(recordingsM[d][s][p][:, 0][paw_peaks])))
+            day_stride.append(sess_stride)
+            day_peaks.append(sess_peaks)
+            day_peaks_inv.append(sess_peaks_inv)
+        mouse_stride.append(day_stride)
+        mouse_peaks.append(day_peaks)
+        mouse_peaks_inv.append(day_peaks_inv)
+    return mouse_stride, mouse_peaks, mouse_peaks_inv
+
+##########################################################
+# Get average step length
+def getStep(recordingsM, mouse_peaks, showFig=False):
+    mouse_step = []
+    for d in range(len(recordingsM)):
+        day_step = []
+        for s in range(len(recordingsM[d])):
+            day_step.append([np.mean(recordingsM[d][s][0][:, 0][mouse_peaks[d][s][0]])-np.mean(recordingsM[d][s][1][:, 0][mouse_peaks[d][s][0]]), np.mean(recordingsM[d][s][1][:, 0][mouse_peaks[d][s][1]])-np.mean(recordingsM[d][s][0][:, 0][mouse_peaks[d][s][1]]), np.mean(recordingsM[d][s][2][:, 0][mouse_peaks[d][s][2]])-np.mean(recordingsM[d][s][3][:, 0][mouse_peaks[d][s][2]]), np.mean(recordingsM[d][s][3][:, 0][mouse_peaks[d][s][3]])-np.mean(recordingsM[d][s][2][:, 0][mouse_peaks[d][s][3]])])
+        mouse_step.append(day_step)
+    return mouse_step

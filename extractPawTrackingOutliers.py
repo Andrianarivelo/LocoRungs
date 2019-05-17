@@ -36,11 +36,10 @@ for f in range(len(foldersRecordings)) :
     # loop over all recordings in that folder
     for r in range(len(foldersRecordings[f][2])): # for r in recordings[f][1]:
         #print foldersRecordings[f][2][r]
-        for s in range(len(foldersRecordings[f][2][r][1])):
-            (existenceFrames,FramesFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r][0] + '/' + foldersRecordings[f][2][r][1][s],'CameraGigEBehavior')
-            (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r][0] + '/' + foldersRecordings[f][2][r][1][s])
-            if existenceFrames and existencePawPos:
-                (pawPositions,pawMetaData) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r][0] + '/' + foldersRecordings[f][2][r][1][s],'pawTraces',PawFileHandle)
-                pawTrackingOutliers = dataAnalysis.detectPawTrackingOutlies(pawPositions,pawMetaData,showFig=False)
-                eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r][0] + '/' + foldersRecordings[f][2][r][1][s],pawPositions,pawTrackingOutliers,pawMetaData,generateVideo=True)
+        (existenceFrames,FramesFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '/' +foldersRecordings[f][2][r][-3:],'CameraGigEBehavior')
+        (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '-' +foldersRecordings[f][2][r][-3:])
+        if existenceFrames and existencePawPos:
+            (pawPositions,pawMetaData) = eSD.readRawData(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '-' +foldersRecordings[f][2][r][-3:],'pawTraces',PawFileHandle)
+            pawTrackingOutliers = dataAnalysis.detectPawTrackingOutlies(pawPositions,pawMetaData,showFig=False)
+            eSD.savePawTrackingData(mouse,foldersRecordings[f][0], foldersRecordings[f][2][r][:-4] + '-' +foldersRecordings[f][2][r][-3:],pawPositions,pawTrackingOutliers,pawMetaData,generateVideo=True)
             # pdb.set_trace()
