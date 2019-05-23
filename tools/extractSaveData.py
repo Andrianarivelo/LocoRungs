@@ -277,13 +277,20 @@ class extractSaveData:
             print('%s constains %s , ' % (fold, recording), end =" ")
         else:
             print('Problem, recording does not exist')
-
         if device in ['CameraGigEBehavior','CameraPixelfly']:
             pathToFile = recLocation + device + '/' + 'frames.ma'
         elif device is 'PreAmpInput':
             pathToFile = recLocation + '%s.ma' % 'DaqDevice'
         elif device is 'frameTimes':
             pathToFile = recLocation + '%s/%s.ma' % ('CameraGigEBehavior','daqResult')
+        elif device is 'SICaImaging':
+            recLocation = (self.dataBase2 + '/' + fold + '/')
+            print(recLocation)
+            tiffList = glob.glob(recLocation+'*tif')
+            print(tiffList)
+            if len(tiffList)>0:
+                print('Ca imaging was acquired with ScanImage')
+                return (True,tiffList)
         else:
             pathToFile = recLocation + '%s.ma' % device
         print(pathToFile)

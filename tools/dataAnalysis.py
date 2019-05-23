@@ -385,8 +385,9 @@ def detectPawTrackingOutlies(pawTraces,pawMetaData,showFig=True):
         print('%s # of positions, # of detected mis-trackings, fraction : ' % (jointName), len(onePawData), len(onePawData) - len(onePawDataTmp), (len(onePawData) - len(onePawDataTmp)) / len(onePawData))
 
         if showFig:
+
             fig = plt.figure(figsize=(11,11))
-            fig.set_title(jointName)
+            #fig.set_title(jointName)
             ax0 = fig.add_subplot(3, 2, 1)
             ax0.plot(onePawData[:, 0], onePawData[:,1], c='0.5')
             ax0.plot(onePawDataTmp[:, 0], onePawDataTmp[:, 1])
