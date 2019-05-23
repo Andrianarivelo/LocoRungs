@@ -44,7 +44,7 @@ for f in range(len(foldersRecordings)):
     # if camera was recorded
     if existence:
         #pdb.set_trace()
-        caI.setSuite2pParameters(eSD.dataBase2+foldersRecordings[f][0]+'/',eSD.analysisLocation+foldersRecordings[f][0]+'/',tiffList)
+        caI.setSuite2pParameters(eSD.dataBase2+foldersRecordings[f][0]+'/',eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
         #pdb.set_trace()
         caI.runSuite2pPipeline()
         #caI.generateSummaryFigures()#eSD.saveCaImagingData()
