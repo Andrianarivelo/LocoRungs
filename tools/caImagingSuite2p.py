@@ -20,7 +20,7 @@ class caImagingSuite2p:
         self.f = ff
         self.showImages = showI
 
-        self.ops = np.load('tools/ops1.npy').item()
+        #self.ops = np.load('tools/ops1.npy').item()
 
 
     ############################################################
