@@ -291,6 +291,9 @@ class extractSaveData:
             if len(tiffList)>0:
                 print('Ca imaging was acquired with ScanImage')
                 return (True,tiffList)
+            else:
+                print('No Ca imaging with ScanImage here.')
+                return (False,[])
         else:
             pathToFile = recLocation + '%s.ma' % device
         print(pathToFile)
