@@ -432,16 +432,18 @@ class extractSaveData:
         # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         #self.h5pyTools.createOverwriteDS(grpHandle,'behaviorFrames',len(frames))
+        self.h5pyTools.createOverwriteDS(grpHandle, 'firstLastFrames', np.array((frames[0],frames[-1])))
         self.h5pyTools.createOverwriteDS(grpHandle,'startExposure', expStartTime)
         self.h5pyTools.createOverwriteDS(grpHandle,'endExposure', expEndTime)
 
     ############################################################
-    def readBehaviorVideoData(self, groupNames, frames, expStartTime, expEndTime, imageMetaInfo):
+    def readBehaviorVideoData(self, groupNames):
         # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
-        # self.h5pyTools.createOverwriteDS(grpHandle,'behaviorFrames',len(frames))
-        self.h5pyTools.createOverwriteDS(grpHandle, 'startExposure', expStartTime)
-        self.h5pyTools.createOverwriteDS(grpHandle, 'endExposure', expEndTime)
+        firstLastFrames = self.f[grpHandle+'/firstLastFrames'][()]
+        expStartTime = self.f[grpHandle+'/startExposure'][()]
+        expEndTime = self.f[grpHandle+'/endExposure'][()]
+        return (firstLastFrames, expStartTime, expEndTime)
 
     ############################################################
     def saveImageStack(self,frames,fTimes,imageMetaInfo,groupNames,motionCorrection=[]):
