@@ -1216,6 +1216,187 @@ class createVisualizations:
         plt.close()
 
     ##########################################################################################
+    def generateOverviewFigure(self,mouse,allDataPerSession,wheelCircumshpere):
+
+        # number of recordings sessions
+        nSessions = len(allDataPerSession)
+
+        conversionFactor = wheelCircumshpere/(360.*1000.)
+
+        xScalingFactor = 1.56 # um/px with zoomFactor 1
+        yScalingFactor = 1.59 # um/px with zoomFactor 1
+
+        # extract
+        # tracksN = []
+        # highResRecs = 0
+        # maxSpeed = 0.
+        # minSpeed = 0.
+        # for i in range(nRecs):
+        #     if tracks[i][4]:
+        #         tracksN.append([i,tracks[i][3],True])
+        #     else:
+        #         highResRecs+=1
+        #         tracksN.append([i,tracks[i][3],False])
+        #         if max(tracks[i][1])>maxSpeed:
+        #             maxSpeed =max(tracks[i][1])
+        #         if min(tracks[i][1])<minSpeed:
+        #             minSpeed = min(tracks[i][1])
+        # plotsPerFig = 3
+        # nFigs = int(highResRecs / (plotsPerFig))
+        #
+        # # sort according to earliest experiment
+        # tracksN.sort(key=lambda x: x[1])
+        # #pdb.set_trace()
+        # startTime = tracksN[0][1]
+        # print('monitor N : ', tracksN)
+
+        # figure #################################
+        fig_width = 22  # width in inches
+        fig_height = (4*nSessions)+4  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 12,
+                  'axes.titlesize': 13,
+                  'font.size': 11,
+                  'xtick.labelsize': 11,
+                  'ytick.labelsize': 11,
+                  'figure.figsize': fig_size,
+                  'savefig.dpi': 600,
+                  'axes.linewidth': 1.3,
+                  'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(nSessions, 1 # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.3)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.07, right=0.98, top=0.98, bottom=0.02)
+
+        # sub-panel enumerations
+        plt.figtext(0.05, 0.99, 'mouse : %s with %s recording sessions' % (mouse, nSessions),clip_on=False,color='red',size=18)
+
+
+        for nSess in range(len(allDataPerSession)):
+            gssub = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[nSess], width_ratios=[1.5,1.5,1,0.8], hspace=0.2)
+
+            # angle progression plot #######################################################
+            ax0 = plt.subplot(gssub[0])
+            ax0.axhline(y=0, ls='--', c='0.5')
+            tracks = allDataPerSession[nSess][1]
+            nTracks = len(tracks)
+            startTime = tracks[0][3]
+            #pdb.set_trace()
+            endAngles = []
+            highResTrials = 0
+            for i in range(nTracks):
+                colors = plt.cm.jet(float(i) / float(nTracks - 1))
+                if tracks[i][4]:
+                    timeDiff = np.diff(tracks[i][5][:,0])
+                    pausesIndex = np.where(timeDiff > 30.)[0]
+                    # print np.shape(pausesIndex)
+                    #pdb.set_trace()
+                    pausesIndex = np.concatenate((np.array([-1]), pausesIndex))
+                    for n in range(len(pausesIndex) - 1):
+                        start = pausesIndex[n] + 1
+                        end = pausesIndex[n + 1]
+                        #print(start, end, pausesIndex)
+                        endAngles.append(tracks[i][5][start:end][:,1][-1])
+                        ax0.plot((tracks[i][5][start:end][:,0] + (tracks[i][3] - startTime)) / 60., tracks[i][5][start:end][:,1]*conversionFactor, color='0.3')
+                else:
+                    highResTrials+=1
+                    timeDiff = np.diff(tracks[i][2])
+                    ax0.plot((tracks[i][5][:,0] + (tracks[i][3] - startTime)) / 60., (endAngles[i-1]+tracks[i][5][:,1])*conversionFactor, color=colors)
+
+            # removes upper and right axes
+            # and moves left and bottom axes away
+            self.layoutOfPanel(ax0, xLabel='time (min)', yLabel='%s, %s trials \n \n distance (m)' % (allDataPerSession[nSess][0], highResTrials))
+
+
+            # speed plot #######################################################
+            #gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0], hspace=0.2)
+            ax1 = plt.subplot(gssub[1])
+            ax1.axhline(y=0,ls='--',c='0.5')
+            tracks = allDataPerSession[nSess][1]
+            nTracks = len(tracks)
+            startTime = tracks[0][3]
+            for i in range(nTracks):
+                colors = plt.cm.jet(float(i) / float(nTracks - 1))
+                if tracks[i][4]:
+                    timeDiff = np.diff(tracks[i][2])
+                    pausesIndex = np.where(timeDiff>30.)[0]
+                    #print np.shape(pausesIndex)
+                    #pdb.set_trace()
+                    pausesIndex = np.concatenate((np.array([-1]),pausesIndex))
+                    for n in range(len(pausesIndex)-1):
+                        start = pausesIndex[n]+1
+                        end   = pausesIndex[n+1]
+                        #print(start, end, pausesIndex)
+                        ax1.plot((tracks[i][2][start:end]+(tracks[i][3]-startTime))/60.,tracks[i][1][start:end],color='0.3')
+                else:
+                    timeDiff = np.diff(tracks[i][2])
+                    ax1.plot((tracks[i][2]+(tracks[i][3]-startTime))/60.,tracks[i][1],color=colors)
+            # show when calcium imaging was performed
+            timeStamps = allDataPerSession[nSess][3][0][4]
+            for i in range(len(timeStamps)):
+                pdb.set_trace()
+                ax1.plot([timeStamps[i]-startTime,timeStamps[i]-startTime+30.],[-10,-10],lw=5)
+
+            # removes upper and right axes
+            # and moves left and bottom axes away
+            self.layoutOfPanel(ax1,xLabel='time (min)',yLabel='speed (cm/s)')
+
+
+            # animal plot #######################################################
+            ax2 = plt.subplot(gssub[2])
+            #pdb.set_trace()
+            ax2.imshow(np.transpose(allDataPerSession[nSess][2][0][0][0]))
+
+            ax2.set_xlabel('pix')
+            ax2.set_ylabel('pix')
+
+            # average Ca imaging plot #######################################################
+            ax3 = plt.subplot(gssub[3])
+            scaleFactor = allDataPerSession[nSess][3][0][3]
+            dimensions = np.shape(allDataPerSession[nSess][3][0][1])
+            ax3.imshow(np.log(allDataPerSession[nSess][3][0][1]),extent=(0,dimensions[0]*xScalingFactor/scaleFactor,0,dimensions[1]*yScalingFactor/scaleFactor))
+            ax3.set_xlabel(u'μm')
+            ax3.set_ylabel(u'μm')
+            #self.layoutOfPanel(ax3,yLabel='speed (cm/s)') #,Leg=[1,8])
+
+
+            if nSess == 0:
+                ax0.set_title('distance covered',size=14)
+                ax1.set_title('speed',size=14)
+                ax2.set_title('first frame from high-speed camera',size=14)
+                ax3.set_title('average of Ca-imaging FOV',size=14)
+
+
+        ## save figure ############################################################
+        date = '2019.05.24'
+        fname = self.determineFileName(date,'OverviewFigure')
+
+        plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+        plt.close()
+
+
+    ##########################################################################################
     def generateROIAndEphysImage(self,data,fileName,stim=False):
         '''
             Overview image of an experiment with:

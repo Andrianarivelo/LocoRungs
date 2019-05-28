@@ -27,7 +27,6 @@ class caImagingSuite2p:
     def __del__(self):
         print('suite2p : on exit')
 
-
     ############################################################
     def setSuite2pParameters(self,dataDir,saveDir,tiffPaths):
         #fName = dataDir + '*.tif'

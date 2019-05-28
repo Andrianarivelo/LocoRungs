@@ -10,10 +10,12 @@ import time
 import pdb
 import cv2
 import pickle
+import re
 
 from tools.h5pyTools import h5pyTools
 import tools.googleDocsAccess as googleDocsAccess
 from tools.pyqtgraph.configfile import *
+from ScanImageTiffReader import ScanImageTiffReader
 
 
 class extractSaveData:
@@ -371,7 +373,7 @@ class extractSaveData:
             else:
                 frames = np.empty([2, 2])
             frameTimes = fData['info/0/values'][()]
-            imageMetaInfo = [None] #self.readMetaInformation(recLocation)
+            imageMetaInfo = self.readGigEMetaInformation(recLocation)
             print('done')
             return (frames,frameTimes,imageMetaInfo)
         elif device == 'CameraPixelfly':
@@ -428,26 +430,35 @@ class extractSaveData:
         #self.h5pyTools.createOverwriteDS(dataGroup,dataSetName,hstack((dimensionXY,deltaPix)))
 
     ############################################################
+    def readGigEMetaInformation(self,filePath):
+        config = readConfigFile(filePath + '.index')
+        starttime = config['.']['startTime']
+        #pdb.set_trace()
+        return starttime
+
+    ############################################################
     def saveBehaviorVideoData(self,groupNames,frames,expStartTime,expEndTime,imageMetaInfo):
         # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         #self.h5pyTools.createOverwriteDS(grpHandle,'behaviorFrames',len(frames))
-        self.h5pyTools.createOverwriteDS(grpHandle, 'firstLastFrames', np.array((frames[0],frames[-1])))
+        #pdb.set_trace()
+        self.h5pyTools.createOverwriteDS(grpHandle, 'firstLastFrames', np.array((frames[0],frames[-1])),['startTime',imageMetaInfo])
         self.h5pyTools.createOverwriteDS(grpHandle,'startExposure', expStartTime)
         self.h5pyTools.createOverwriteDS(grpHandle,'endExposure', expEndTime)
 
     ############################################################
     def readBehaviorVideoData(self, groupNames):
         # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
-        (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
-        firstLastFrames = self.f[grpHandle+'/firstLastFrames'][()]
-        expStartTime = self.f[grpHandle+'/startExposure'][()]
-        expEndTime = self.f[grpHandle+'/endExposure'][()]
-        return (firstLastFrames, expStartTime, expEndTime)
+        (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+        firstLastFrames = self.f[grpName+'/firstLastFrames'][()]
+        startTime = self.f[grpName+'/firstLastFrames'].attrs['startTime']
+        expStartTime = self.f[grpName+'/startExposure'][()]
+        expEndTime = self.f[grpName+'/endExposure'][()]
+        return (firstLastFrames, expStartTime, expEndTime,startTime)
 
     ############################################################
     def saveImageStack(self,frames,fTimes,imageMetaInfo,groupNames,motionCorrection=[]):
-        (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
+        (grpName,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         self.h5pyTools.createOverwriteDS(grpHandle,'caImaging',frames)
         self.h5pyTools.createOverwriteDS(grpHandle,'caImagingTime', fTimes)
         self.h5pyTools.createOverwriteDS(grpHandle,'caImagingField', imageMetaInfo)
@@ -464,7 +475,7 @@ class extractSaveData:
 
     ############################################################
     def saveWalkingActivity(self,angularSpeed,linearSpeed,wTimes,angles,aTimes,startTime,monitor,groupNames):
-        (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
+        (grpName,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         self.h5pyTools.createOverwriteDS(grpHandle,'angularSpeed',angularSpeed,['monitor',monitor])
         self.h5pyTools.createOverwriteDS(grpHandle,'linearSpeed', linearSpeed)
         self.h5pyTools.createOverwriteDS(grpHandle,'walkingTimes', wTimes, ['startTime',startTime])
@@ -472,8 +483,8 @@ class extractSaveData:
 
     ############################################################
     def getWalkingActivity(self,groupNames):
-        (grpName,test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
-        print(grpName)
+        (grpName,grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+        #print(grpName)
         angularSpeed = self.f[grpName+'/angularSpeed'][()]
         monitor = self.f[grpName+'/angularSpeed'].attrs['monitor']
         linearSpeed = self.f[grpName+'/linearSpeed'][()]
@@ -488,6 +499,49 @@ class extractSaveData:
         hindpawPos = pickle.load(open(self.analysisLocation + '%s_%s_%s_hindpawLocations.p' % (self.mouse,date,rec), 'rb'))
         rungs = pickle.load(open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (self.mouse,date,rec), 'rb'))
         return (frontpawPos,hindpawPos,rungs)
+
+    ############################################################
+    def readMetaDataFileAndReadSetting(self, tiffFile, keyWord):
+        metData = ScanImageTiffReader(tiffFile).metadata()
+        keyWordIdx = metData.find(keyWord)
+        splitString = re.split('=|\n', metData[keyWordIdx:])
+        keyWordParameter = float(splitString[1])
+        return keyWordParameter
+
+    ############################################################
+    def readTimeStampOfRecording(self,tiffFile):
+        desc = ScanImageTiffReader(tiffFile).description(0)
+        keyWordIdx = desc.find('epoch')
+        dateString = re.split('\[|\]', desc[keyWordIdx:])
+        dateIdv = dateString[1].split()
+        #print(dateIdv)
+        unixTime = int(datetime.datetime(int(dateIdv[0]),int(dateIdv[1]),int(dateIdv[2]),int(dateIdv[3]),int(dateIdv[4]),int(float(dateIdv[5]))).strftime('%s'))
+
+        return unixTime
+
+    ############################################################
+    def getAnalyzedCaImagingData(self, caAnalysisLocation,tiffList):
+
+        timeStamps = []
+        for i in range(len(tiffList)):
+            zF = self.readMetaDataFileAndReadSetting(tiffList[i],'scanZoomFactor')
+            if i==0:
+                zFold=zF
+            else:
+               if zF != zFold:
+                   print('scanZoomFactor is not the same between recordings!')
+            timeStamps.append(self.readTimeStampOfRecording(tiffList[i]))
+
+        #
+        if os.path.isdir(caAnalysisLocation):
+            ops = np.load(caAnalysisLocation+'/suite2p/ops1.npy')
+            nframes =  ops[0]['nframes']
+            meanImg =  ops[0]['meanImg']
+            meanImgE = ops[0]['meanImgE']
+            #pdb.set_trace()
+            return (nframes,meanImg,meanImgE,zF,timeStamps)
+        else:
+            print('Ca imaging data has not been analyzed wiht suite2p yet!')
 
     ############################################################
     def saveTif(self,frames,mouse,date,rec,norm=None):
