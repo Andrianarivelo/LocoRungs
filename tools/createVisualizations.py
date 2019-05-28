@@ -1286,10 +1286,10 @@ class createVisualizations:
         gs.update(wspace=0.3, hspace=0.3)
 
         # possibly change outer margins of the figure
-        plt.subplots_adjust(left=0.07, right=0.98, top=0.98, bottom=0.02)
+        plt.subplots_adjust(left=0.05, right=0.96, top=0.96, bottom=0.02)
 
         # sub-panel enumerations
-        plt.figtext(0.05, 0.99, 'mouse : %s with %s recording sessions' % (mouse, nSessions),clip_on=False,color='red',size=18)
+        plt.figtext(0.05, 0.975, 'mouse : %s with %s recording sessions' % (mouse, nSessions),clip_on=False,color='red',size=18)
 
 
         for nSess in range(len(allDataPerSession)):
@@ -1297,6 +1297,7 @@ class createVisualizations:
 
             # angle progression plot #######################################################
             ax0 = plt.subplot(gssub[0])
+
             ax0.axhline(y=0, ls='--', c='0.5')
             tracks = allDataPerSession[nSess][1]
             nTracks = len(tracks)
@@ -1312,9 +1313,13 @@ class createVisualizations:
                     # print np.shape(pausesIndex)
                     #pdb.set_trace()
                     pausesIndex = np.concatenate((np.array([-1]), pausesIndex))
-                    for n in range(len(pausesIndex) - 1):
+                    #pdb.set_trace()
+                    for n in range(len(pausesIndex)):
                         start = pausesIndex[n] + 1
-                        end = pausesIndex[n + 1]
+                        if n==(len(pausesIndex)-1):
+                            end = -1
+                        else:
+                            end = pausesIndex[n + 1]
                         #print(start, end, pausesIndex)
                         endAngles.append(tracks[i][5][start:end][:,1][-1])
                         ax0.plot((tracks[i][5][start:end][:,0] + (tracks[i][3] - startTime)) / 60., tracks[i][5][start:end][:,1]*conversionFactor, color='0.3')
@@ -1323,9 +1328,10 @@ class createVisualizations:
                     timeDiff = np.diff(tracks[i][2])
                     ax0.plot((tracks[i][5][:,0] + (tracks[i][3] - startTime)) / 60., (endAngles[i-1]+tracks[i][5][:,1])*conversionFactor, color=colors)
 
+            ax0.set_title('%s. session, %s, %s trials' % ((nSess + 1), allDataPerSession[nSess][0], highResTrials), loc='left', fontweight='bold')
             # removes upper and right axes
             # and moves left and bottom axes away
-            self.layoutOfPanel(ax0, xLabel='time (min)', yLabel='%s, %s trials \n \n distance (m)' % (allDataPerSession[nSess][0], highResTrials))
+            self.layoutOfPanel(ax0, xLabel='time (min)', yLabel='distance covered (m)')
 
 
             # speed plot #######################################################
@@ -1343,23 +1349,32 @@ class createVisualizations:
                     #print np.shape(pausesIndex)
                     #pdb.set_trace()
                     pausesIndex = np.concatenate((np.array([-1]),pausesIndex))
-                    for n in range(len(pausesIndex)-1):
+                    for n in range(len(pausesIndex)):
                         start = pausesIndex[n]+1
-                        end   = pausesIndex[n+1]
+                        if n==(len(pausesIndex)-1):
+                            end = -1
+                        else:
+                            end = pausesIndex[n + 1]
                         #print(start, end, pausesIndex)
                         ax1.plot((tracks[i][2][start:end]+(tracks[i][3]-startTime))/60.,tracks[i][1][start:end],color='0.3')
                 else:
                     timeDiff = np.diff(tracks[i][2])
                     ax1.plot((tracks[i][2]+(tracks[i][3]-startTime))/60.,tracks[i][1],color=colors)
+
+            #pdb.set_trace()
+            VideoTimeStamps = allDataPerSession[nSess][2]
+            for i in range(len(VideoTimeStamps)):
+                ax1.plot([(VideoTimeStamps[i][3]-startTime)/60.,(VideoTimeStamps[i][3]-startTime+30.)/60],[-10,-10],lw=5,c='C1',label=('Video Rec.' if i==0 else None))
             # show when calcium imaging was performed
-            timeStamps = allDataPerSession[nSess][3][0][4]
-            for i in range(len(timeStamps)):
-                pdb.set_trace()
-                ax1.plot([timeStamps[i]-startTime,timeStamps[i]-startTime+30.],[-10,-10],lw=5)
+            CaImgTimeStamps = allDataPerSession[nSess][3][0][4]
+            # pdb.set_trace()
+            for i in range(len(CaImgTimeStamps)):
+                # pdb.set_trace()
+                ax1.plot([(CaImgTimeStamps[i] - startTime) / 60., (CaImgTimeStamps[i] - startTime + 30.) / 60], [-15, -15], lw=5, c='C0', label=('Ca Imaging' if i == 0 else None))
 
             # removes upper and right axes
             # and moves left and bottom axes away
-            self.layoutOfPanel(ax1,xLabel='time (min)',yLabel='speed (cm/s)')
+            self.layoutOfPanel(ax1,xLabel='time (min)',yLabel='speed (cm/s)',Leg=[2,9])
 
 
             # animal plot #######################################################
@@ -1381,7 +1396,7 @@ class createVisualizations:
 
 
             if nSess == 0:
-                ax0.set_title('distance covered',size=14)
+                #ax0.set_title('distance covered',size=14)
                 ax1.set_title('speed',size=14)
                 ax2.set_title('first frame from high-speed camera',size=14)
                 ax3.set_title('average of Ca-imaging FOV',size=14)

@@ -516,7 +516,11 @@ class extractSaveData:
         dateIdv = dateString[1].split()
         #print(dateIdv)
         unixTime = int(datetime.datetime(int(dateIdv[0]),int(dateIdv[1]),int(dateIdv[2]),int(dateIdv[3]),int(dateIdv[4]),int(float(dateIdv[5]))).strftime('%s'))
-
+        #
+        keyWordIdx = desc.find('frameTimestamps_sec')
+        splitString = re.split('=|\n', desc[keyWordIdx:])
+        unixTime+=float(splitString[1])
+        #print(tiffFile,unixTime)
         return unixTime
 
     ############################################################
