@@ -35,7 +35,6 @@ cv2Tools = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLoc
 for f in range(len(foldersRecordings)) :
     # loop over all recordings in that folder
     for r in range(len(foldersRecordings[f][2])): # for r in recordings[f][1]:
-        #print foldersRecordings[f][2][r]
         (existenceFrames,FramesFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '/' +foldersRecordings[f][2][r][-3:],'CameraGigEBehavior')
         (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '-' +foldersRecordings[f][2][r][-3:])
         if existenceFrames and existencePawPos:

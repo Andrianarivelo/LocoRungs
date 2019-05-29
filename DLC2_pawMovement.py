@@ -6,7 +6,6 @@ args = tools.argparser.parse_args()
 import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import pdb
-import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
@@ -33,6 +32,8 @@ else:
 eSD         = extractSaveData.extractSaveData(mouse)
 (foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings)  # get recordings for specific mouse and date
 
+#########################################################
+# Get paws coordinates
 recordingsM = []
 mouse_OF = [] # OF = Outliers Frames
 total_of = 0
@@ -40,6 +41,9 @@ for f in range(len(foldersRecordings)):
     # loop over all recordings in that folder
     recordingsD = []
     day_OF = []
+    tmp = foldersRecordings[f][2][-5:]
+    tmp.insert(0, foldersRecordings[f][2][0])
+    foldersRecordings[f][2] = tmp
     for r in range(len(foldersRecordings[f][2])):
         (existencePawPos, PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '-' +foldersRecordings[f][2][r][-3:])
         if existencePawPos:
@@ -54,21 +58,6 @@ for f in range(len(foldersRecordings)):
 del recordingsD
 
 #########################################################
-# Absolute speed over time
-
-mouse_speed = dataAnalysis.getPawSpeed(recordingsM)
-
-##########################################################
-# Average stride length (intralimb)
-
-mouse_stride, mouse_peaks, mouse_peaks_inv = dataAnalysis.getStride(recordingsM)
-    # frame index have to be determined for peaks
-#########################################################
-# Average step length (interlimb)
-
-mouse_step = dataAnalysis.getStep(recordingsM, mouse_peaks)
-
-#########################################################
 # Get session speed from rotary encoder and video exposure data
 mouse_tracks = []
 for f in range(len(foldersRecordings)):
@@ -78,55 +67,76 @@ for f in range(len(foldersRecordings)):
         if existence:
             (angularSpeed,linearSpeed,wTimes,startTime,monitor,angleTimes) = eSD.getWalkingActivity([foldersRecordings[f][0], foldersRecordings[f][2][r], 'walking_activity'])
             (startExposure, endExposure) = eSD.getBehaviorVideoData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video'])
-            day_tracks.append([linearSpeed, wTimes, startExposure, endExposure])
+            day_tracks.append([-linearSpeed, wTimes, startExposure, endExposure, angularSpeed])
     mouse_tracks.append(day_tracks)
 
 #########################################################
-
 # Get day's overall activity
+
 mouse_activity = []
 for f in range(len(foldersRecordings)):
-    (existence, fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][0], 'RotaryEncoder')
+    (existence, fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1],
+                                                           foldersRecordings[f][2][0], 'RotaryEncoder')
     if existence:
-        (angularSpeed,linearSpeed,wTimes,startTime,monitor,angleTimes) = eSD.getWalkingActivity([foldersRecordings[f][0], foldersRecordings[f][2][0], 'walking_activity'])
+        (angularSpeed, linearSpeed, wTimes, startTime, monitor, angleTimes) = eSD.getWalkingActivity(
+            [foldersRecordings[f][0], foldersRecordings[f][2][0], 'walking_activity'])
         mouse_activity.append([linearSpeed, wTimes])
+#########################################################
+# Absolute speed over time
+
+mouse_speed, mouse_time = dataAnalysis.getPawSpeed(recordingsM, mouse_tracks)
+
+##########################################################
+# Average stride and step length
 
 #########################################################
+# Stance phases detection based on wheel and paw speed difference
 
-# Plots for a single session
-row = 3
-col = 4
+th = 14 # Speed threshold
+offsetStart = 3
+offsetEnd = 3
+paw_stance = []
+paw_speedDiff = []
+day=11
+sess=2
+for p in range(len(mouse_speed[day][sess])):
+    speedDiff = np.squeeze(np.diff([np.interp(mouse_time[day][sess][p], mouse_tracks[day][sess][1], mouse_tracks[day][sess][0]), mouse_speed[day][sess][p]*5], axis=0))
+    stancePhases = dataAnalysis.findStancePhases(speedDiff, th, 10, offsetStart, offsetEnd)
+    paw_stance.append(stancePhases)
+    paw_speedDiff.append(speedDiff)
+
+
+
 plt.figure()
-plt.subplot(row, col, 1)
-plt.plot(mouse_speed[0][0][0])
-plt.title("FR")
+plt.suptitle('Mouse:' + mouse + '; Day:' + foldersRecordings[day][0] + '; Session:' + foldersRecordings[day][2][sess+1])
+plt.subplot(2,1,1)
+plt.title('Stance and step phases detection during a recording session')
+plt.plot([0,30], [th,th], [0,30], [-th,-th], linestyle='--', c='0.5')
+# plt.text(0, 20, 'Threshold=%s' % th,fontsize=6 )
+# plt.text(0, -20, 'Threshold=%s' % -th,fontsize=6 )
+FR_paw, = plt.plot(mouse_time[day][sess][0][offsetStart:-(offsetEnd+1)], paw_speedDiff[0][offsetStart:-(offsetEnd+1)] , c='b', label='Front right paw')
+plt.plot(mouse_time[day][sess][0], paw_stance[0], c='slateblue')
+FL_paw, = plt.plot(mouse_time[day][sess][1][offsetStart:-(offsetEnd+1)], paw_speedDiff[1][offsetStart:-(offsetEnd+1)] , c='orange', label='Front left paw')
+plt.plot(mouse_time[day][sess][1], paw_stance[1], c='moccasin')
 
-plt.subplot(row, col, 2)
-plt.plot(mouse_speed[0][0][1])
-plt.title("FL")
+plt.xlabel('Time during recording session(s)')
+plt.ylabel('X speed difference between a paw and the wheel (a.u.)')
+plt.legend(handles=[FR_paw, FL_paw])
 
-plt.subplot(row, col, 3)
-plt.plot(mouse_speed[0][0][2])
-plt.title("HL")
-
-plt.subplot(row, col, 4)
-plt.plot(mouse_speed[0][0][3])
-plt.title("HR")
-
-for i in range(len(recordingsM[0][0])):
-    plt.subplot(row, col, i+5)
-    plt.plot(recordingsM[0][0][i][:, 0])
-    plt.plot(mouse_peaks[0][0][i], recordingsM[0][0][i][:, 0][mouse_peaks[0][0][i]], 'x')
-    plt.plot(mouse_peaks_inv[0][0][i], recordingsM[0][0][i][:, 0][mouse_peaks_inv[0][0][i]], 'o')
-
-plt.subplot(row, 1, 3)
-for i in range(len(recordingsM[0][0])):
-    plt.plot(mouse_tracks[0][i][2][mouse_OF[0][0][i][3]], recordingsM[0][0][i][:, 0])
-plt.plot(mouse_tracks[0][0][1], mouse_tracks[0][0][0])
-
+plt.subplot(2,1,2)
+plt.plot([0,30], [th,th], [0,30], [-th,-th], linestyle='--', c='0.5')
+# plt.text(0, 20, 'Threshold=%s' % th,fontsize=6 )
+# plt.text(0, -20, 'Threshold=%s' % -th,fontsize=6 )
+HR_paw, = plt.plot(mouse_time[day][sess][3][offsetStart:-(offsetEnd+1)], paw_speedDiff[3][offsetStart:-(offsetEnd+1)] , c='b', label='Hind right paw')
+plt.plot(mouse_time[day][sess][3], paw_stance[3], c='slateblue')
+HL_paw, = plt.plot(mouse_time[day][sess][2][offsetStart:-(offsetEnd+1)], paw_speedDiff[2][offsetStart:-(offsetEnd+1)] , c='orange', label='Hind left paw')
+plt.plot(mouse_time[day][sess][2], paw_stance[2], c='moccasin')
+plt.ylabel('X speed difference between a paw and the wheel (a.u.)')
+plt.legend(handles=[HR_paw, HL_paw])
+plt.show()
 #########################################################
-
 # Plots for multiple sessions
+
 
 
 # TTL pulse at 5s (index 1000), wheel accelerate at 7s (index 1400), max speed at 10.8 (index 2160) during 12s, wheel decelerate at 22.8 (index 4560), wheel disconnect at 26.6 (index 5320)

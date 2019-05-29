@@ -432,22 +432,34 @@ def detectPawTrackingOutlies(pawTraces,pawMetaData,showFig=True):
 
 ##########################################################
 # Get absolute speed of paws
-def getPawSpeed(recordingsM, showFig=False):
+def getPawSpeed(recordingsM, mouse_tracks, showFig=True):
     mouse_speed = []
     for d in range(len(recordingsM)):
         day_speed = []
         for s in range(len(recordingsM[d])):
             sess_speed = []
             for p in range(len(recordingsM[d][s])):
-                paw_speed = np.sqrt((np.diff(recordingsM[d][s][p][:, 0])) ** 2 + (np.diff(recordingsM[d][s][p][:, 1])) ** 2) / np.diff(recordingsM[d][s][p][:, 2])
+                paw_speed = np.diff(recordingsM[d][s][p][:, 0]) / np.diff(recordingsM[d][s][p][:, 2])
                 sess_speed.append(paw_speed)
             day_speed.append(sess_speed)
         mouse_speed.append(day_speed)
-    return mouse_speed
+    mouse_time = []
+    for d in range(len(recordingsM)):
+        day_time = []
+        for s in range(len(recordingsM[d])):
+            sess_time = []
+            for p in range(len(recordingsM[d][s])):
+                mean_time = np.mean([mouse_tracks[d][s][2], mouse_tracks[d][s][3]], axis=0)
+                frames_time = mean_time[recordingsM[d][s][p][:, 2].astype(int)]
+                sess_time.append(np.delete(frames_time, 0))
+            day_time.append(sess_time)
+        mouse_time.append(day_time)
+
+    return mouse_speed, mouse_time
 ##########################################################
 # Get average stride length and min/max values
-def getStride(recordingsM, showFig=False):
-    dist, wth = 10, 10  # Good parameters for forepaws
+def getStrideandStep(recordingsM, showFig=True):
+    dist, wth = 35, 5
     mouse_stride = []
     mouse_peaks = []
     mouse_peaks_inv = []
@@ -471,15 +483,39 @@ def getStride(recordingsM, showFig=False):
         mouse_stride.append(day_stride)
         mouse_peaks.append(day_peaks)
         mouse_peaks_inv.append(day_peaks_inv)
-    return mouse_stride, mouse_peaks, mouse_peaks_inv
-
-##########################################################
-# Get average step length
-def getStep(recordingsM, mouse_peaks, showFig=False):
     mouse_step = []
     for d in range(len(recordingsM)):
         day_step = []
         for s in range(len(recordingsM[d])):
             day_step.append([np.mean(recordingsM[d][s][0][:, 0][mouse_peaks[d][s][0]])-np.mean(recordingsM[d][s][1][:, 0][mouse_peaks[d][s][0]]), np.mean(recordingsM[d][s][1][:, 0][mouse_peaks[d][s][1]])-np.mean(recordingsM[d][s][0][:, 0][mouse_peaks[d][s][1]]), np.mean(recordingsM[d][s][2][:, 0][mouse_peaks[d][s][2]])-np.mean(recordingsM[d][s][3][:, 0][mouse_peaks[d][s][2]]), np.mean(recordingsM[d][s][3][:, 0][mouse_peaks[d][s][3]])-np.mean(recordingsM[d][s][2][:, 0][mouse_peaks[d][s][3]])])
         mouse_step.append(day_step)
-    return mouse_step
+
+    if showFig:
+        plt.figure()
+        for i in range(len(recordingsM[0][0])):
+            plt.subplot(1, 4, i + 1)
+            plt.plot(recordingsM[0][0][i][:, 0])
+            plt.plot(mouse_peaks[0][0][i], recordingsM[0][0][i][:, 0][mouse_peaks[0][0][i]], 'x')
+            plt.plot(mouse_peaks_inv[0][0][i], recordingsM[0][0][i][:, 0][mouse_peaks_inv[0][0][i]], 'o')
+        plt.show()
+
+    return mouse_step, mouse_stride, mouse_peaks, mouse_peaks_inv
+
+##########################################################
+#
+def findStancePhases(speedDiff,speedDiffThresh,minLength,trailingStart,trailingEnd):
+    # determine regions during which the speed is different for more than xLength values
+    thresholded = (speedDiff > -speedDiffThresh) & (speedDiff < speedDiffThresh)
+    startStop = np.diff(np.arange(len(speedDiff))[thresholded]) > 1
+    mmmStart = np.hstack((([True]), startStop))  # np.logical_or(np.hstack((([True]),startStop)),np.hstack((startStop,([True]))))
+    mmmStop = np.hstack((startStop, ([True])))
+    startIdx = (np.arange(len(speedDiff))[thresholded])[mmmStart]
+    stopIdx = (np.arange(len(speedDiff))[thresholded])[mmmStop]
+    minLengthThres = (stopIdx - startIdx) > minLength
+    startStance = startIdx[minLengthThres] + trailingStart
+    endStance = stopIdx[minLengthThres] - trailingEnd
+    stanceIndices = np.column_stack((startStance, endStance))
+    stancePhases = np.full(len(speedDiff), np.nan)
+    for i in range(len(stanceIndices)):
+        stancePhases[stanceIndices[i, 0]:stanceIndices[i, 1]] = speedDiff[stanceIndices[i, 0]:stanceIndices[i, 1]]
+    return stancePhases
