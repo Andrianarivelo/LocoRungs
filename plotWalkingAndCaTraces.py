@@ -1,41 +1,80 @@
+from oauth2client import tools
+tools.argparser.add_argument("-m","--mouse", help="specify name of the mouse", required=False)
+tools.argparser.add_argument("-d","--date", help="specify name of the mouse", required=False)
+args = tools.argparser.parse_args()
+
 import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import tools.createVisualizations as createVisualizations
+import pdb, pickle, os
 
-import numpy as np
+###########################################
 
-mouse = '171218_f8'
-expDate = '180123'
+mouseD = '190101_f15' # id of the mouse to analyze
+#mouseD = '190108_m24'
+expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='all'     # 'all or 'some'
 
-wheelCircumsphere = 79.796 # in cm
+readDataAgain = True
+wheelCircumsphere = 80.65 # in cm
 
-eSD         = extractSaveData.extractSaveData(mouse,expDate)
-(foldersRecordings,dataFolders)  = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
+###########################################
 
-cV      = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
+if args.mouse == None:
+    mouse = mouseD
+else:
+    mouse = args.mouse
 
-
-for f in range(len(foldersRecordings)):
-    tracks = []
-    for r in range(20,21):#,len(foldersRecordings[f][1])):
-        (WalkExistence, fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1][r],'RotaryEncoder')
-        (CaExistence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1][r],'Imaging')
-        if CaExistence and WalkExistence:
-            # get walking activity
-            (angluarSpeed,linearSpeed,sTimes,timeStamp,monitor) = eSD.getWalkingActivity([foldersRecordings[f][0],foldersRecordings[f][1][r],'walking_activity'])
-            tracks.append([angluarSpeed,linearSpeed,sTimes,timeStamp,monitor,foldersRecordings[f][1][r]])
-            # get ca-activity
-            (frames,fTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1][r],'Imaging',fileHandle)  # read raw data from experiment
-            (imStack,motionCoordinates,tifFile) = eSD.getMotioncorrectedStack(foldersRecordings[f][0],foldersRecordings[f][1][r],'moco') # read motion corrected image stack and displacement data
-            eSD.saveImageStack(imStack, fTimes, imageMetaInfo, 'motion_corrected',motionCorrection=motionCoordinates) # save motion corrected image stack
-            (img,rois,rawSignals) = eSD.extractRoiSignals(foldersRecordings[f][0],foldersRecordings[f][1][r],tifFile) # determine/read rois, and get traces
-
-            cV.generateWalkCaImage(foldersRecordings[f][0],foldersRecordings[f][1][r], np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
-            cV.generateWalkCaCorrelationsImage(foldersRecordings[f][0],foldersRecordings[f][1][r], np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
-            cV.generateWalkCaSpectralAnalysis(foldersRecordings[f][0],foldersRecordings[f][1][r], np.average(imStack, axis=0), fTimes, rois, rawSignals, imageMetaInfo,motionCoordinates,angluarSpeed,linearSpeed,sTimes,timeStamp,monitor)  # plot fluorescent traces of rois
-            #break
+if args.date == None:
+    try:
+        expDate = expDateD
+    except :
+        expDate = 'all'
+else:
+    expDate = args.date
 
 
-del eSD
+eSD = extractSaveData.extractSaveData(mouse)
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
 
-#cV.generateWalkingFigure(mouse,dataFolder,tracks)
+cV = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
+
+if os.path.isfile(eSD.analysisLocation + '/allDataPerSession.p') and not readDataAgain:
+    pass
+    allCorrDataPerSession = pickle.load( open( eSD.analysisLocation + '/allCorrDataPerSession.p', 'rb' ) )
+else:
+    allCorrDataPerSession = []
+    for f in range(len(foldersRecordings)):
+        tracks = []
+        pawTracks = []
+        caImagingRois = []
+        for r in range(len(foldersRecordings[f][2])): # loop over all trials
+            # check for rotary encoder
+            (rotaryExistence, rotFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'RotaryEncoder')
+            if rotaryExistence:  #angularSpeed,linearSpeed,wTimes,startTime,monitor
+                (angluarSpeed,linearSpeed,sTimes,timeStamp,monitor,angleTimes) = eSD.getWalkingActivity([foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity'])
+                tracks.append([angluarSpeed,linearSpeed,sTimes,timeStamp,monitor,angleTimes,foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r]])
+            # check for video recording during trial
+            (camExistence, camFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'CameraGigEBehavior')
+            if camExistence and not ('2019.03.11_000'==foldersRecordings[f][0]):
+                (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r])
+                #pdb.set_trace()
+                pawTracks.append([rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo])
+        # check for ca-imaging data during entire session
+        (caImgExistence, tiffList) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][0], 'SICaImaging')
+        if caImgExistence: # (Fluo,nRois,ops,frameNumbers)
+            (Fluo,nRois,ops,frameNumbers) =  eSD.getCaImagingRoiData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
+            caImagingRois.append([Fluo,nRois,ops,frameNumbers])
+        # combine all recordings from a session
+        if (not tracks) and (not pawTracks) and (not caImagingRois):
+            pass
+        else:
+            allCorrDataPerSession.append([foldersRecordings[f][0],tracks,pawTracks,caImagingRois])
+
+    pickle.dump(allCorrDataPerSession, open(eSD.analysisLocation + '/allCorrDataPerSession.p', 'wb'))  # eSD.analysisLocation,
+
+pdb.set_trace()
+# generate overview figure for animal
+correlationData = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
+cV.generatCorrelationFigure(mouse,allCorrDataPerSession,correlationData)
+

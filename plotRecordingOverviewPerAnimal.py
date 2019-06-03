@@ -10,7 +10,8 @@ import pdb, pickle, os
 
 ###########################################
 
-mouseD = '190101_f15' # id of the mouse to analyze
+#mouseD = '190101_f15' # id of the mouse to analyze
+mouseD = '190108_m24'
 expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='all'     # 'all or 'some'
 
@@ -72,9 +73,10 @@ else:
             allDataPerSession.append([foldersRecordings[f][0],tracks,frames,caImaging])
 
     pickle.dump( allDataPerSession, open( eSD.analysisLocation + '/allDataPerSession.p', 'wb' ) ) #eSD.analysisLocation,
-#pdb.set_trace()
+
 # generate overview figure for animal
 cV.generateOverviewFigure(mouse,allDataPerSession,wheelCircumsphere)
+
 
 
 

@@ -1286,7 +1286,7 @@ class createVisualizations:
         gs.update(wspace=0.3, hspace=0.3)
 
         # possibly change outer margins of the figure
-        plt.subplots_adjust(left=0.05, right=0.96, top=0.96, bottom=0.02)
+        plt.subplots_adjust(left=0.05, right=0.96, top=0.9+(fig_height*0.001), bottom=1.1/fig_height)
 
         # sub-panel enumerations
         plt.figtext(0.05, 0.975, 'mouse : %s with %s recording sessions' % (mouse, nSessions),clip_on=False,color='red',size=18)
@@ -1325,7 +1325,7 @@ class createVisualizations:
                         ax0.plot((tracks[i][5][start:end][:,0] + (tracks[i][3] - startTime)) / 60., tracks[i][5][start:end][:,1]*conversionFactor, color='0.3')
                 else:
                     highResTrials+=1
-                    timeDiff = np.diff(tracks[i][2])
+                    #timeDiff = np.diff(tracks[i][2])
                     ax0.plot((tracks[i][5][:,0] + (tracks[i][3] - startTime)) / 60., (endAngles[i-1]+tracks[i][5][:,1])*conversionFactor, color=colors)
 
             ax0.set_title('%s. session, %s, %s trials' % ((nSess + 1), allDataPerSession[nSess][0], highResTrials), loc='left', fontweight='bold')
@@ -1358,9 +1358,8 @@ class createVisualizations:
                         #print(start, end, pausesIndex)
                         ax1.plot((tracks[i][2][start:end]+(tracks[i][3]-startTime))/60.,tracks[i][1][start:end],color='0.3')
                 else:
-                    timeDiff = np.diff(tracks[i][2])
+                    #timeDiff = np.diff(tracks[i][2])
                     ax1.plot((tracks[i][2]+(tracks[i][3]-startTime))/60.,tracks[i][1],color=colors)
-
             #pdb.set_trace()
             VideoTimeStamps = allDataPerSession[nSess][2]
             for i in range(len(VideoTimeStamps)):

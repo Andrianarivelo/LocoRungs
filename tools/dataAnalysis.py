@@ -429,3 +429,34 @@ def detectPawTrackingOutlies(pawTraces,pawMetaData,showFig=True):
 
     return pawTrackingOutliers
     #pdb.set_trace()
+
+#################################################################################
+# calculate correlations between ca-imaging, wheel speed and paw speed
+#################################################################################
+def doCorrelationAnalysis(mouse,allCorrDataPerSession):
+    #
+    #itertools.combinations(arr,2)
+
+    for nSess in range(len(allCorrDataPerSession)):
+        # calculate correcorrelation between individual calcium traces
+        fTraces = allCorrDataPerSession[nSess][3][0]
+        frameNumbers = allCorrDataPerSession[nSess][3][3]
+        frameNumbers = [0] + frameNumbers
+        combis = list(itertools.combinations(np.arange(len(fTraces)), 2))
+        ppCaTraces = []
+        for i in range(len(combis)):
+            corrTemp = scipy.stats.pearsonr(fTraces[combis[i,0]],fTraces[combis[i,1]])
+            ppCaTraces.append([i,combis[i,0],combis[i,1],corrTemp])
+
+        # calculate correlation between wheel and paw speeds
+        ppCaPawTraces
+        tracks = allCorrDataPerSession[nSess][1]
+        for i in range(len(fTraces)):
+            for j in range(len(tracks)):
+                linearSpeed = tracks[j][1]
+                wheelTime   = tracks[j][2]
+
+            corrTemp0 = scipy.stats.pearsonr(fTraces[combis[i,0]],fTraces[combis[i,1]])
+
+
+

@@ -10,8 +10,8 @@ import pdb
 import sys
 
 mouseD = '190101_f15' # id of the mouse to analyze
-expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='some'     # 'all or 'some'
+expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='all'     # 'all or 'some'
 
 
 # in case mouse, and date were specified as input arguments
@@ -44,10 +44,13 @@ for f in range(len(foldersRecordings)):
     # if camera was recorded
     if existence:
         #pdb.set_trace()
-        caI.setSuite2pParameters(eSD.dataBase2+foldersRecordings[f][0]+'/',eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
+        #caI.setSuite2pParameters(eSD.dataBase2+foldersRecordings[f][0]+'/',eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
         #pdb.set_trace()
-        caI.runSuite2pPipeline()
-        #caI.generateSummaryFigures()#eSD.saveCaImagingData()
+        #caI.runSuite2pPipeline()
+        #
+        eSD.extractAndSaveCaTimeStamps(eSD.dataBase2+foldersRecordings[f][0]+'/',eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
+        #
+        #pdb.set_trace()
 
 
 

@@ -503,25 +503,40 @@ class extractSaveData:
     ############################################################
     def readMetaDataFileAndReadSetting(self, tiffFile, keyWord):
         metData = ScanImageTiffReader(tiffFile).metadata()
+        pdb.set_trace()
         keyWordIdx = metData.find(keyWord)
         splitString = re.split('=|\n', metData[keyWordIdx:])
         keyWordParameter = float(splitString[1])
         return keyWordParameter
 
     ############################################################
-    def readTimeStampOfRecording(self,tiffFile):
-        desc = ScanImageTiffReader(tiffFile).description(0)
+    def readTimeStampOfRecording(self,tiffFile,nFrame):
+        desc = ScanImageTiffReader(tiffFile).description(nFrame)
         keyWordIdx = desc.find('epoch')
         dateString = re.split('\[|\]', desc[keyWordIdx:])
         dateIdv = dateString[1].split()
         #print(dateIdv)
-        unixTime = int(datetime.datetime(int(dateIdv[0]),int(dateIdv[1]),int(dateIdv[2]),int(dateIdv[3]),int(dateIdv[4]),int(float(dateIdv[5]))).strftime('%s'))
+        unixStartTime = int(datetime.datetime(int(dateIdv[0]),int(dateIdv[1]),int(dateIdv[2]),int(dateIdv[3]),int(dateIdv[4]),int(float(dateIdv[5]))).strftime('%s'))
         #
         keyWordIdx = desc.find('frameTimestamps_sec')
         splitString = re.split('=|\n', desc[keyWordIdx:])
-        unixTime+=float(splitString[1])
+        frameTimestamps = float(splitString[1])
+
+        keyWordIdx = desc.find('acqTriggerTimestamps_sec')
+        splitString = re.split('=|\n', desc[keyWordIdx:])
+        acqTriggerTimestamps = float(splitString[1])
+
+        keyWordIdx = desc.find('frameNumberAcquisition')
+        splitString = re.split('=|\n', desc[keyWordIdx:])
+        frameNumberAcquisition = int(splitString[1])
+
+        keyWordIdx = desc.find('acquisitionNumbers')
+        splitString = re.split('=|\n', desc[keyWordIdx:])
+        acquisitionNumbers = int(splitString[1])
+
+        unixFrameTime = unixStartTime + frameTimestamps
         #print(tiffFile,unixTime)
-        return unixTime
+        return ([frameNumberAcquisition,acquisitionNumbers,unixStartTime,unixFrameTime,frameTimestamps,acqTriggerTimestamps])
 
     ############################################################
     def getAnalyzedCaImagingData(self, caAnalysisLocation,tiffList):
@@ -534,7 +549,8 @@ class extractSaveData:
             else:
                if zF != zFold:
                    print('scanZoomFactor is not the same between recordings!')
-            timeStamps.append(self.readTimeStampOfRecording(tiffList[i]))
+            timeS = self.readTimeStampOfRecording(tiffList[i],0)
+            timeStamps.append(timeS[3])
 
         #
         if os.path.isdir(caAnalysisLocation):
@@ -546,6 +562,46 @@ class extractSaveData:
             return (nframes,meanImg,meanImgE,zF,timeStamps)
         else:
             print('Ca imaging data has not been analyzed wiht suite2p yet!')
+
+    ############################################################
+    def extractAndSaveCaTimeStamps(self,dataDir,saveDir,tiffPaths):
+        timeStamps = []
+        for i in range(len(tiffPaths)):
+            data = ScanImageTiffReader(tiffPaths[i]).data()
+            fN = np.shape(data)[0]
+            #frameNumbers.append(fN)
+            for n in range(fN):
+                timeStamps.append(self.readTimeStampOfRecording(tiffPaths[i],n))
+
+        timeStampsA = np.asarray(timeStamps)
+        np.save(saveDir+'/suite2p/plane0/timeStamps.npy',timeStampsA)
+
+    ############################################################
+    def getCaImagingRoiData(self,caAnalysisLocation,tiffList):
+        frameNumbers = []
+        timeStamps = []
+        for i in range(len(tiffList)):
+            data = ScanImageTiffReader(tiffList[i]).data()
+            fN = np.shape(data)[0]
+            frameNumbers.append(fN)
+            for n in range(fN):
+                timeStamps.append(self.readTimeStampOfRecording(tiffList[i],n))
+
+        #pdb.set_trace()
+
+        if os.path.isdir(caAnalysisLocation):
+            F = np.load(caAnalysisLocation+'/suite2p/plane0/F.npy')
+            Fneu = np.load(caAnalysisLocation+'/suite2p/plane0/Fneu.npy')
+            ops = np.load(caAnalysisLocation+'/suite2p/plane0/ops.npy')
+            ops = ops.item()
+            iscell = np.load(caAnalysisLocation+'/suite2p/plane0/iscell.npy')
+
+            nRois = np.arange(len(F))
+            realCells = (iscell[:,0]==1)
+            nRois = nRois[realCells]
+            Fluo = F[realCells]-0.7*Fneu[realCells]
+            pdb.set_trace()
+            return (Fluo,nRois,ops,frameNumbers)
 
     ############################################################
     def saveTif(self,frames,mouse,date,rec,norm=None):
@@ -561,6 +617,22 @@ class extractSaveData:
         tiff.imsave(self.analysisLocation+'%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
 
     ############################################################
+    def readPawTrackingData(self,date,rec):
+        rec = rec.replace('/','-')
+        (grpName,grpHandle) = self.h5pyTools.getH5GroupName(self.f,[date,rec,'pawTrackingData'])
+        #pdb.set_trace()
+        rawPawPositionsFromDLC = self.f[grpName+'/rawPawPositionsFromDLC'][()]
+        pawTrackingOutliers = []
+        jointNamesFramesInfo = []
+        for i in range(4):
+            pTTemp = self.f[grpName+'/pawTrackingOutliers%s'%i][()]
+            pawTrackingOutliers.append(pTTemp)
+            jNTemp = self.f[grpName+'/pawTrackingOutliers%s'%i].attrs['PawID']
+            jointNamesFramesInfo.append(jNTemp)
+
+        return (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo)
+
+    ############################################################
     def savePawTrackingData(self,mouse, date, rec, pawPositions,pawTrackingOutliers,pawMetaData,generateVideo=True):
         #pdb.set_trace()
         jointNames = pawMetaData['data']['DLC-model-config file']['all_joints_names']
@@ -572,7 +644,7 @@ class extractSaveData:
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,[date,rec,'pawTrackingData'])
         self.h5pyTools.createOverwriteDS(grpHandle,'rawPawPositionsFromDLC',pawPositions)
         for i in range(4):
-            self.h5pyTools.createOverwriteDS(grpHandle,'pawTrackingOutliers%s'%i, pawTrackingOutliers[i][3],['PawID',jointNames[i]])
+            self.h5pyTools.createOverwriteDS(grpHandle,'pawTrackingOutliers%s'%i, pawTrackingOutliers[i][3],['PawID',[jointNames[i],pawTrackingOutliers[i][1],pawTrackingOutliers[i][2]]])
         if generateVideo:
             fps = 80
             width = 800
