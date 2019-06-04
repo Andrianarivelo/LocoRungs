@@ -383,7 +383,7 @@ def detectPawTrackingOutlies(pawTraces,pawMetaData,showFig=True):
                 onePawIndicies = onePawIndicies[np.concatenate((np.array([True]), np.invert(excursionsBoolTmp)))]
 
         print('%s # of positions, # of detected mis-trackings, fraction : ' % (jointName), len(onePawData), len(onePawData) - len(onePawDataTmp), (len(onePawData) - len(onePawDataTmp)) / len(onePawData))
-
+        #pdb.set_trace()
         if showFig:
 
             fig = plt.figure(figsize=(11,11))
@@ -439,22 +439,26 @@ def doCorrelationAnalysis(mouse,allCorrDataPerSession):
 
     for nSess in range(len(allCorrDataPerSession)):
         # calculate correcorrelation between individual calcium traces
-        fTraces = allCorrDataPerSession[nSess][3][0]
-        frameNumbers = allCorrDataPerSession[nSess][3][3]
-        frameNumbers = [0] + frameNumbers
+        fTraces = allCorrDataPerSession[nSess][3][0][0]
+        #frameNumbers = [0] + frameNumbers
         combis = list(itertools.combinations(np.arange(len(fTraces)), 2))
         ppCaTraces = []
         for i in range(len(combis)):
-            corrTemp = scipy.stats.pearsonr(fTraces[combis[i,0]],fTraces[combis[i,1]])
-            ppCaTraces.append([i,combis[i,0],combis[i,1],corrTemp])
+            #pdb.set_trace()
+            corrTemp = scipy.stats.pearsonr(fTraces[combis[i][0]],fTraces[combis[i][1]])
+            ppCaTraces.append([i,combis[i][0],combis[i][1],corrTemp])
 
         # calculate correlation between wheel and paw speeds
-        ppCaPawTraces
+        ppCaPawTraces = []
+        timeStamps = allCorrDataPerSession[nSess][3][0][3]
+        recordingNumbers = np.unique(timeStamps[:,1])
         tracks = allCorrDataPerSession[nSess][1]
+        pdb.set_trace()
         for i in range(len(fTraces)):
             for j in range(len(tracks)):
-                linearSpeed = tracks[j][1]
-                wheelTime   = tracks[j][2]
+                if not tracks[j][4]: # only do analsyis for high-res recordings
+                    linearSpeed = tracks[j][1]
+                    wheelTime   = tracks[j][2]
 
             corrTemp0 = scipy.stats.pearsonr(fTraces[combis[i,0]],fTraces[combis[i,1]])
 

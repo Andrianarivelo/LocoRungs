@@ -67,22 +67,36 @@ class createVisualizations:
 
 
     ##########################################################################################
-    def determineFileName(self,date,what,reco=None):
-        if reco is None:
-            ff = self.figureDirectory + '%s_%s' % (date,what)
+    def determineFileName(self,reco,what=None,date=None):
+        if (what is None) and (date is None):
+            ff = self.figureDirectory + '%s' % (rec)
+        elif date is None:
+            ff = self.figureDirectory + '%s_%s' % (reco,what)
         else:
             ff = self.figureDirectory + '%s_%s_%s' % (date,reco,what)
         return ff
 
     ##########################################################################################
-    def layoutOfPanel(self, ax,xLabel=None,yLabel=None,Leg=None):
+    def layoutOfPanel(self, ax,xLabel=None,yLabel=None,Leg=None,xyInvisible=[False,False]):
+
 
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
-        ax.spines['bottom'].set_position(('outward', 10))
-        ax.spines['left'].set_position(('outward', 10))
-        ax.yaxis.set_ticks_position('left')
-        ax.xaxis.set_ticks_position('bottom')
+        #
+        if xyInvisible[0]:
+            ax.spines['bottom'].set_visible(False)
+            ax.xaxis.set_visible(False)
+        else:
+            ax.spines['bottom'].set_position(('outward', 10))
+            ax.xaxis.set_ticks_position('bottom')
+        #
+        if xyInvisible[1]:
+            ax.spines['left'].set_visible(False)
+            ax.yaxis.set_visible(False)
+        else:
+            ax.spines['left'].set_position(('outward', 10))
+            ax.yaxis.set_ticks_position('left')
+
 
         if xLabel != None :
             ax.set_xlabel(xLabel)
@@ -721,12 +735,161 @@ class createVisualizations:
         # plt.setp(ltext, fontsize=11)
 
         ## save figure ############################################################
-        fname = self.determineFileName(date, 'ephys-walk_traces', reco=rec)
+        fname = self.determineFileName('ephys-walk_traces',None,reco=rec)
 
         #plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
 
+    ##########################################################################################
+    def generateWheelPawCaCorrelationsImage(self, mouse, allCorrDataPerSession):
 
+        for nSess in range(len(allCorrDataPerSession)):
+
+            # figure #################################
+            fig_width = 30  # width in inches
+            fig_height = 30  # height in inches
+            fig_size = [fig_width, fig_height]
+            params = {'axes.labelsize': 14, 'axes.titlesize': 13, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                      'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                      'xtick.major.size': 4  # major tick size in points
+                      # 'edgecolor' : None
+                      # 'xtick.major.size' : 2,
+                      # 'ytick.major.size' : 2,
+                      }
+            rcParams.update(params)
+
+            # set sans-serif font to Arial
+            rcParams['font.sans-serif'] = 'Arial'
+
+            # create figure instance
+            fig = plt.figure()
+
+            # define sub-panel grid and possibly width and height ratios
+            gs = gridspec.GridSpec(3, 1,  # ,
+                                   # width_ratios=[1.2,1]
+                                   height_ratios=[10,1,3]
+                                   )
+
+            # define vertical and horizontal spacing between panels
+            gs.update(wspace=0.3, hspace=0.2)
+
+            # possibly change outer margins of the figure
+            plt.subplots_adjust(left=0.1, right=0.94, top=0.97, bottom=0.05)
+
+            # sub-panel enumerations
+            plt.figtext(0.12, 0.97, 'mouse : %s, session : %s' % (mouse,allCorrDataPerSession[nSess][0]),clip_on=False,color='black', weight='bold',size=22)
+
+            # third sub-plot #######################################################
+            # gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1], hspace=0.2)
+            # sub-panel 1 #############################################
+
+            fTraces = allCorrDataPerSession[nSess][3][0][0]
+            timeStamps = allCorrDataPerSession[nSess][3][0][3]
+            trials = np.unique(timeStamps[:, 1])
+            #triggerStarts = np.unique(timeStamps[:, 5])
+
+            gssub0 = gridspec.GridSpecFromSubplotSpec(1, len(trials), subplot_spec=gs[0], hspace=0.1,wspace=0.1)
+
+            #xSeparation = 35.
+            ySpacing = 30.
+            for n in range(len(trials)):
+                ax0 = plt.subplot(gssub0[n])
+                mask = (timeStamps[:, 1] == trials[n])
+                triggerStart = timeStamps[:, 5][mask]
+                if n>0:
+                    if oldTriggerStart>triggerStart[0]:
+                        print('problem in trial order')
+                        sys.exit(1)
+                for i in range(len(fTraces)):
+                    #colors = plt.cm.jet(float(i) / float(len(fTraces) - 1))
+                    ax0.plot(timeStamps[:,4][mask]-triggerStart,fTraces[i][mask]+i*ySpacing)#,color=np.random.rand())
+
+                if n == 0:
+                    self.layoutOfPanel(ax0, xLabel=r'time (s)', yLabel=r'fluorescence')
+                else:
+                    self.layoutOfPanel(ax0, xLabel=r'time (s)', yLabel=None,xyInvisible=[False,True])
+                ax0.set_xlim(0,30)
+                oldTriggerStart=triggerStart[0]
+
+            #######################################################
+            # wheel speed
+            gssub1 = gridspec.GridSpecFromSubplotSpec(1, len(trials), subplot_spec=gs[1], hspace=0.1,wspace=0.1)
+
+            wheelTracks = allCorrDataPerSession[nSess][1]
+            nFig = 0
+            for n in range(len(wheelTracks)):
+                if not wheelTracks[n][4]:
+                    recStartTime = wheelTracks[3]
+                    if nFig>0:
+                        if oldRecStartTime>recStartTime:
+                            print('problem in trial order')
+                            sys.exit(1)
+                    ax1 = plt.subplot(gssub1[nFig])
+
+                    ax1.plot(wheelTracks[n][2],wheelTracks[n][1],c='0.6')
+
+                    if nFig == 0:
+                        self.layoutOfPanel(ax1, xLabel=r'time (s)', yLabel=r'wheel speed (cm/s)')
+                    else:
+                        self.layoutOfPanel(ax1, xLabel=r'time (s)', yLabel=None, xyInvisible=[False,True])
+                    ax1.set_xlim(0,30)
+                    nFig+=1
+                    oldRecStartTime = recStartTime
+            #######################################################
+            # wheel speed
+            gssub2 = gridspec.GridSpecFromSubplotSpec(4, len(trials), subplot_spec=gs[2], hspace=0.1,wspace=0.1)
+            cc = ['C0','C1','C2','C3']
+            pawTracks = allCorrDataPerSession[nSess][2]
+            for n in range(len(pawTracks)):
+                recStartTime = pawTracks[n][4]
+                if n>0:
+                    if oldRecStartTime>recStartTime:
+                        print('problem in trial order')
+                        sys.exit(1)
+                ax2 = plt.subplot(gssub2[n])
+                ax3 = plt.subplot(gssub2[n+len(pawTracks)])
+                ax4 = plt.subplot(gssub2[n+2*len(pawTracks)])
+                ax5 = plt.subplot(gssub2[n+3*len(pawTracks)])
+                for i in range(4):
+                    #pdb.set_trace()
+                    pawSpeed = pawTracks[n][3][i]
+                    #print(n,i)
+                    #frDisplOrig = np.sqrt((np.diff(pawTracks[n][0][:,(i*3+1)][pawMask])) ** 2 + (np.diff(pawTracks[n][0][:,(i*3+2)][pawMask])) ** 2) / np.diff(pawTracks[n][0][:,0][pawMask]) # pawTracks[n][0][:,1]
+                    if i==0:
+                        ax2.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s' % pawTracks[n][2][i][0],c=cc[i])
+                    elif i==1:
+                        ax3.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s'% pawTracks[n][2][i][0],c=cc[i])
+                    elif i==2:
+                        ax4.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s'% pawTracks[n][2][i][0],c=cc[i])
+                    elif i==3:
+                        ax5.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s'% pawTracks[n][2][i][0],c=cc[i])
+                #ax0.axhline(y=0, c='0.6', ls='--')
+                #ax1.plot(wheelTracks[n][2], wheelTracks[n][1], c='0.3')
+
+                if n == 0:
+                    self.layoutOfPanel(ax2, xLabel=None, yLabel=None,Leg=[1,9],xyInvisible=[True, False])
+                    self.layoutOfPanel(ax3, xLabel=None, yLabel=r'paw speed (px/s)',Leg=[1,9],xyInvisible=[True, False])
+                    self.layoutOfPanel(ax4, xLabel=None, yLabel=None,Leg=[1,9],xyInvisible=[True, False])
+                    self.layoutOfPanel(ax5, xLabel=r'time (s)', yLabel=None,Leg=[1,9])
+                else:
+                    self.layoutOfPanel(ax2, xLabel=None, yLabel=None, xyInvisible=[True, True])
+                    self.layoutOfPanel(ax3, xLabel=None, yLabel=None, xyInvisible=[True, True])
+                    self.layoutOfPanel(ax4, xLabel=None, yLabel=None, xyInvisible=[True, True])
+                    self.layoutOfPanel(ax5, xLabel=r'time (s)', yLabel=None,xyInvisible=[False,True])
+                ax2.set_xlim(0,30)
+                ax3.set_xlim(0,30)
+                ax4.set_xlim(0,30)
+                ax5.set_xlim(0,30)
+                oldRecStartTime = recStartTime
+
+            ## save figure ############################################################
+            date = '2019.06.04'
+            fname = self.determineFileName(allCorrDataPerSession[nSess][0], 'ca-walk-paw_correlation', date=None)
+
+            plt.savefig(fname + '.png')
+            plt.savefig(fname + '.pdf')
+
+            #pdb.set_trace()
 
     ##########################################################################################
     def generateWalkCaCorrelationsImage(self, date, rec, img, ttime, rois, raw_signals, imageMetaInfo, motionCoordinates,angluarSpeed, linearSpeed, sTimes, timeStamp, monitor):

@@ -41,6 +41,7 @@ for f in range(len(foldersRecordings)) :
         if existenceFrames and existencePawPos:
             (pawPositions,pawMetaData) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'pawTraces',PawFileHandle)
             pawTrackingOutliers = dataAnalysis.detectPawTrackingOutlies(pawPositions,pawMetaData,showFig=False)
+            (firstLastFrames, expStartTime, expEndTime,startTime) = eSD.readBehaviorVideoData([foldersRecordings[f][0],foldersRecordings[f][2][r],'behavior_video'])
             #pdb.set_trace()
-            eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],pawPositions,pawTrackingOutliers,pawMetaData,generateVideo=False)
+            eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],pawPositions,pawTrackingOutliers,pawMetaData,expStartTime, expEndTime,startTime,generateVideo=False)
         #pdb.set_trace()

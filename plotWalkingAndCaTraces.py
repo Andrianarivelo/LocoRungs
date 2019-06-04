@@ -15,7 +15,7 @@ mouseD = '190101_f15' # id of the mouse to analyze
 expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='all'     # 'all or 'some'
 
-readDataAgain = True
+readDataAgain = False
 wheelCircumsphere = 80.65 # in cm
 
 ###########################################
@@ -57,14 +57,14 @@ else:
             # check for video recording during trial
             (camExistence, camFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'CameraGigEBehavior')
             if camExistence and not ('2019.03.11_000'==foldersRecordings[f][0]):
-                (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r])
+                (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r])
                 #pdb.set_trace()
-                pawTracks.append([rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo])
+                pawTracks.append([rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime])
         # check for ca-imaging data during entire session
         (caImgExistence, tiffList) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][0], 'SICaImaging')
         if caImgExistence: # (Fluo,nRois,ops,frameNumbers)
-            (Fluo,nRois,ops,frameNumbers) =  eSD.getCaImagingRoiData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
-            caImagingRois.append([Fluo,nRois,ops,frameNumbers])
+            (Fluo,nRois,ops,timeStamps) =  eSD.getCaImagingRoiData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
+            caImagingRois.append([Fluo,nRois,ops,timeStamps])
         # combine all recordings from a session
         if (not tracks) and (not pawTracks) and (not caImagingRois):
             pass
@@ -73,8 +73,8 @@ else:
 
     pickle.dump(allCorrDataPerSession, open(eSD.analysisLocation + '/allCorrDataPerSession.p', 'wb'))  # eSD.analysisLocation,
 
-pdb.set_trace()
+#pdb.set_trace()
 # generate overview figure for animal
-correlationData = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
-cV.generatCorrelationFigure(mouse,allCorrDataPerSession,correlationData)
+#correlationData = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
+cV.generateWheelPawCaCorrelationsImage(mouse,allCorrDataPerSession)
 

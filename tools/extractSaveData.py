@@ -289,7 +289,8 @@ class extractSaveData:
             recLocation = (self.dataBase2 + '/' + fold + '/')
             print(recLocation)
             tiffList = glob.glob(recLocation+'*tif')
-            print(tiffList)
+            tiffList.sort()
+            #print(tiffList)
             if len(tiffList)>0:
                 print('Ca imaging was acquired with ScanImage')
                 return (True,tiffList)
@@ -578,18 +579,19 @@ class extractSaveData:
 
     ############################################################
     def getCaImagingRoiData(self,caAnalysisLocation,tiffList):
-        frameNumbers = []
-        timeStamps = []
-        for i in range(len(tiffList)):
-            data = ScanImageTiffReader(tiffList[i]).data()
-            fN = np.shape(data)[0]
-            frameNumbers.append(fN)
-            for n in range(fN):
-                timeStamps.append(self.readTimeStampOfRecording(tiffList[i],n))
+        #frameNumbers = []
+        #timeStamps = []
+        #for i in range(len(tiffList)):
+        #    data = ScanImageTiffReader(tiffList[i]).data()
+        #    fN = np.shape(data)[0]
+        #    frameNumbers.append(fN)
+        #    for n in range(fN):
+        #        timeStamps.append(self.readTimeStampOfRecording(tiffList[i],n))
 
         #pdb.set_trace()
 
         if os.path.isdir(caAnalysisLocation):
+            timeStamps = np.load(caAnalysisLocation+'/suite2p/plane0/timeStamps.npy')
             F = np.load(caAnalysisLocation+'/suite2p/plane0/F.npy')
             Fneu = np.load(caAnalysisLocation+'/suite2p/plane0/Fneu.npy')
             ops = np.load(caAnalysisLocation+'/suite2p/plane0/ops.npy')
@@ -600,8 +602,8 @@ class extractSaveData:
             realCells = (iscell[:,0]==1)
             nRois = nRois[realCells]
             Fluo = F[realCells]-0.7*Fneu[realCells]
-            pdb.set_trace()
-            return (Fluo,nRois,ops,frameNumbers)
+            #pdb.set_trace()
+            return (Fluo,nRois,ops,timeStamps)
 
     ############################################################
     def saveTif(self,frames,mouse,date,rec,norm=None):
@@ -624,16 +626,21 @@ class extractSaveData:
         rawPawPositionsFromDLC = self.f[grpName+'/rawPawPositionsFromDLC'][()]
         pawTrackingOutliers = []
         jointNamesFramesInfo = []
+        pawSpeed = []
         for i in range(4):
             pTTemp = self.f[grpName+'/pawTrackingOutliers%s'%i][()]
             pawTrackingOutliers.append(pTTemp)
             jNTemp = self.f[grpName+'/pawTrackingOutliers%s'%i].attrs['PawID']
             jointNamesFramesInfo.append(jNTemp)
+            pStemp = self.f[grpName+'/clearedPawSpeed%s'%i][()]
+            pawSpeed.append(pStemp)
+            if i == 0:
+                recStartTime = self.f[grpName+'/clearedPawSpeed%s'%i].attrs['recStartTime']
 
-        return (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo)
+        return (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime)
 
     ############################################################
-    def savePawTrackingData(self,mouse, date, rec, pawPositions,pawTrackingOutliers,pawMetaData,generateVideo=True):
+    def savePawTrackingData(self,mouse, date, rec, pawPositions,pawTrackingOutliers,pawMetaData,expStartTime, expEndTime,startTime,generateVideo=True):
         #pdb.set_trace()
         jointNames = pawMetaData['data']['DLC-model-config file']['all_joints_names']
         jointIdx   = pawMetaData['data']['DLC-model-config file']['all_joints']
@@ -643,8 +650,17 @@ class extractSaveData:
         rec = rec.replace('/','-')
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,[date,rec,'pawTrackingData'])
         self.h5pyTools.createOverwriteDS(grpHandle,'rawPawPositionsFromDLC',pawPositions)
+        timeArray = (expStartTime + expEndTime)/2.
         for i in range(4):
+            pawMask = pawTrackingOutliers[i][3]
+            rawPawSpeed = np.sqrt((np.diff(pawPositions[:, (i*3+1)])) ** 2 + (np.diff(pawPositions[:, (i*3+2)])) ** 2) / np.diff(timeArray)
+            rawSpeedTime = (timeArray[:-1]+timeArray[1:])/2.
+            clearedPawSpeed =np.sqrt((np.diff(pawPositions[:, (i*3+1)][pawMask])) ** 2 + (np.diff(pawPositions[:, (i*3+2)][pawMask])) ** 2) / np.diff(timeArray[pawMask])
+            clearedSpeedTime = (timeArray[pawMask][:-1]+timeArray[pawMask][1:])/2.
             self.h5pyTools.createOverwriteDS(grpHandle,'pawTrackingOutliers%s'%i, pawTrackingOutliers[i][3],['PawID',[jointNames[i],pawTrackingOutliers[i][1],pawTrackingOutliers[i][2]]])
+            self.h5pyTools.createOverwriteDS(grpHandle,'rawPawSpeed%s'%i, np.column_stack((rawSpeedTime,rawPawSpeed)),['recStartTime',startTime])
+            self.h5pyTools.createOverwriteDS(grpHandle,'clearedPawSpeed%s'%i, np.column_stack((clearedSpeedTime,clearedPawSpeed)),['recStartTime',startTime])
+        #pdb.set_trace()
         if generateVideo:
             fps = 80
             width = 800
