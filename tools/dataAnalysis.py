@@ -8,13 +8,15 @@ import tifffile as tiff
 import pdb
 import scipy.ndimage
 import itertools
+from scipy.interpolate import interp1d
 
 def getSpeed(angles,times,circumsphere):
-    angleJumps = angles[np.concatenate((([False]),np.diff(angles)!=0.))]
-    timePoints = times[np.concatenate((([False]),np.diff(angles)!=0.))]
+    angleJumps = angles[np.concatenate((([True]),np.diff(angles)!=0.))]
+    timePoints = times[np.concatenate((([True]),np.diff(angles)!=0.))]
     angularSpeed = np.diff(angleJumps[::2])/np.diff(timePoints[::2])
     linearSpeed = angularSpeed*circumsphere/360.
-    speedTimes = timePoints[::2][1:]
+    speedTimes = (timePoints[::2][1:] + timePoints[::2][:-1])/2.
+    #pdb.set_trace()
     return (angularSpeed,linearSpeed,speedTimes)
 
 
@@ -436,7 +438,7 @@ def detectPawTrackingOutlies(pawTraces,pawMetaData,showFig=True):
 def doCorrelationAnalysis(mouse,allCorrDataPerSession):
     #
     #itertools.combinations(arr,2)
-
+    sessionCorrelations = []
     for nSess in range(len(allCorrDataPerSession)):
         # calculate correcorrelation between individual calcium traces
         fTraces = allCorrDataPerSession[nSess][3][0][0]
@@ -446,21 +448,134 @@ def doCorrelationAnalysis(mouse,allCorrDataPerSession):
         for i in range(len(combis)):
             #pdb.set_trace()
             corrTemp = scipy.stats.pearsonr(fTraces[combis[i][0]],fTraces[combis[i][1]])
-            ppCaTraces.append([i,combis[i][0],combis[i][1],corrTemp])
+            ppCaTraces.append([i,combis[i][0],combis[i][1],corrTemp[0],corrTemp[1]])
 
-        # calculate correlation between wheel and paw speeds
-        ppCaPawTraces = []
+        ppCaTraces = np.asarray(ppCaTraces)
+        # code taken from figure generation
+        #for nSess in range(len(allCorrDataPerSession)):
+        trialStartUnixTimes = []
+
+        # ca-traces #######################################################
+
+        fTraces = allCorrDataPerSession[nSess][3][0][0]
         timeStamps = allCorrDataPerSession[nSess][3][0][3]
-        recordingNumbers = np.unique(timeStamps[:,1])
-        tracks = allCorrDataPerSession[nSess][1]
-        pdb.set_trace()
-        for i in range(len(fTraces)):
-            for j in range(len(tracks)):
-                if not tracks[j][4]: # only do analsyis for high-res recordings
-                    linearSpeed = tracks[j][1]
-                    wheelTime   = tracks[j][2]
+        trials = np.unique(timeStamps[:, 1])
+        caTracesDict = {}
+        for n in range(len(trials)):
 
-            corrTemp0 = scipy.stats.pearsonr(fTraces[combis[i,0]],fTraces[combis[i,1]])
+            mask = (timeStamps[:, 1] == trials[n])
+            triggerStart = timeStamps[:, 5][mask]
+            trialStartUnixTimes.append(timeStamps[:,3][mask][0])
+            if n>0:
+                if oldTriggerStart>triggerStart[0]:
+                    print('problem in trial order')
+                    sys.exit(1)
+            for i in range(len(fTraces)):
+                caTracesTime = (timeStamps[:, 4][mask] - triggerStart)
+                caTracesFluo = fTraces[:,mask]
+                #pdb.set_trace()
+                #caTraces.append(np.column_stack((caTracesTime,caTracesFluo)))
+                caTracesDict[n] = np.row_stack((caTracesTime,caTracesFluo))
+
+            oldTriggerStart=triggerStart[0]
+
+        # wheel speed  ######################################################
+        wheelTracks = allCorrDataPerSession[nSess][1]
+        nFig = 0
+        #print(len(wheelTracks))
+        wheelSpeedDict = {}
+        for n in range(len(wheelTracks)):
+            wheelRecStartTime = wheelTracks[n][3]
+            if (trialStartUnixTimes[nFig]-wheelRecStartTime)<1.:
+                #if not wheelTracks[n][4]:
+                #recStartTime = wheelTracks[0][3]
+                if nFig>0:
+                    if oldRecStartTime>wheelRecStartTime:
+                        print('problem in trial order')
+                        sys.exit(1)
+                wheelTime  = wheelTracks[n][2]
+                wheelSpeed = wheelTracks[n][1]
+                wheelSpeedDict[nFig] = np.row_stack((wheelTime,wheelSpeed))
+
+                nFig+=1
+                oldRecStartTime = wheelRecStartTime
+        # paw speed  ######################################################
+        pawTracks = allCorrDataPerSession[nSess][2]
+        nFig = 0
+        pawTracksDict = {}
+        pawID = []
+        for n in range(len(pawTracks)):
+            #if not wheelTracks[n][4]:
+            pawRecStartTime = pawTracks[n][4]
+            if (trialStartUnixTimes[nFig]-pawRecStartTime)<1.:
+                if nFig>0:
+                    if oldRecStartTime>pawRecStartTime:
+                        print('problem in trial order')
+                        sys.exit(1)
+                pawTracksDict[nFig] = {}
+                for i in range(4):
+                    #pdb.set_trace()
+                    if nFig==0:
+                        pawID.append(pawTracks[n][2][i][0])
+                    #pawTracksDict[nFig][i]['pawID'] = pawTracks[n][2][i][0]
+                    pawSpeedTime = pawTracks[n][3][i][:,0]
+                    pawSpeed     = pawTracks[n][3][i][:,1]
+                    pawTracksDict[nFig][i] = np.row_stack((pawSpeedTime, pawSpeed))
+                    # interp = interp1d(pawSpeedTime, pawSpeed)
+                    # newPawSpeedAtCaTimes = interp(caTracesTime[nFig])
+                    # pawTracksDict[i]['pawSpeed'].extend(newPawSpeedAtCaTimes)
+
+                oldRecStartTime = pawRecStartTime
+                nFig+=1
+
+        ###################################################################
+        # interp = interp1d(wheelTime, wheelSpeed)
+        # interpMask = (caTracesTime[nFig] >= wheelTime[0]) & (caTracesTime[nFig] <= wheelTime[-1])
+        # newWheelSpeedAtCaTimes = interp(caTracesTime[nFig][interpMask])
+        # wheelSpeedAll.extend(newWheelSpeedAtCaTimes)
+        wheelAll = []
+        pawAll = {}
+        for i in range(4):
+            pawAll[i] = []
+        for n in range(len(pawTracksDict)):
+            startInterpTime = np.max((caTracesDict[n][0, 0], wheelSpeedDict[n][0, 0], pawTracksDict[n][0][0, 0], pawTracksDict[n][1][0, 0], pawTracksDict[n][2][0, 0], pawTracksDict[n][3][0, 0]))
+            endInterpTime   = np.min((caTracesDict[n][0, -1], wheelSpeedDict[n][0, -1], pawTracksDict[n][0][0, -1], pawTracksDict[n][1][0, -1], pawTracksDict[n][2][0, -1], pawTracksDict[n][3][0, -1]))
+
+            interpMask = (caTracesDict[n][0] >= startInterpTime) & (caTracesDict[n][0] <= endInterpTime)
+
+            interpW = interp1d(wheelSpeedDict[n][0], wheelSpeedDict[n][1])
+            newWheelSpeedAtCaTimes = interpW(caTracesDict[n][0][interpMask])
+            wheelAll.extend(newWheelSpeedAtCaTimes)
+
+            #aa = np.copy(newWheelSpeedAtCaTimes)
+            for i in range(4):
+                interpP = interp1d(pawTracksDict[n][i][0], pawTracksDict[n][i][1])
+                newPawSpeedAtCaTimes = interpP(caTracesDict[n][0][interpMask])
+                pawAll[i].extend(newPawSpeedAtCaTimes)
+
+            #
+            #pdb.set_trace()
+            if n==0:
+                caAll = caTracesDict[n][1:][:,interpMask]
+            else:
+                caAll = np.column_stack((caAll,caTracesDict[n][1:][:,interpMask]))
+
+        #pdb.set_trace()
+        corrWheel = []
+        corrPaws  = []
+        for i in range(len(caAll)):
+            corrWheelTemp = scipy.stats.pearsonr(caAll[i], wheelAll)
+            corrWheel.append([i,corrWheelTemp[0],corrWheelTemp[1]])
+
+            corrPaw0Temp = scipy.stats.pearsonr(caAll[i], pawAll[0])
+            corrPaw1Temp = scipy.stats.pearsonr(caAll[i], pawAll[1])
+            corrPaw2Temp = scipy.stats.pearsonr(caAll[i], pawAll[2])
+            corrPaw3Temp = scipy.stats.pearsonr(caAll[i], pawAll[3])
+            corrPaws.append([i,corrPaw0Temp[0],corrPaw0Temp[1],corrPaw1Temp[0],corrPaw1Temp[1],corrPaw2Temp[0],corrPaw2Temp[1],corrPaw3Temp[0],corrPaw3Temp[1]])
 
 
+        corrWheel = np.asarray(corrWheel)
+        corrPaws = np.asarray(corrPaws)
+        sessionCorrelations.append([nSess,ppCaTraces,corrWheel,corrPaws])
 
+    return (sessionCorrelations)

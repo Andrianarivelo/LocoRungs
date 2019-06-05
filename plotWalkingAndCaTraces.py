@@ -7,6 +7,7 @@ import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import tools.createVisualizations as createVisualizations
 import pdb, pickle, os
+import tools.parameters as pas
 
 ###########################################
 
@@ -16,7 +17,6 @@ expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection 
 recordings='all'     # 'all or 'some'
 
 readDataAgain = False
-wheelCircumsphere = 80.65 # in cm
 
 ###########################################
 
@@ -56,7 +56,7 @@ else:
                 tracks.append([angluarSpeed,linearSpeed,sTimes,timeStamp,monitor,angleTimes,foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r]])
             # check for video recording during trial
             (camExistence, camFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'CameraGigEBehavior')
-            if camExistence and not ('2019.03.11_000'==foldersRecordings[f][0]):
+            if camExistence :
                 (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r])
                 #pdb.set_trace()
                 pawTracks.append([rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime])
@@ -75,6 +75,7 @@ else:
 
 #pdb.set_trace()
 # generate overview figure for animal
-#correlationData = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
+correlationData = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
+pdb.set_trace()
 cV.generateWheelPawCaCorrelationsImage(mouse,allCorrDataPerSession)
 

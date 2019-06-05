@@ -743,8 +743,13 @@ class createVisualizations:
     ##########################################################################################
     def generateWheelPawCaCorrelationsImage(self, mouse, allCorrDataPerSession):
 
-        for nSess in range(len(allCorrDataPerSession)):
+        # exclude aborted recordings
+        #allCorrDataPerSession[2][1][1][4] = True # 2019.03.08_000, second trial
+        #pawTracesInclude = np.ones((len(allCorrDataPerSession),5))
+        #allCorrDataPerSession[8][1][1][4] = True # 2019.03.18_000, second trial
 
+        for nSess in range(len(allCorrDataPerSession)):
+            trialStartUnixTimes = []
             # figure #################################
             fig_width = 30  # width in inches
             fig_height = 30  # height in inches
@@ -774,14 +779,12 @@ class createVisualizations:
             gs.update(wspace=0.3, hspace=0.2)
 
             # possibly change outer margins of the figure
-            plt.subplots_adjust(left=0.1, right=0.94, top=0.97, bottom=0.05)
+            plt.subplots_adjust(left=0.06, right=0.94, top=0.97, bottom=0.05)
 
             # sub-panel enumerations
             plt.figtext(0.12, 0.97, 'mouse : %s, session : %s' % (mouse,allCorrDataPerSession[nSess][0]),clip_on=False,color='black', weight='bold',size=22)
 
-            # third sub-plot #######################################################
-            # gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1], hspace=0.2)
-            # sub-panel 1 #############################################
+            # ca-traces #######################################################
 
             fTraces = allCorrDataPerSession[nSess][3][0][0]
             timeStamps = allCorrDataPerSession[nSess][3][0][3]
@@ -789,13 +792,14 @@ class createVisualizations:
             #triggerStarts = np.unique(timeStamps[:, 5])
 
             gssub0 = gridspec.GridSpecFromSubplotSpec(1, len(trials), subplot_spec=gs[0], hspace=0.1,wspace=0.1)
-
+            #print(trials)
             #xSeparation = 35.
             ySpacing = 30.
             for n in range(len(trials)):
                 ax0 = plt.subplot(gssub0[n])
                 mask = (timeStamps[:, 1] == trials[n])
                 triggerStart = timeStamps[:, 5][mask]
+                trialStartUnixTimes.append(timeStamps[:,3][mask][0])
                 if n>0:
                     if oldTriggerStart>triggerStart[0]:
                         print('problem in trial order')
@@ -811,17 +815,19 @@ class createVisualizations:
                 ax0.set_xlim(0,30)
                 oldTriggerStart=triggerStart[0]
 
-            #######################################################
-            # wheel speed
+            # wheel speed  ######################################################
             gssub1 = gridspec.GridSpecFromSubplotSpec(1, len(trials), subplot_spec=gs[1], hspace=0.1,wspace=0.1)
-
+            #pdb.set_trace()
             wheelTracks = allCorrDataPerSession[nSess][1]
             nFig = 0
+            #print(len(wheelTracks))
             for n in range(len(wheelTracks)):
-                if not wheelTracks[n][4]:
-                    recStartTime = wheelTracks[3]
+                wheelRecStartTime = wheelTracks[n][3]
+                if (trialStartUnixTimes[nFig]-wheelRecStartTime)<1.:
+                    #if not wheelTracks[n][4]:
+                    #recStartTime = wheelTracks[0][3]
                     if nFig>0:
-                        if oldRecStartTime>recStartTime:
+                        if oldRecStartTime>wheelRecStartTime:
                             print('problem in trial order')
                             sys.exit(1)
                     ax1 = plt.subplot(gssub1[nFig])
@@ -834,53 +840,58 @@ class createVisualizations:
                         self.layoutOfPanel(ax1, xLabel=r'time (s)', yLabel=None, xyInvisible=[False,True])
                     ax1.set_xlim(0,30)
                     nFig+=1
-                    oldRecStartTime = recStartTime
-            #######################################################
-            # wheel speed
+                    oldRecStartTime = wheelRecStartTime
+            # paw speed  ######################################################
             gssub2 = gridspec.GridSpecFromSubplotSpec(4, len(trials), subplot_spec=gs[2], hspace=0.1,wspace=0.1)
             cc = ['C0','C1','C2','C3']
             pawTracks = allCorrDataPerSession[nSess][2]
+            #print(len(pawTracks))
+            #pdb.set_trace()
+            nFig = 0
             for n in range(len(pawTracks)):
-                recStartTime = pawTracks[n][4]
-                if n>0:
-                    if oldRecStartTime>recStartTime:
-                        print('problem in trial order')
-                        sys.exit(1)
-                ax2 = plt.subplot(gssub2[n])
-                ax3 = plt.subplot(gssub2[n+len(pawTracks)])
-                ax4 = plt.subplot(gssub2[n+2*len(pawTracks)])
-                ax5 = plt.subplot(gssub2[n+3*len(pawTracks)])
-                for i in range(4):
-                    #pdb.set_trace()
-                    pawSpeed = pawTracks[n][3][i]
-                    #print(n,i)
-                    #frDisplOrig = np.sqrt((np.diff(pawTracks[n][0][:,(i*3+1)][pawMask])) ** 2 + (np.diff(pawTracks[n][0][:,(i*3+2)][pawMask])) ** 2) / np.diff(pawTracks[n][0][:,0][pawMask]) # pawTracks[n][0][:,1]
-                    if i==0:
-                        ax2.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s' % pawTracks[n][2][i][0],c=cc[i])
-                    elif i==1:
-                        ax3.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s'% pawTracks[n][2][i][0],c=cc[i])
-                    elif i==2:
-                        ax4.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s'% pawTracks[n][2][i][0],c=cc[i])
-                    elif i==3:
-                        ax5.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s'% pawTracks[n][2][i][0],c=cc[i])
-                #ax0.axhline(y=0, c='0.6', ls='--')
-                #ax1.plot(wheelTracks[n][2], wheelTracks[n][1], c='0.3')
+                #if not wheelTracks[n][4]:
+                pawRecStartTime = pawTracks[n][4]
+                if (trialStartUnixTimes[nFig]-pawRecStartTime)<1.:
+                    if nFig>0:
+                        if oldRecStartTime>pawRecStartTime:
+                            print('problem in trial order')
+                            sys.exit(1)
+                    ax2 = plt.subplot(gssub2[nFig])
+                    ax3 = plt.subplot(gssub2[nFig+len(trials)])
+                    ax4 = plt.subplot(gssub2[nFig+2*len(trials)])
+                    ax5 = plt.subplot(gssub2[nFig+3*len(trials)])
+                    for i in range(4):
+                        #pdb.set_trace()
+                        pawSpeed = pawTracks[n][3][i]
+                        #print(n,i)
+                        #frDisplOrig = np.sqrt((np.diff(pawTracks[n][0][:,(i*3+1)][pawMask])) ** 2 + (np.diff(pawTracks[n][0][:,(i*3+2)][pawMask])) ** 2) / np.diff(pawTracks[n][0][:,0][pawMask]) # pawTracks[n][0][:,1]
+                        if i==0:
+                            ax2.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s' % pawTracks[n][2][i][0],c=cc[i])
+                        elif i==1:
+                            ax3.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s'% pawTracks[n][2][i][0],c=cc[i])
+                        elif i==2:
+                            ax4.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s'% pawTracks[n][2][i][0],c=cc[i])
+                        elif i==3:
+                            ax5.plot(pawSpeed[:,0],pawSpeed[:,1],label='%s'% pawTracks[n][2][i][0],c=cc[i])
+                    #ax0.axhline(y=0, c='0.6', ls='--')
+                    #ax1.plot(wheelTracks[n][2], wheelTracks[n][1], c='0.3')
 
-                if n == 0:
-                    self.layoutOfPanel(ax2, xLabel=None, yLabel=None,Leg=[1,9],xyInvisible=[True, False])
-                    self.layoutOfPanel(ax3, xLabel=None, yLabel=r'paw speed (px/s)',Leg=[1,9],xyInvisible=[True, False])
-                    self.layoutOfPanel(ax4, xLabel=None, yLabel=None,Leg=[1,9],xyInvisible=[True, False])
-                    self.layoutOfPanel(ax5, xLabel=r'time (s)', yLabel=None,Leg=[1,9])
-                else:
-                    self.layoutOfPanel(ax2, xLabel=None, yLabel=None, xyInvisible=[True, True])
-                    self.layoutOfPanel(ax3, xLabel=None, yLabel=None, xyInvisible=[True, True])
-                    self.layoutOfPanel(ax4, xLabel=None, yLabel=None, xyInvisible=[True, True])
-                    self.layoutOfPanel(ax5, xLabel=r'time (s)', yLabel=None,xyInvisible=[False,True])
-                ax2.set_xlim(0,30)
-                ax3.set_xlim(0,30)
-                ax4.set_xlim(0,30)
-                ax5.set_xlim(0,30)
-                oldRecStartTime = recStartTime
+                    if nFig == 0:
+                        self.layoutOfPanel(ax2, xLabel=None, yLabel=None,Leg=[1,9],xyInvisible=[True, False])
+                        self.layoutOfPanel(ax3, xLabel=None, yLabel=r'paw speed (px/s)',Leg=[1,9],xyInvisible=[True, False])
+                        self.layoutOfPanel(ax4, xLabel=None, yLabel=None,Leg=[1,9],xyInvisible=[True, False])
+                        self.layoutOfPanel(ax5, xLabel=r'time (s)', yLabel=None,Leg=[1,9])
+                    else:
+                        self.layoutOfPanel(ax2, xLabel=None, yLabel=None, xyInvisible=[True, True])
+                        self.layoutOfPanel(ax3, xLabel=None, yLabel=None, xyInvisible=[True, True])
+                        self.layoutOfPanel(ax4, xLabel=None, yLabel=None, xyInvisible=[True, True])
+                        self.layoutOfPanel(ax5, xLabel=r'time (s)', yLabel=None,xyInvisible=[False,True])
+                    ax2.set_xlim(0,30)
+                    ax3.set_xlim(0,30)
+                    ax4.set_xlim(0,30)
+                    ax5.set_xlim(0,30)
+                    oldRecStartTime = pawRecStartTime
+                    nFig+=1
 
             ## save figure ############################################################
             date = '2019.06.04'
