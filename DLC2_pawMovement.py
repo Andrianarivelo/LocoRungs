@@ -92,47 +92,57 @@ mouse_speed, mouse_time = dataAnalysis.getPawSpeed(recordingsM, mouse_tracks)
 #########################################################
 # Stance phases detection based on wheel and paw speed difference
 
-th = 14 # Speed threshold
-offsetStart = 3
-offsetEnd = 3
-paw_stance = []
-paw_speedDiff = []
-day=11
-sess=2
-for p in range(len(mouse_speed[day][sess])):
-    speedDiff = np.squeeze(np.diff([np.interp(mouse_time[day][sess][p], mouse_tracks[day][sess][1], mouse_tracks[day][sess][0]), mouse_speed[day][sess][p]*5], axis=0))
-    stancePhases = dataAnalysis.findStancePhases(speedDiff, th, 10, offsetStart, offsetEnd)
-    paw_stance.append(stancePhases)
-    paw_speedDiff.append(speedDiff)
+speedDiffThresh = 16  # Speed threshold, determine with variance
+thStance = 10
+thSwing = 0
+trailingStart = 3
+trailingEnd = 3
+mouse_swing = []
+mouse_speedDiff = []
+for day in range(len(recordingsM)):
+    day_swing = []
+    day_speedDiff = []
+    for sess in range(len(recordingsM[day])):
+        paw_swing = []
+        paw_speedDiff = []
+        for p in range(len(recordingsM[day][sess])):
+            speedDiff = np.squeeze(np.diff([np.interp(mouse_time[day][sess][p], mouse_tracks[day][sess][1], mouse_tracks[day][sess][0]), mouse_speed[day][sess][p]*5], axis=0))
+            swingIndices, swingPhases = dataAnalysis.findStancePhases(speedDiff, speedDiffThresh, thStance, thSwing, trailingStart, trailingEnd)
+            paw_swing.append((swingIndices, swingPhases))
+            paw_speedDiff.append(speedDiff)
+        day_swing.append(paw_swing)
+        day_speedDiff.append(paw_speedDiff)
+    mouse_swing.append(day_swing)
+    mouse_speedDiff.append(day_speedDiff)
 
-
-
+day = 0
+sess = 0
 plt.figure()
 plt.suptitle('Mouse:' + mouse + '; Day:' + foldersRecordings[day][0] + '; Session:' + foldersRecordings[day][2][sess+1])
 plt.subplot(2,1,1)
 plt.title('Stance and step phases detection during a recording session')
-plt.plot([0,30], [th,th], [0,30], [-th,-th], linestyle='--', c='0.5')
+plt.plot([0,30], [speedDiffThresh,speedDiffThresh], [0,30], [-speedDiffThresh,-speedDiffThresh], linestyle='--', c='0.5')
 # plt.text(0, 20, 'Threshold=%s' % th,fontsize=6 )
 # plt.text(0, -20, 'Threshold=%s' % -th,fontsize=6 )
-FR_paw, = plt.plot(mouse_time[day][sess][0][offsetStart:-(offsetEnd+1)], paw_speedDiff[0][offsetStart:-(offsetEnd+1)] , c='b', label='Front right paw')
-plt.plot(mouse_time[day][sess][0], paw_stance[0], c='slateblue')
-FL_paw, = plt.plot(mouse_time[day][sess][1][offsetStart:-(offsetEnd+1)], paw_speedDiff[1][offsetStart:-(offsetEnd+1)] , c='orange', label='Front left paw')
-plt.plot(mouse_time[day][sess][1], paw_stance[1], c='moccasin')
+FR_paw, = plt.plot(mouse_time[day][sess][0][trailingStart:-(trailingEnd+1)], mouse_speedDiff[day][sess][0][trailingStart:-(trailingEnd+1)] , c='b', label='Front right paw')
+plt.plot(mouse_time[day][sess][0], mouse_swing[day][sess][0][1], c='slateblue')
+# FL_paw, = plt.plot(mouse_time[day][sess][1][trailingStart:-(trailingEnd+1)], mouse_speedDiff[day][sess][1][trailingStart:-(trailingEnd+1)] , c='orange', label='Front left paw')
+# plt.plot(mouse_time[day][sess][1], mouse_swing[day][sess][1][1], c='moccasin')
 
 plt.xlabel('Time during recording session(s)')
 plt.ylabel('X speed difference between a paw and the wheel (a.u.)')
-plt.legend(handles=[FR_paw, FL_paw])
+plt.legend(handles=[FR_paw]) #, FL_paw])
 
 plt.subplot(2,1,2)
-plt.plot([0,30], [th,th], [0,30], [-th,-th], linestyle='--', c='0.5')
+plt.plot([0,30], [speedDiffThresh,speedDiffThresh], [0,30], [-speedDiffThresh,-speedDiffThresh], linestyle='--', c='0.5')
 # plt.text(0, 20, 'Threshold=%s' % th,fontsize=6 )
 # plt.text(0, -20, 'Threshold=%s' % -th,fontsize=6 )
-HR_paw, = plt.plot(mouse_time[day][sess][3][offsetStart:-(offsetEnd+1)], paw_speedDiff[3][offsetStart:-(offsetEnd+1)] , c='b', label='Hind right paw')
-plt.plot(mouse_time[day][sess][3], paw_stance[3], c='slateblue')
-HL_paw, = plt.plot(mouse_time[day][sess][2][offsetStart:-(offsetEnd+1)], paw_speedDiff[2][offsetStart:-(offsetEnd+1)] , c='orange', label='Hind left paw')
-plt.plot(mouse_time[day][sess][2], paw_stance[2], c='moccasin')
+HR_paw, = plt.plot(mouse_time[day][sess][3][trailingStart:-(trailingEnd+1)], mouse_speedDiff[day][sess][3][trailingStart:-(trailingEnd+1)] , c='b', label='Hind right paw')
+plt.plot(mouse_time[day][sess][3], mouse_swing[day][sess][3][1], c='slateblue')
+# HL_paw, = plt.plot(mouse_time[day][sess][2][trailingStart:-(trailingEnd+1)], mouse_speedDiff[day][sess][2][trailingStart:-(trailingEnd+1)] , c='orange', label='Hind left paw')
+# plt.plot(mouse_time[day][sess][2], mouse_swing[day][sess][2][1], c='moccasin')
 plt.ylabel('X speed difference between a paw and the wheel (a.u.)')
-plt.legend(handles=[HR_paw, HL_paw])
+plt.legend(handles=[HR_paw]) #, HL_paw])
 plt.show()
 #########################################################
 # Plots for multiple sessions

@@ -458,52 +458,10 @@ def getPawSpeed(recordingsM, mouse_tracks, showFig=True):
     return mouse_speed, mouse_time
 ##########################################################
 # Get average stride length and min/max values
-def getStrideandStep(recordingsM, showFig=True):
-    dist, wth = 35, 5
-    mouse_stride = []
-    mouse_peaks = []
-    mouse_peaks_inv = []
-    for d in range(len(recordingsM)):
-        day_stride = []
-        day_peaks = []
-        day_peaks_inv = []
-        for s in range(len(recordingsM[d])):
-            sess_stride = []
-            sess_peaks = []
-            sess_peaks_inv = []
-            for p in range(len(recordingsM[d][s])):
-                paw_peaks, _ = find_peaks(recordingsM[d][s][p][:, 0][(recordingsM[d][s][p][:, 2]>2160) & (recordingsM[d][s][p][:, 2]<4560)], distance=dist, width=wth)
-                paw_peaks_inv, _ = find_peaks(1/recordingsM[d][s][p][:, 0][(recordingsM[d][s][p][:, 2]>2160) & (recordingsM[d][s][p][:, 2]<4560)], distance=dist, width=wth)
-                sess_peaks.append((paw_peaks+recordingsM[d][s][p][:, 2][(recordingsM[d][s][p][:, 2]>2160)][0]).astype(int))
-                sess_peaks_inv.append((paw_peaks_inv+recordingsM[d][s][p][:, 2][(recordingsM[d][s][p][:, 2]>2160)][0]).astype(int))
-                sess_stride.append(abs(np.mean(recordingsM[d][s][p][:, 0][paw_peaks_inv]) - np.mean(recordingsM[d][s][p][:, 0][paw_peaks])))
-            day_stride.append(sess_stride)
-            day_peaks.append(sess_peaks)
-            day_peaks_inv.append(sess_peaks_inv)
-        mouse_stride.append(day_stride)
-        mouse_peaks.append(day_peaks)
-        mouse_peaks_inv.append(day_peaks_inv)
-    mouse_step = []
-    for d in range(len(recordingsM)):
-        day_step = []
-        for s in range(len(recordingsM[d])):
-            day_step.append([np.mean(recordingsM[d][s][0][:, 0][mouse_peaks[d][s][0]])-np.mean(recordingsM[d][s][1][:, 0][mouse_peaks[d][s][0]]), np.mean(recordingsM[d][s][1][:, 0][mouse_peaks[d][s][1]])-np.mean(recordingsM[d][s][0][:, 0][mouse_peaks[d][s][1]]), np.mean(recordingsM[d][s][2][:, 0][mouse_peaks[d][s][2]])-np.mean(recordingsM[d][s][3][:, 0][mouse_peaks[d][s][2]]), np.mean(recordingsM[d][s][3][:, 0][mouse_peaks[d][s][3]])-np.mean(recordingsM[d][s][2][:, 0][mouse_peaks[d][s][3]])])
-        mouse_step.append(day_step)
-
-    if showFig:
-        plt.figure()
-        for i in range(len(recordingsM[0][0])):
-            plt.subplot(1, 4, i + 1)
-            plt.plot(recordingsM[0][0][i][:, 0])
-            plt.plot(mouse_peaks[0][0][i], recordingsM[0][0][i][:, 0][mouse_peaks[0][0][i]], 'x')
-            plt.plot(mouse_peaks_inv[0][0][i], recordingsM[0][0][i][:, 0][mouse_peaks_inv[0][0][i]], 'o')
-        plt.show()
-
-    return mouse_step, mouse_stride, mouse_peaks, mouse_peaks_inv
 
 ##########################################################
 #
-def findStancePhases(speedDiff,speedDiffThresh,minLength,trailingStart,trailingEnd):
+def findStancePhases(speedDiff,speedDiffThresh,thStance, thSwing,trailingStart,trailingEnd, showFig=False):
     # determine regions during which the speed is different for more than xLength values
     thresholded = (speedDiff > -speedDiffThresh) & (speedDiff < speedDiffThresh)
     startStop = np.diff(np.arange(len(speedDiff))[thresholded]) > 1
@@ -511,11 +469,19 @@ def findStancePhases(speedDiff,speedDiffThresh,minLength,trailingStart,trailingE
     mmmStop = np.hstack((startStop, ([True])))
     startIdx = (np.arange(len(speedDiff))[thresholded])[mmmStart]
     stopIdx = (np.arange(len(speedDiff))[thresholded])[mmmStop]
-    minLengthThres = (stopIdx - startIdx) > minLength
-    startStance = startIdx[minLengthThres] + trailingStart
-    endStance = stopIdx[minLengthThres] - trailingEnd
-    stanceIndices = np.column_stack((startStance, endStance))
-    stancePhases = np.full(len(speedDiff), np.nan)
-    for i in range(len(stanceIndices)):
-        stancePhases[stanceIndices[i, 0]:stanceIndices[i, 1]] = speedDiff[stanceIndices[i, 0]:stanceIndices[i, 1]]
-    return stancePhases
+    minStanceLength = (stopIdx - startIdx) > thStance
+    startStance = startIdx[minStanceLength]
+    endStance = stopIdx[minStanceLength]
+    if startStance[0] == 0 or endStance[-1] == len(speedDiff)-1:
+        startStance = np.delete(startStance, 0)
+        endStance = np.delete(endStance, -1)
+
+    minSwingLength = (startStance - endStance) > thSwing # inversion because stance and swing are opposite
+    startSwing = endStance[minSwingLength]
+    endSwing = startStance[minSwingLength]
+    swingIndices = np.column_stack((startSwing-trailingStart, endSwing+trailingEnd))
+    swingPhases = np.full(len(speedDiff), np.nan)
+    for i in range(len(swingIndices)):
+        swingPhases[swingIndices[i, 0]:swingIndices[i, 1]] = speedDiff[swingIndices[i, 0]:swingIndices[i, 1]]
+
+    return swingIndices, swingPhases
