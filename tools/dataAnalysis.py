@@ -461,7 +461,7 @@ def getPawSpeed(recordingsM, mouse_tracks, showFig=True):
 
 ##########################################################
 #
-def findStancePhases(speedDiff,speedDiffThresh,thStance, thSwing,trailingStart,trailingEnd, showFig=False):
+def findStancePhases(speedDiff,speedDiffThresh,thStance, thSwing, trailingStart, trailingEnd, bounds):
     # determine regions during which the speed is different for more than xLength values
     thresholded = (speedDiff > -speedDiffThresh) & (speedDiff < speedDiffThresh)
     startStop = np.diff(np.arange(len(speedDiff))[thresholded]) > 1
@@ -472,16 +472,136 @@ def findStancePhases(speedDiff,speedDiffThresh,thStance, thSwing,trailingStart,t
     minStanceLength = (stopIdx - startIdx) > thStance
     startStance = startIdx[minStanceLength]
     endStance = stopIdx[minStanceLength]
-    if startStance[0] == 0 or endStance[-1] == len(speedDiff)-1:
-        startStance = np.delete(startStance, 0)
-        endStance = np.delete(endStance, -1)
+    stanceIndices = np.column_stack((startStance, endStance))
+    stanceIndices = stanceIndices[np.any(stanceIndices >= bounds[0], axis=1)]
+    stanceIndices = stanceIndices[~np.any(stanceIndices >= bounds[1], axis=1)]
+    stanceIndices[:, 0] = stanceIndices[:, 0] + trailingEnd
+    stanceIndices[:, 1] = stanceIndices[:, 1] - trailingStart
+    swingIndices = np.empty((0,2), int)
+    for i in range(len(startStance) - 1):
+        swingIndices = np.vstack((swingIndices, [endStance[i], startStance[i + 1]]))
 
-    minSwingLength = (startStance - endStance) > thSwing # inversion because stance and swing are opposite
-    startSwing = endStance[minSwingLength]
-    endSwing = startStance[minSwingLength]
-    swingIndices = np.column_stack((startSwing-trailingStart, endSwing+trailingEnd))
+    minSwingLength = (swingIndices[:, 1] - swingIndices[:, 0]) > thSwing
+    swingIndices = swingIndices[minSwingLength]
+    swingIndices = swingIndices[np.any(swingIndices>=bounds[0], axis=1)]
+    swingIndices = swingIndices[~np.any(swingIndices>=bounds[1], axis=1)]
+    swingIndices[:, 0] = swingIndices[:, 0]-trailingStart
+    swingIndices[:, 1] = swingIndices[:, 1]+trailingEnd
     swingPhases = np.full(len(speedDiff), np.nan)
     for i in range(len(swingIndices)):
         swingPhases[swingIndices[i, 0]:swingIndices[i, 1]] = speedDiff[swingIndices[i, 0]:swingIndices[i, 1]]
+    stancePhases = np.full(len(speedDiff), np.nan)
+    for i in range(len(stanceIndices)):
+        stancePhases[stanceIndices[i, 0]:stanceIndices[i, 1]] = speedDiff[stanceIndices[i, 0]:stanceIndices[i, 1]]
+    return swingIndices, swingPhases, stanceIndices, stancePhases
+##########################################################
+# Plot and/or save paw vs wheel speed difference figure
+def plotSpeedDiff(mouse, recday, session,mouse_time, mouse_speedDiff, mouse_swing, trailingStart, trailingEnd,speedDiffThresh, bounds, saveFig=False, showFig=False):
+    plt.ioff()
+    plt.figure(figsize=[19.20, 10.80])
+    plt.suptitle('Mouse:' + mouse + '; Day:' + recday + '; Session:' + session)
+    plt.subplot(2,1,1)
+    plt.title('Stance and step phases detection during a recording session')
+    plt.plot([0,30], [speedDiffThresh,speedDiffThresh], [0,30], [-speedDiffThresh,-speedDiffThresh], linestyle='--', c='0.5')
+    # plt.text(0, 20, 'Threshold=%s' % th,fontsize=6 )
+    # plt.text(0, -20, 'Threshold=%s' % -th,fontsize=6 )
+    FR_paw, = plt.plot(mouse_time[0][bounds[0]:bounds[1]][trailingStart:-(trailingEnd+1)], mouse_speedDiff[0][bounds[0]:bounds[1]][trailingStart:-(trailingEnd+1)] , c='b', label='Front right paw')
+    plt.plot(mouse_time[0][bounds[0]:bounds[1]], mouse_swing[0][1][bounds[0]:bounds[1]], c='slateblue')
+    FL_paw, = plt.plot(mouse_time[1][bounds[0]:bounds[1]][trailingStart:-(trailingEnd+1)], mouse_speedDiff[1][bounds[0]:bounds[1]][trailingStart:-(trailingEnd+1)] , c='orange', label='Front left paw')
+    plt.plot(mouse_time[1][bounds[0]:bounds[1]], mouse_swing[1][1][bounds[0]:bounds[1]], c='moccasin')
 
-    return swingIndices, swingPhases
+    plt.xlabel('Time during recording session(s)')
+    plt.ylabel('X speed difference between a paw and the wheel (a.u.)')
+    plt.legend(handles=[FR_paw, FL_paw])
+
+    plt.subplot(2,1,2)
+    plt.plot([0,30], [speedDiffThresh,speedDiffThresh], [0,30], [-speedDiffThresh,-speedDiffThresh], linestyle='--', c='0.5')
+    # plt.text(0, 20, 'Threshold=%s' % th,fontsize=6 )
+    # plt.text(0, -20, 'Threshold=%s' % -th,fontsize=6 )
+    HR_paw, = plt.plot(mouse_time[3][bounds[0]:bounds[1]][trailingStart:-(trailingEnd+1)], mouse_speedDiff[3][bounds[0]:bounds[1]][trailingStart:-(trailingEnd+1)] , c='b', label='Hind right paw')
+    plt.plot(mouse_time[3][bounds[0]:bounds[1]], mouse_swing[3][1][bounds[0]:bounds[1]], c='slateblue')
+    HL_paw, = plt.plot(mouse_time[2][bounds[0]:bounds[1]][trailingStart:-(trailingEnd+1)], mouse_speedDiff[2][bounds[0]:bounds[1]][trailingStart:-(trailingEnd+1)] , c='orange', label='Hind left paw')
+    plt.plot(mouse_time[2][bounds[0]:bounds[1]], mouse_swing[2][1][bounds[0]:bounds[1]], c='moccasin')
+    plt.xlabel('Time during recording session(s)')
+    plt.ylabel('X speed difference between a paw and the wheel (a.u.)')
+    plt.legend(handles=[HR_paw, HL_paw])
+    if saveFig:
+        plt.savefig('/media/HDnyc_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsFigures/%s/PawWheelSpeedDiff_fig/%s_%s.pdf' % (mouse, recday, session[:-4] + '_' + session[-3:]))
+    if showFig:
+        plt.show()
+    else:
+        plt.close()
+    plt.ion()
+##########################################################
+def plotHist(mouse_speedDiff, bounds, showHist=False, showStats=False):
+    speedProfile = []
+    if showHist:
+        plt.figure(figsize=[10.80,19.20])
+    a = [0,5,11]
+    for d in range(len(mouse_speedDiff)):
+        FR_profile = np.array([])
+        FL_profile = np.array([])
+        HL_profile = np.array([])
+        HR_profile = np.array([])
+        for s in range(len(mouse_speedDiff[d])):
+            FR_profile = np.concatenate((FR_profile, mouse_speedDiff[d][s][0][bounds[0]:bounds[1]]))
+            FL_profile = np.concatenate((FR_profile, mouse_speedDiff[d][s][1][bounds[0]:bounds[1]]))
+            HL_profile = np.concatenate((FR_profile, mouse_speedDiff[d][s][2][bounds[0]:bounds[1]]))
+            HR_profile = np.concatenate((FR_profile, mouse_speedDiff[d][s][3][bounds[0]:bounds[1]]))
+        speedProfile.append((FR_profile, FL_profile, HL_profile, HR_profile))
+        if showHist:
+            plt.subplot(len(mouse_speedDiff), 4, 4 * d + 1) #(3,1,a.index(d)+1)
+            plt.ylim((1, 24000))
+            plt.yscale('log')
+            plt.xlim(-100, 200)
+            plt.hist(FR_profile, bins=100)
+            plt.xlabel('Paw and wheel speed difference')
+            plt.ylabel('Frequency for 5 videos of sqme day')
+            plt.title('Day : %s' % (d + 1))
+            plt.axvline(FR_profile.mean(), color='k', linestyle='dashed')
+            plt.axvline(np.percentile(FR_profile, 5), color='0.5', linestyle=':')
+            plt.axvline(np.percentile(FR_profile, 95), color='0.5', linestyle=':')
+            if d == 0:
+                plt.title('Front right paw')
+
+            plt.subplot(len(mouse_speedDiff), 4, 4 * d + 2)
+            plt.ylim((1, 24000))
+            plt.yscale('log')
+            plt.xlim(-100, 200)
+            plt.hist(FL_profile, bins=100)
+            plt.axvline(FL_profile.mean(), color='k', linestyle='dashed')
+            plt.axvline(np.percentile(FL_profile, 5), color='0.5', linestyle=':')
+            plt.axvline(np.percentile(FL_profile, 95), color='0.5', linestyle=':')
+            if d == 0:
+                plt.title('Front left paw')
+
+            plt.subplot(len(mouse_speedDiff), 4, 4 * d + 3)
+            plt.hist(HL_profile, bins=100)
+            plt.ylim((1, 24000))
+            plt.yscale('log')
+            plt.xlim(-100, 200)
+            plt.axvline(HL_profile.mean(), color='k', linestyle='dashed')
+            plt.axvline(np.percentile(HL_profile, 5), color='0.5', linestyle=':')
+            plt.axvline(np.percentile(HL_profile, 95), color='0.5', linestyle=':')
+            if d == 0:
+                plt.title('Hind left paw')
+
+            plt.subplot(len(mouse_speedDiff), 4, 4 * d + 4)
+            plt.hist(HR_profile, bins=100)
+            plt.axvline(HR_profile.mean(), color='k', linestyle='dashed')
+            plt.axvline(np.percentile(HR_profile, 5), color='0.5', linestyle=':')
+            plt.axvline(np.percentile(HR_profile, 95), color='0.5', linestyle=':')
+            plt.ylim((1, 24000))
+            plt.yscale('log')
+            plt.xlim(-100, 200)
+            if d == 0:
+                plt.title('Hind right paw')
+
+        stats = np.empty((12,4,4))
+        for d in range(len(speedProfile)):
+            for p in range(len(speedProfile[d])):
+                stats[d, p, 0] = speedProfile[d][p].mean()
+                stats[d, p, 1] = np.median(speedProfile[d][p])
+                stats[d, p, 2] = np.percentile(speedProfile[d][p], 5)
+                stats[d, p, 3] = np.percentile(speedProfile[d][p], 95)
+    return stats
