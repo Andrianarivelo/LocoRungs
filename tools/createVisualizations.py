@@ -741,7 +741,7 @@ class createVisualizations:
         plt.savefig(fname + '.pdf')
 
     ##########################################################################################
-    def generateWheelPawCaCorrelationsImage(self, mouse, allCorrDataPerSession):
+    def generateCaWheelPawImage(self, mouse, allCorrDataPerSession):
 
         # exclude aborted recordings
         #allCorrDataPerSession[2][1][1][4] = True # 2019.03.08_000, second trial
@@ -831,14 +831,15 @@ class createVisualizations:
                             print('problem in trial order')
                             sys.exit(1)
                     ax1 = plt.subplot(gssub1[nFig])
-
-                    ax1.plot(wheelTracks[n][2],wheelTracks[n][1],c='0.6')
+                    ax1.axhline(y=0,c='0.7',ls='--')
+                    ax1.plot(wheelTracks[n][2],wheelTracks[n][1],c='0.4')
 
                     if nFig == 0:
                         self.layoutOfPanel(ax1, xLabel=r'time (s)', yLabel=r'wheel speed (cm/s)')
                     else:
                         self.layoutOfPanel(ax1, xLabel=r'time (s)', yLabel=None, xyInvisible=[False,True])
                     ax1.set_xlim(0,30)
+                    ax1.set_ylim(-10,30)
                     nFig+=1
                     oldRecStartTime = wheelRecStartTime
             # paw speed  ######################################################
@@ -895,12 +896,142 @@ class createVisualizations:
 
             ## save figure ############################################################
             date = '2019.06.04'
-            fname = self.determineFileName(allCorrDataPerSession[nSess][0], 'ca-walk-paw_correlation', date=None)
+            fname = self.determineFileName(allCorrDataPerSession[nSess][0], 'ca-walk-paw_dynamics', date=None)
 
             plt.savefig(fname + '.png')
             plt.savefig(fname + '.pdf')
 
             #pdb.set_trace()
+
+    ##########################################################################################
+    def generateCorrelationPlotsCaWheelPaw(self,mouse,correlationData, allCorrDataPerSession):
+
+        minMaxCa    = [1,-1]
+        minMaxWheel = [1,-1]
+        minMaxPaw   = [1,-1]
+        # find maxima and minima
+        for nSess in range(len(correlationData)):
+            if np.min(correlationData[nSess][1][:,3])<minMaxCa[0]:
+                minMaxCa[0]=np.min(correlationData[nSess][1][:,3])
+            if np.max(correlationData[nSess][1][:,3])>minMaxCa[1]:
+                minMaxCa[1]=np.max(correlationData[nSess][1][:,3])
+            if np.min(correlationData[nSess][2][:,1])<minMaxWheel[0]:
+                minMaxWheel[0]=np.min(correlationData[nSess][2][:,1])
+            if np.max(correlationData[nSess][2][:,1])>minMaxWheel[1]:
+                minMaxWheel[1]=np.max(correlationData[nSess][2][:,1])
+            for i in range(4):
+                if np.min(correlationData[nSess][3][:,2*i+1])<minMaxPaw[0]:
+                    minMaxPaw[0] =np.min(correlationData[nSess][3][:,2*i+1])
+                if np.max(correlationData[nSess][3][:,2*i+1])>minMaxPaw[1]:
+                    minMaxPaw[1]=np.max(correlationData[nSess][3][:,2*i+1])
+
+
+
+        # figure #################################
+        fig_width = 33  # width in inches
+        fig_height = 30  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14, 'axes.titlesize': 13, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(len(correlationData), 7,  # ,
+                               width_ratios=[1,1,0.8,0.8,0.8,0.8,0.8])
+                               #height_ratios=[10, 1, 3])
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.2)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.06, right=0.94, top=0.97, bottom=0.05)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.985, 'Correlations mouse : %s' % (mouse), clip_on=False, color='black', weight='bold', size=22)
+
+        # sessionCorrelations.append([nSess, ppCaTraces, corrWheel, corrPaws])
+
+        for nSess in range(len(correlationData)):
+            axList = []
+            for i in range(7):
+                ax=plt.subplot(gs[nSess*7+i])
+                axList.append(ax)
+            # ax0 = plt.subplot(gs[nSess*6])
+            # ax1 = plt.subplot(gs[nSess*6+1])
+            # ax2 = plt.subplot(gs[nSess*6+2])
+            # ax3 = plt.subplot(gs[nSess*6+3])
+            # ax4 = plt.subplot(gs[nSess*6+4])
+            # ax5 = plt.subplot(gs[nSess*6+5])
+            #trialStartUnixTimes = []
+
+            # inter ca-trace correlations #######################################################
+            axList[0].axvline(x=0,ls='--',c='0.6')
+            axList[0].hist(correlationData[nSess][1][:,3],bins=100,range=[minMaxCa[0],minMaxCa[1]])
+
+            # ca-trace wheel correlations #######################################################
+            axList[1].axvline(x=0,ls='--',c='0.6')
+            axList[1].hist(correlationData[nSess][2][:,1],bins=20,range=[minMaxWheel[0],minMaxWheel[1]])
+
+            # ca-trace paw correlations #######################################################
+            for i in range(4):
+                axList[i+2].axvline(x=0, ls='--', c='0.6')
+                axList[i+2].hist(correlationData[nSess][3][:,2*i+1],bins=20,range=[minMaxPaw[0],minMaxPaw[1]])
+
+            sortedPawCorrs = []
+            for j in range(len(correlationData[nSess][3])):
+                soso = np.sort(correlationData[nSess][3][j,[1,3,5,7]])
+                axList[6].plot(np.arange(4),soso-soso[0],'o-',lw=0.5)
+                sortedPawCorrs.append(soso)
+            sortPawCorrs = np.asarray(sortedPawCorrs)
+            axList[6].plot(np.arange(4),np.mean(sortPawCorrs,axis=0)-np.mean(sortPawCorrs,axis=0)[0],'o-',c='black',lw=2)
+            for i in range(3):
+                print('paired t-test [%s,%s] : ' % (i,(i+1)), scipy.stats.ttest_rel(sortPawCorrs[:,i],sortPawCorrs[:,(i+1)]))
+
+
+
+            # layout settings
+            if nSess==0:
+                axList[0].set_title('pairwise ca-traces')
+                axList[1].set_title('wheel speed - ca-traces')
+                for i in range(4):
+                    axList[i+2].set_title('paw speed - ca-traces')
+                # ax2.set_title('paw speed - ca-traces')
+                # ax3.set_title('paw speed - ca-traces')
+                # ax4.set_title('paw speed - ca-traces')
+                # ax5.set_title('paw speed - ca-traces')
+                axList[6].set_title('wheel speed - ca-traces : ordered')
+
+            if nSess < (len(correlationData)-1):
+                for i in range(6):
+                    self.layoutOfPanel(axList[i], xLabel=None, yLabel=('%s\nnumber of pairs' % allCorrDataPerSession[nSess][0] if i==0 else None), xyInvisible=[False, False])
+                self.layoutOfPanel(axList[6], xLabel=None, yLabel='diff in correlation', xyInvisible=[False, False])
+            else:
+                for i in range(6):
+                    self.layoutOfPanel(axList[i], xLabel=r'correlation', yLabel=('%s\nnumber of pairs' % allCorrDataPerSession[nSess][0] if i==0 else None))
+                self.layoutOfPanel(axList[6], xLabel='ordered paws', yLabel='diff in correlation', xyInvisible=[False, False])
+
+
+
+        ## save figure ############################################################
+        date = '2019.06.16'
+        fname = self.determineFileName(date, 'correlations_ca-walk-paw', date=None)
+
+        plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+
+            #pdb.set_trace()
+
 
     ##########################################################################################
     def generateWalkCaCorrelationsImage(self, date, rec, img, ttime, rois, raw_signals, imageMetaInfo, motionCoordinates,angluarSpeed, linearSpeed, sTimes, timeStamp, monitor):

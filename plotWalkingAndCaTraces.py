@@ -13,8 +13,8 @@ import tools.parameters as pas
 
 mouseD = '190101_f15' # id of the mouse to analyze
 #mouseD = '190108_m24'
-expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='all'     # 'all or 'some'
+expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='some'     # 'all or 'some'
 
 readDataAgain = False
 
@@ -76,6 +76,7 @@ else:
 #pdb.set_trace()
 # generate overview figure for animal
 correlationData = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
-pdb.set_trace()
-cV.generateWheelPawCaCorrelationsImage(mouse,allCorrDataPerSession)
+#pdb.set_trace()
+cV.generateCaWheelPawImage(mouse,allCorrDataPerSession)
+cV.generateCorrelationPlotsCaWheelPaw(mouse,correlationData,allCorrDataPerSession)
 
