@@ -9,8 +9,8 @@ import tools.openCVImageProcessingTools as openCVImageProcessingTools
 import pdb
 
 mouseD = '190101_f15'
-expDateD = 'some' # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='some' # 'all or 'some'
+expDateD = 'all' # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='all' # 'all or 'some'
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -35,9 +35,8 @@ cv2Tools = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLoc
 for f in range(len(foldersRecordings)) :
     # loop over all recordings in that folder
     for r in range(len(foldersRecordings[f][2])): # for r in recordings[f][1]:
-        #print foldersRecordings[f][2][r]
-        (existenceFrames,FramesFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
-        (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r])
+        (existenceFrames,FramesFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '/' +foldersRecordings[f][2][r][-3:],'CameraGigEBehavior')
+        (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '-' +foldersRecordings[f][2][r][-3:])
         if existenceFrames and existencePawPos:
             (pawPositions,pawMetaData) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'pawTraces',PawFileHandle)
             pawTrackingOutliers = dataAnalysis.detectPawTrackingOutlies(pawPositions,pawMetaData,showFig=True)
@@ -45,3 +44,4 @@ for f in range(len(foldersRecordings)) :
             #pdb.set_trace()
             eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],pawPositions,pawTrackingOutliers,pawMetaData,expStartTime, expEndTime,startTime,generateVideo=False)
         #pdb.set_trace()
+

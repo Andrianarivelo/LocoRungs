@@ -8,6 +8,7 @@ import tools.dataAnalysis as dataAnalysis
 import pdb
 import sys
 
+
 #mouseD = '190101_f15' # id of the mouse to analyze
 mouseD = '190108_m24'
 expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
@@ -52,5 +53,5 @@ for f in range(len(foldersRecordings)):
             (exposureArray,arrayTimes) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes',fileHandleFTimes)
             (expStartTime,expEndTime,framesDuringRecording) = dataAnalysis.determineFrameTimes(exposureArray[0],arrayTimes,frames,rec=foldersRecordings[f][2][r])
         # save data
-        if existenceFrames and existenceFTimes:
-            eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
+        # if existenceFrames and existenceFTimes:
+            # eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)

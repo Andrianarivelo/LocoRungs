@@ -60,7 +60,11 @@ class extractSaveData:
             self.dataBase +=  'altair_data/dataMichael/'
         else:
             self.dataBase += 'altair_data/experiments/data_Michael/acq4/'
-        self.dataBase2 += 'altair_data/dataMichael/'
+
+        if int(mouse[:6]) == 190409 :
+            self.dataBase2 += 'behaviorPC_data/dataMichael/'
+        else:
+            self.dataBase2 += 'altair_data/dataMichael/'
 
         self.analysisLocation = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsData/%s/' % mouse
         self.figureLocation   = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsFigures/%s/' % mouse
@@ -223,6 +227,7 @@ class extractSaveData:
                 print('Choose the recordings for analysis by typing the index, e.g, \'1\', or \'0,1,3,5\' : ', end='')
                 recInput = input()
                 recInputIdx = [int(i) for i in recInput.split(',')]
+            #
             #pdb.set_trace()
             # then compile a list the selected recordings
             recIdx = 0
@@ -243,9 +248,9 @@ class extractSaveData:
                             # only add recordings which were previously selected
                             if recIdx in recInputIdx:
                                 if r[:-4] == 'locomotionTriggerSIAndMotor':
-                                    subFolders = self.getDirectories(self.dataLocation+'/'+r)
+                                    subFolders = self.getDirectories(self.dataLocation + '/' + r)
                                     for i in range(len(subFolders)):
-                                        tempRecList.append(r+'/'+subFolders[i])
+                                        tempRecList.append(r + '/' + subFolders[i])
                                 else:
                                     tempRecList.append(r)
                             recIdx += 1
@@ -456,6 +461,14 @@ class extractSaveData:
         expStartTime = self.f[grpName+'/startExposure'][()]
         expEndTime = self.f[grpName+'/endExposure'][()]
         return (firstLastFrames, expStartTime, expEndTime,startTime)
+
+    ############################################################
+    def getBehaviorVideoData(self, groupNames):
+        (grpName, test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+        print(grpName)
+        startExposure = self.f[grpName + '/startExposure'][()]
+        endExposure = self.f[grpName + '/endExposure'][()]
+        return (startExposure, endExposure)
 
     ############################################################
     def saveImageStack(self,frames,fTimes,imageMetaInfo,groupNames,motionCorrection=[]):
