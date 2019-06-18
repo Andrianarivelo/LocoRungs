@@ -10,10 +10,8 @@ import scipy.ndimage
 import itertools
 from scipy.interpolate import interp1d
 
-from matplotlib import rcParams
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import matplotlib.cm as cm
+
 
 
 def getSpeed(angles,times,circumsphere):
@@ -364,97 +362,14 @@ def applyImageNormalizationMask(frames,imageMetaInfo,normFrame,normImageMetaInfo
     #pdb.set_trace()
     return norm8bit
 
-##########################################################################################
-def layoutOfPanel(ax,xLabel=None,yLabel=None,Leg=None,xyInvisible=[False,False]):
-
-
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    #
-    if xyInvisible[0]:
-        ax.spines['bottom'].set_visible(False)
-        ax.xaxis.set_visible(False)
-    else:
-        ax.spines['bottom'].set_position(('outward', 10))
-        ax.xaxis.set_ticks_position('bottom')
-    #
-    if xyInvisible[1]:
-        ax.spines['left'].set_visible(False)
-        ax.yaxis.set_visible(False)
-    else:
-        ax.spines['left'].set_position(('outward', 10))
-        ax.yaxis.set_ticks_position('left')
-
-
-    if xLabel != None :
-        ax.set_xlabel(xLabel)
-
-    if yLabel != None :
-        ax.set_ylabel(yLabel)
-
-    if Leg != None :
-        ax.legend(loc=Leg[0], frameon=False)
-        if len(Leg)>1 :
-            legend = ax.get_legend()  # plt.gca().get_legend()
-            ltext = legend.get_texts()
-            plt.setp(ltext, fontsize=Leg[1])
 
 #################################################################################
 # detect spikes in ephys trace
 #################################################################################
-def detectPawTrackingOutlies(pawTraces,pawMetaData,showFig=True):
+def detectPawTrackingOutlies(pawTraces,pawMetaData):
     jointNames = pawMetaData['data']['DLC-model-config file']['all_joints_names']
     threshold = 60
 
-    #fig = plt.figure(figsize=(11, 11))
-    #ax0 = fig.add_subplot(3, 2, 1)
-    #ax1 = fig.add_subplot(3, 2, 3)
-    # figure #################################
-    fig_width = 11  # width in inches
-    fig_height = 16  # height in inches
-    fig_size = [fig_width, fig_height]
-    params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
-              'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
-              'xtick.major.size': 4  # major tick size in points
-              # 'edgecolor' : None
-              # 'xtick.major.size' : 2,
-              # 'ytick.major.size' : 2,
-              }
-    rcParams.update(params)
-
-    # set sans-serif font to Arial
-    rcParams['font.sans-serif'] = 'Arial'
-
-    # create figure instance
-    fig = plt.figure()
-
-    # define sub-panel grid and possibly width and height ratios
-    gs = gridspec.GridSpec(5,1,  # ,
-                           # width_ratios=[1.2,1]
-                           height_ratios=[1,1,1,1,4]
-                           )
-
-    # define vertical and horizontal spacing between panels
-    gs.update(wspace=0.3, hspace=0.2)
-
-    # possibly change outer margins of the figure
-    plt.subplots_adjust(left=0.1, right=0.95, top=0.96, bottom=0.05)
-
-    # sub-panel enumerations
-    # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
-
-    # first sub-plot #######################################################
-    gsList = []
-    axList = []
-    for i in range(4):
-        gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[i], hspace=0.2)
-        gsList.append(gssub)
-        ax0 = plt.subplot(gssub[0])
-        ax1 = plt.subplot(gssub[1])
-        axList.append([ax0,ax1])
-    ax4 = plt.subplot(gs[4])
-
-    ccc = ['C0','C1','C2','C3']
     #pdb.set_trace()
     def findOutliersBasedOnMaxSpeed(onePawData,jointName,i): # should be an 3 column array frame#, x, y
         frDisplOrig = np.sqrt((np.diff(onePawData[:, 1])) ** 2 + (np.diff(onePawData[:, 2])) ** 2) / np.diff(onePawData[:, 0])
@@ -476,60 +391,13 @@ def detectPawTrackingOutlies(pawTraces,pawMetaData,showFig=True):
 
         print('%s # of positions, # of detected mis-trackings, fraction : ' % (jointName), len(onePawData), len(onePawData) - len(onePawDataTmp), (len(onePawData) - len(onePawDataTmp)) / len(onePawData))
         #pdb.set_trace()
-        if showFig:
 
-            #fig.set_title(jointName)
-
-            axList[i][0].plot(onePawData[:, 0], onePawData[:,1], c='0.5')
-            axList[i][0].plot(onePawDataTmp[:, 0], onePawDataTmp[:, 1],c=ccc[i])
-            if i==3:
-                layoutOfPanel(axList[i][0],xLabel='frame number',yLabel='x (pixel)')
-            else:
-                layoutOfPanel(axList[i][0], xLabel=None, yLabel='x (pixel)',xyInvisible=[True,False])
-            #ax0.set_ylabel('x (pixel)')
-
-
-            axList[i][1].plot(onePawData[:, 0], onePawData[:, 2], c='0.5')
-            axList[i][1].plot(onePawDataTmp[:, 0], onePawDataTmp[:, 2],c=ccc[i])
-            if i==3:
-                layoutOfPanel(axList[i][1], xLabel='frame number', yLabel='y (pixel)')
-            else:
-                layoutOfPanel(axList[i][1], xLabel=None, yLabel='y (pixel)',xyInvisible=[True,False])
-            #ax1.set_ylabel('y (pixel)')
-
-            #ax2 = fig.add_subplot(3, 2, 2)
-            ax4.plot(onePawData[:, 1], onePawData[:,2], c='0.5')
-            ax4.plot(onePawDataTmp[:, 1], onePawDataTmp[:,2],c=ccc[i],label='%s' % jointName)
-            layoutOfPanel(ax4, xLabel='x (pixel)', yLabel='y (pixel)',Leg=[1,9])
-            #ax2.set_xlabel('x (pixel)')
-            #ax2.set_ylabel('y (pixel)')
-
-            # ax3 = fig.add_subplot(3, 2, 4)
-            # ax3.plot(onePawData[:-1, 0], frDisplOrig, c='0.5')
-            # ax3.plot(onePawDataTmp[:-1, 0], frDispl, c='C0')
-            # ax3.set_xlabel('frame #')
-            # ax3.set_ylabel('movement speed (pixel/frame)')
-            #
-            # ax4 = fig.add_subplot(3, 2, 5)
-            # ax4.hist(frDisplOrig, bins=300, color='0.5')
-            # ax4.hist(frDispl, bins=300, range=(min(frDisplOrig), max(frDisplOrig)))
-            # ax4.set_xlabel('displacement (pixel)')
-            # ax4.set_ylabel('occurrence')
-            # ax4.set_yscale('log')
-
-
-
-
-
-        return (len(onePawData),len(onePawDataTmp),onePawIndicies)
+        return (len(onePawData),len(onePawDataTmp),onePawIndicies,onePawData,onePawDataTmp,frDispl,frDisplOrig)
 
     pawTrackingOutliers = []
     for i in range(4):
-        (tot,correct,correctIndicies) = findOutliersBasedOnMaxSpeed(np.column_stack((pawTraces[:,0],pawTraces[:,(i*3+1)],pawTraces[:,(i*3+2)])),jointNames[i],i)
-        pawTrackingOutliers.append([i,tot,correct,correctIndicies])
-    plt.savefig('paw_trajectories.png')
-    plt.savefig('paw_trajectories.pdf')
-    plt.show()
+        (tot,correct,correctIndicies,onePawData,onePawDataTmp,frDispl,frDisplOrig) = findOutliersBasedOnMaxSpeed(np.column_stack((pawTraces[:,0],pawTraces[:,(i*3+1)],pawTraces[:,(i*3+2)])),jointNames[i],i)
+        pawTrackingOutliers.append([i,tot,correct,correctIndicies,jointNames[i],onePawData,onePawDataTmp,frDispl,frDisplOrig])
     return pawTrackingOutliers
     #pdb.set_trace()
 
@@ -749,6 +617,7 @@ def findStancePhases(speedDiff,speedDiffThresh,thStance, thSwing, trailingStart,
 ##########################################################
 # Plot and/or save paw vs wheel speed difference figure
 def plotSpeedDiff(mouse, recday, session,mouse_time, mouse_speedDiff, mouse_swing, trailingStart, trailingEnd,speedDiffThresh, bounds, saveFig=False, showFig=False):
+
     plt.ioff()
     plt.figure(figsize=[19.20, 10.80])
     plt.suptitle('Mouse:' + mouse + '; Day:' + recday + '; Session:' + session)
