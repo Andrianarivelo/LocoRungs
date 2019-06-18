@@ -3354,6 +3354,7 @@ class createVisualizations:
                 self.layoutOfPanel(axList[i][1], xLabel='frame number', yLabel='y (pixel)')
             else:
                 self.layoutOfPanel(axList[i][1], xLabel=None, yLabel='y (pixel)', xyInvisible=[True, False])
+            axList[i][1].invert_yaxis()
             # ax1.set_ylabel('y (pixel)')
 
             axList[i][2].plot(onePawData[:-1, 0], frDisplOrig, c='0.5')
@@ -3392,6 +3393,7 @@ class createVisualizations:
             # ax4.set_yscale('log')
 
         ## save figure ############################################################
+        ax4.invert_yaxis()
         rec = rec.replace('/','-')
         fname = self.determineFileName(rec, what='paw_trajectory',date=date)
         # plt.savefig(fname + '.png')
