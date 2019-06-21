@@ -69,7 +69,7 @@ class createVisualizations:
     ##########################################################################################
     def determineFileName(self,reco,what=None,date=None):
         if (what is None) and (date is None):
-            ff = self.figureDirectory + '%s' % (rec)
+            ff = self.figureDirectory + '%s' % (reco)
         elif date is None:
             ff = self.figureDirectory + '%s_%s' % (reco,what)
         else:
@@ -3396,6 +3396,88 @@ class createVisualizations:
         ax4.invert_yaxis()
         rec = rec.replace('/','-')
         fname = self.determineFileName(rec, what='paw_trajectory',date=date)
+        # plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+        #plt.show()
+
+    ##########################################################################################
+    def createSwingStanceFigure(self,recs):
+
+        summary = []
+        stepDuration = []
+        nDays = len(recs)
+        lpaw = ['FR','FL','HL','HR']
+        print('number of days',nDays)
+        for n in range(nDays):
+            totalSteps = [[],[],[],[]]
+            stepDuration.append([0,0,0,0])
+            summary.append([0,0,0,0])
+            #pdb.set_trace()
+            print('number of recordings : ',len(recs[n][4]))
+            for j in range(len(recs[n][4])):
+                for i in range(4):
+                    #pdb.set_trace()
+                    #print(len(recs[n][4][j][3][i][1]))
+                    idxL = recs[n][4][j][3][i][1]
+                    idxA = np.asarray(idxL)
+                    summary[-1][i] += len(idxA)/len(recs[n][4])
+                    stepDuration[-1][i] += np.mean(idxA[:,1]-idxA[:,0])
+        sumA = np.asarray(summary)
+        stepDA = np.asarray(stepDuration)
+        #pdb.set_trace()
+        # fig = plt.figure(figsize=(11, 11))
+        # ax0 = fig.add_subplot(3, 2, 1)
+        # ax1 = fig.add_subplot(3, 2, 3)
+        # figure #################################
+        fig_width = 8  # width in inches
+        fig_height = 10  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(4, 1,  # ,
+                               # width_ratios=[1.2,1]
+                               #height_ratios=[1, 1, 1, 1, 4])
+                               )
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.25)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.12, right=0.9, top=0.92, bottom=0.05)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.96, '%s, %s days of recordings' % (self.mouse, len(recs)), clip_on=False, color='black', size=14)
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+        # first sub-plot #######################################################
+        ax0 = plt.subplot(gs[0])
+        for i in range(4):
+            ax0.plot(np.arange(nDays)+1, sumA[:, i],'o-',label=lpaw[i])
+
+        self.layoutOfPanel(ax0, xLabel=None, yLabel='average steps during trial',Leg=[1,9])
+
+        # second sub-plot #######################################################
+        ax1 = plt.subplot(gs[1])
+        for i in range(4):
+            ax1.plot(np.arange(nDays) + 1, stepDA[:, i], 'o-')
+
+        self.layoutOfPanel(ax1, xLabel='recording sessions', yLabel='average duration of steps')
+
+        #rec = rec.replace('/','-')
+        fname = self.determineFileName(self.mouse, what='swing_stance')
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
         #plt.show()

@@ -40,7 +40,6 @@ eSD = extractSaveData.extractSaveData(mouse)
 cV = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
 if os.path.isfile(eSD.analysisLocation + '/allDataPerSession.p') and not readDataAgain:
-    pass
     allCorrDataPerSession = pickle.load( open( eSD.analysisLocation + '/allCorrDataPerSession.p', 'rb' ) )
 else:
     allCorrDataPerSession = []
