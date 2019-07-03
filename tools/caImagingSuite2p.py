@@ -28,17 +28,22 @@ class caImagingSuite2p:
         print('suite2p : on exit')
 
     ############################################################
-    def setSuite2pParameters(self,dataDir,saveDir,tiffPaths):
+    def setSuite2pParameters(self,dataDir,saveDir,tiffPaths=None):
         #fName = dataDir + '*.tif'
         #tiffsList = glob.glob(fName)
         # only run on specified tiffs
-        tiffList = [tP.split('/')[-1] for tP in tiffPaths]
-        print(dataDir,saveDir,tiffList)
+        if tiffPaths is not None:
+            tiffList = [tP.split('/')[-1] for tP in tiffPaths]
+
+            print(dataDir,saveDir,tiffList)
+        else:
+            print(dataDir,saveDir)
+            tiffList = []
         self.db = {
               'h5py': [], # a single h5 file path
               'h5py_key': 'caData',
               'look_one_level_down': False, # whether to look in ALL subfolders when searching for tiffs
-              'data_path': [dataDir],
+              'data_path': dataDir,
                                     # a list of folders with tiffs
                                     # (or folder of folders with tiffs if look_one_level_down is True, or subfolders is not empty)
 

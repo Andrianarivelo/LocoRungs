@@ -60,18 +60,22 @@ else:
             # read paw data
             (camExistence, camFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'CameraGigEBehavior')
             if camExistence:
-                (rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime,rawPawSpeed) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r])
-                pawTracks.append([rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime])
+                (rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime,rawPawSpeed,pawPos) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r])
+                pawTracks.append([rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime, pawPos])
                 rungPositions = eSD.getRungMotionData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r])
                 rungMotion.append([mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],rungPositions])
 
             if rotaryExistence and camExistence:
-                swingP = dataAnalysis.findStancePhases(tracks[-1],pawTracks[-1],rungMotion[-1])
+                (swingP,forFit) = dataAnalysis.findStancePhases(tracks[-1],pawTracks[-1],rungMotion[-1],showFigFit=False,showFigPaw=False)
                 #pdb.set_trace()
                 print(len(swingP[0][1]),len(swingP[1][1]),len(swingP[2][1]),len(swingP[3][1]))
-                swingPhases.append([mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],swingP])
+                swingPhases.append([mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],swingP,forFit])
 
         recordingsM.append([foldersRecordings[f][0],tracks,pawTracks,rungMotion,swingPhases])
     pickle.dump(recordingsM, open(eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'wb'))  # eSD.analysisLocation,
 
-cV.createSwingStanceFigure(recordingsM)
+#cV.createSwingStanceFigure(recordingsM)
+#cV.createSwingTraceFigure(recordingsM,linear=False)
+cV.createSwingTraceFigure(recordingsM,linear=True)
+cV.createSwingSpeedProfileFigure(recordingsM,linear=False)
+cV.createRungCrossingFigure(recordingsM)

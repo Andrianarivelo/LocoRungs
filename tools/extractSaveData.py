@@ -641,6 +641,7 @@ class extractSaveData:
         jointNamesFramesInfo = []
         pawSpeed = []
         rawPawSpeed = []
+        cPawPos = []
         for i in range(4):
             pTTemp = self.f[grpName+'/pawTrackingOutliers%s'%i][()]
             pawTrackingOutliers.append(pTTemp)
@@ -648,12 +649,14 @@ class extractSaveData:
             jointNamesFramesInfo.append(jNTemp)
             pStemp = self.f[grpName+'/clearedPawSpeed%s'%i][()]
             pawSpeed.append(pStemp)
+            pPPtemp = self.f[grpName+'/clearedXYPos%s'%i][()]
+            cPawPos.append(pPPtemp)
             rPStemp = self.f[grpName + '/rawPawSpeed%s' % i][()]
             rawPawSpeed.append(rPStemp)
             if i == 0:
                 recStartTime = self.f[grpName+'/clearedPawSpeed%s'%i].attrs['recStartTime']
 
-        return (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime,rawPawSpeed)
+        return (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime,rawPawSpeed,cPawPos)
 
     ############################################################
     def savePawTrackingData(self,mouse, date, rec, pawPositions,pawTrackingOutliers,pawMetaData,expStartTime, expEndTime,startTime,generateVideo=True):
@@ -669,6 +672,7 @@ class extractSaveData:
         timeArray = (expStartTime + expEndTime)/2.
         for i in range(4):
             pawMask = pawTrackingOutliers[i][3]
+            #pdb.set_trace()
             rawPawSpeed = np.sqrt((np.diff(pawPositions[:, (i*3+1)])) ** 2 + (np.diff(pawPositions[:, (i*3+2)])) ** 2) / np.diff(timeArray)
             rawSpeedTime = (timeArray[:-1]+timeArray[1:])/2.
             clearedPawSpeed = np.sqrt((np.diff(pawPositions[:, (i*3+1)][pawMask])) ** 2 + (np.diff(pawPositions[:, (i*3+2)][pawMask])) ** 2) / np.diff(timeArray[pawMask])
@@ -676,10 +680,12 @@ class extractSaveData:
             clearedPawYSpeed = np.diff(pawPositions[:, (i*3+2)][pawMask]) / np.diff(timeArray[pawMask])
             clearedSpeedTime = (timeArray[pawMask][:-1]+timeArray[pawMask][1:])/2.
             clearedPosIdx = np.arange(len(pawPositions))[pawMask]
+            clearedXYPos  = np.column_stack((timeArray[pawMask],pawPositions[:, (i*3+1)][pawMask],pawPositions[:, (i*3+2)][pawMask],clearedPosIdx))
             clearedSpeedIdx = np.array((clearedPosIdx[:-1]+clearedPosIdx[1:])/2.,dtype=int)
             self.h5pyTools.createOverwriteDS(grpHandle,'pawTrackingOutliers%s'%i, pawTrackingOutliers[i][3],['PawID',[jointNames[i],pawTrackingOutliers[i][1],pawTrackingOutliers[i][2]]])
             self.h5pyTools.createOverwriteDS(grpHandle,'rawPawSpeed%s'%i, np.column_stack((rawSpeedTime,rawPawSpeed)),['recStartTime',startTime])
             self.h5pyTools.createOverwriteDS(grpHandle,'clearedPawSpeed%s'%i, np.column_stack((clearedSpeedTime,clearedPawSpeed,clearedPawXSpeed,clearedPawYSpeed,clearedSpeedIdx)),['recStartTime',startTime])
+            self.h5pyTools.createOverwriteDS(grpHandle,'clearedXYPos%s'%i, clearedXYPos)
             #pdb.set_trace()
         if generateVideo:
             fps = 80

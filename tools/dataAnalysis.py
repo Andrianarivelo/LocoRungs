@@ -586,12 +586,9 @@ def calculateDistanceBtwLineAndPoint(x1,y1,x2,y2,x0,y0):
 
 ##########################################################
 # (tracks,pawTracks,stanceSwingsParams)
-def findStancePhases(tracks, pawTracks,rungMotion) :
+def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=False) :
 
-    showFigFit = False # False
-    showFigPaw = False
-
-    speedDiffThresh = 10  # cm/s Speed threshold, determine with variance
+    speedDiffThresh = 5  # cm/s Speed threshold, determine with variance
     minimalLengthOfSwing = 3 # number of frames @ 200 Hz
     thStance = 10
     thSwing = 2
@@ -604,12 +601,17 @@ def findStancePhases(tracks, pawTracks,rungMotion) :
     # guess some fit parameters
     p0 = 0.025
     # calculate wheel speed at the frame times : requires interpolation of the wheel speed
+    interpAngle = interp1d(tracks[5][:,0],tracks[5][:,1])
     interp = interp1d(tracks[2], -tracks[1])
     forFit = []
     for i in range(4):
         mask = ((pawTracks[3][i][:,0])>=min(tracks[2])) & ((pawTracks[3][i][:,0])<=max(tracks[2]))
         newWheelSpeedAtPawTimes = interp(pawTracks[3][i][:,0][mask])
-        forFit.append([newWheelSpeedAtPawTimes, pawTracks[3][i][:,2][mask],pawTracks[3][i][:,0][mask],mask,np.array(pawTracks[3][i][:,4][mask],dtype=int)])
+        #
+        maskAngle = ((pawTracks[5][i][:,0])>=min(tracks[5][:,0])) & ((pawTracks[5][i][:,0])<=max(tracks[5][:,0]))
+        newWheelAngleAtPawTimes = interpAngle(pawTracks[5][i][:,0][maskAngle])
+        newX  = (pawTracks[5][i][:,1][maskAngle])*0.025 + (newWheelAngleAtPawTimes*80./360.) - (pawTracks[5][i][:,1][maskAngle][0])*0.025
+        forFit.append([newWheelSpeedAtPawTimes, pawTracks[3][i][:,2][mask],pawTracks[3][i][:,0][mask],mask,np.array(pawTracks[3][i][:,4][mask],dtype=int),np.column_stack((pawTracks[5][i][:,0][maskAngle],newX))])
 
     (p1, success) = scipy.optimize.leastsq(errfunc, p0 ,args=(forFit[0][0],forFit[0][1],forFit[1][0],forFit[1][1],forFit[2][0],forFit[2][1],forFit[3][0],forFit[3][1]))
     print('fit parameter : ', p1)
@@ -649,9 +651,9 @@ def findStancePhases(tracks, pawTracks,rungMotion) :
 
     ##############################################################################################################
     # determine regions during which the speed is different for more than xLength values #########################
-    stanceDistances = [[18, 33],[10,33],[-4,33],[-4,40]]
+    stanceDistances = [[10, 40],[10,40],[-4,40],[-4,40]]
     swingPhases = []
-    fig = plt.figure()
+
     for i in range(4):
         #pdb.set_trace()
         print(pawTracks[2][i])
@@ -667,7 +669,7 @@ def findStancePhases(tracks, pawTracks,rungMotion) :
         # return np.column_stack((startStep, endStep))
         ##
         speedDiff = (forFit[i][0] - forFit[i][1]*p1)
-        thresholded = abs(speedDiff) > speedDiffThresh
+        thresholded = np.abs(speedDiff) > speedDiffThresh
         startStop = np.diff(forFit[i][4][thresholded]) > 1 # use indices taking into account missed frames
         mmmStart = np.hstack((([True]), startStop))
         mmmStop = np.hstack((startStop, ([True])))
@@ -687,62 +689,132 @@ def findStancePhases(tracks, pawTracks,rungMotion) :
                 cleanedSwingIndicies.append([sttart,ennd])
                 if (cleanedSwingIndicies[-1][1]-cleanedSwingIndicies[-1][0])< minimalLengthOfSwing :# remove short swing phases
                     del cleanedSwingIndicies[-1]
-                if len(cleanedSwingIndicies)>2:
+                if len(cleanedSwingIndicies)>1:
                     if cleanedSwingIndicies[-2][1] > cleanedSwingIndicies[-1][0]: # remove overlapping swing phases
                         cleanedSwingIndicies[-2][1] = cleanedSwingIndicies[-1][1]
                         del cleanedSwingIndicies[-1]
-                if len(cleanedSwingIndicies) > 2:
-                    if (cleanedSwingIndicies[-1][0]-cleanedSwingIndicies[-2][1])<3: # remove very short stance phases
+                #startIdx = forFit[i][4][cleanedSwingIndicies[-1][0]]
+                #endIdx   = forFit[i][4][cleanedSwingIndicies[-1][1]]
+                #meanSpeedDiff = np.mean(p1*forFit[i][1][startIdx:endIdx])
+                #if meanSpeedDiff < speedDiffThresh : # remove osciallatory phases
+                #    del cleanedSwingIndicies[-1]
+                if len(cleanedSwingIndicies) > 1:
+                    if (cleanedSwingIndicies[-1][0]-cleanedSwingIndicies[-2][1])<4: # remove very short stance phases
                         cleanedSwingIndicies[-2][1] = cleanedSwingIndicies[-1][1]
                         del cleanedSwingIndicies[-1]
-                    # remove stance phase if distance to rung is too large
+
                     #pdb.set_trace()
                     #print(cleanedSwingIndicies)
                     #print(cleanedSwingIndicies[-2][1],cleanedSwingIndicies[-1][0],len(forFit[i][4]))
-                if len(cleanedSwingIndicies) > 2:
+                if len(cleanedSwingIndicies) > 1: # remove stance phase if distance to rung is too large
                     mask = (pawRungDistances[i][1][:,0]>=forFit[i][4][cleanedSwingIndicies[-2][1]]) & (pawRungDistances[i][1][:,0]<=forFit[i][4][cleanedSwingIndicies[-1][0]])
                     meanDist = np.mean(pawRungDistances[i][1][:,1][mask])
+                    stdDist  = np.std(pawRungDistances[i][1][:,1][mask])
+                    #print(forFit[i][2][cleanedSwingIndicies[-1][0]],stdDist)
                     if  (meanDist < stanceDistances[i][0]) or (meanDist>stanceDistances[i][1]):
                         cleanedSwingIndicies[-2][1] = cleanedSwingIndicies[-1][1]
                         del cleanedSwingIndicies[-1]
+
+                if len(cleanedSwingIndicies) > 0: # remove swing phases for which there is no change in paw-rung distance
+                    mask = (pawRungDistances[i][1][:, 0] >= forFit[i][4][cleanedSwingIndicies[-1][0]]) & (pawRungDistances[i][1][:, 0] <= forFit[i][4][cleanedSwingIndicies[-1][1]])
+                    if np.std(pawRungDistances[i][1][:,1][mask])< 2. :
+                        del cleanedSwingIndicies[-1]
+
 
             nIdx += 1
             if nIdx==(len(swingIndices)-1):
                 break
         #pdb.set_trace()
+        cSIA = np.asarray(cleanedSwingIndicies)
+        # extract rung number of stance phase #####################################
+        stanceRungIdentity = []
+        for n in range(len(cleanedSwingIndicies)):
+            if cleanedSwingIndicies[n][0]>0:
+                if n==0:
+                    startStanceI = 0
+                else:
+                    startStanceI = int(cleanedSwingIndicies[n-1][1])
+                endStanceI   = int(cleanedSwingIndicies[n][0])
+                #print(cleanedSwingIndicies[n],startStanceI,endStanceI)
+                (values,counts) = np.unique(pawRungDistances[i][1][:,3][startStanceI:endStanceI],return_counts=True)
+                stanceRungIdentity.append(values[np.argmax(counts)])
+
+        # find indecisive steps - steps with bimodal speed profile ################
+        stepCharacter = []
+        for n in range(len(cleanedSwingIndicies)):
+            speedDuringStep = speedDiff[cleanedSwingIndicies[n][0]:cleanedSwingIndicies[n][1]]
+            thresholded = np.abs(speedDuringStep) < 10. # use different, larger threshold
+            if sum(thresholded)==0:
+                indecisiveStep = False
+            else:
+                startStop = np.diff(np.arange(len(speedDuringStep))[thresholded]) > 2 # use indices taking into account missed frames
+                mmmStart = np.hstack((([True]), startStop))
+                mmmStop = np.hstack((startStop, ([True])))
+                #print(len(speedDuringStep),thresholded,mmmStart,speedDuringStep)
+                startIdx = (np.arange(len(speedDuringStep))[thresholded])[mmmStart]
+                stopIdx = (np.arange(len(speedDuringStep))[thresholded])[mmmStop]
+                closeIndicies = np.column_stack((startIdx, stopIdx))
+                # do not consider periods at the beginning or the end of the step
+                mask = (startIdx > 3) & (stopIdx < (len(speedDuringStep)-3))
+                closeIndicies = closeIndicies[mask]
+                if any((closeIndicies[:,1]-closeIndicies[:,0])>=3): # if there are long periods below threshold
+                    indecisiveStep = True
+                elif len(closeIndicies)>=3: # if there are many values below threshold
+                    indecisiveStep = True
+                else:
+                    indecisiveStep = False
+            stepCharacter.append([n, cleanedSwingIndicies[n][0], cleanedSwingIndicies[n][1], indecisiveStep, closeIndicies])
+        #pdb.set_trace()
+        ###########################################################################
+        #if i ==0:
+        #    print(forFit[i][2][cSIA])
+        #pdb.set_trace()
         #swingIndices[:, 0] = swingIndices[:, 0] - 0
         #swingIndices[:, 1] = swingIndices[:, 1] + 0
         if showFigPaw :
-            ax = fig.add_subplot(4,2,2*i+1)
+            fig = plt.figure(figsize=(22,7)) 
+            ax = fig.add_subplot(1,2,1)
             ax.axvline(x=stanceDistances[i][0],color='0.6')
             ax.axvline(x=stanceDistances[i][1],color='0.6')
             ax.hist(pawRungDistances[i][1][:, 1],bins=100)
+            plt.xlabel('paw rung distance (cm/s)')
+            plt.ylabel('occurrence')
             #plt.show()
 
-            ax = fig.add_subplot(4,2,2*i+2)
-            ax.fill_between(forFit[i][4],stanceDistances[i][0],stanceDistances[i][1],color='0.8')
-            ax.plot(forFit[i][4], forFit[i][0])
-            ax.plot(forFit[i][4], forFit[i][1] * p1)
+            ax = fig.add_subplot(1,2,2)
+            ax.fill_between(forFit[i][2],stanceDistances[i][0],stanceDistances[i][1],color='0.8')
+            ax.plot(forFit[i][2], forFit[i][0])
+            ax.plot(forFit[i][2], forFit[i][1] * p1)
 
+            ax.plot(forFit[0][5][:,0],forFit[0][5][:,1])
+            ax.plot(forFit[1][5][:,0],forFit[1][5][:,1])
+            ax.plot(forFit[2][5][:,0],forFit[2][5][:,1])
+            ax.plot(forFit[3][5][:,0],forFit[3][5][:,1])
             uniqueRungIdx = np.unique(np.concatenate((pawRungDistances[i][1][:,3],pawRungDistances[i][1][:,6])))
             #c0 = np.append(pawRungDistances[i][1][:,3][1:],0)
             #c1 = np.append(pawRungDistances[i][1][:,6][1:],0)
             for j in uniqueRungIdx:
                 rMask1 = pawRungDistances[i][1][:,3] == j
                 rMask2 = pawRungDistances[i][1][:,6] == j
-                ax.plot(pawRungDistances[i][1][:,0][rMask1],pawRungDistances[i][1][:,1][rMask1],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
-                ax.plot(pawRungDistances[i][1][:,0][rMask2],pawRungDistances[i][1][:,4][rMask2],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
+                #ax.plot(pawRungDistances[i][1][:,0][rMask1],pawRungDistances[i][1][:,1][rMask1],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
+                #ax.plot(pawRungDistances[i][1][:,0][rMask2],pawRungDistances[i][1][:,4][rMask2],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
+                ax.plot(forFit[i][2][rMask1],pawRungDistances[i][1][:,1][rMask1],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
+                ax.plot(forFit[i][2][rMask2],pawRungDistances[i][1][:,4][rMask2],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
             for n in range(len(cleanedSwingIndicies)):
                 startI = int(cleanedSwingIndicies[n][0])
-                endI   = int(cleanedSwingIndicies[n][1])+1
+                endI   = int(cleanedSwingIndicies[n][1]) + 1
                 #print(n,startI,endI,endI-startI,len(cleanedSwingIndicies))
-                plt.plot(forFit[i][4][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
+                if stepCharacter[n][3]:
+                    plt.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='red')
+                else:
+                    plt.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
                 #plt.plot(range(startI,endI),forFit[i][1][startI:endI] * p1,c='C2')
+                plt.xlabel('time (s)')
+                plt.ylabel('speed (cm/s)')
+
             #plt.xlim(4610, 4720)
+            plt.show()
 
-
-        swingPhases.append([i,cleanedSwingIndicies])
-    if showFigPaw :
-        plt.show()
-    return swingPhases
+        swingPhases.append([i,cleanedSwingIndicies,stanceRungIdentity,stepCharacter])
+    return (swingPhases,forFit)
 
