@@ -74,8 +74,8 @@ else:
         recordingsM.append([foldersRecordings[f][0],tracks,pawTracks,rungMotion,swingPhases])
     pickle.dump(recordingsM, open(eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'wb'))  # eSD.analysisLocation,
 
-#cV.createSwingStanceFigure(recordingsM)
+cV.createSwingStanceFigure(recordingsM)
 #cV.createSwingTraceFigure(recordingsM,linear=False)
-cV.createSwingTraceFigure(recordingsM,linear=True)
+#cV.createSwingTraceFigure(recordingsM,linear=True)
 cV.createSwingSpeedProfileFigure(recordingsM,linear=False)
 cV.createRungCrossingFigure(recordingsM)

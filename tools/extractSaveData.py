@@ -610,13 +610,16 @@ class extractSaveData:
             ops = np.load(caAnalysisLocation+'/suite2p/plane0/ops.npy')
             ops = ops.item()
             iscell = np.load(caAnalysisLocation+'/suite2p/plane0/iscell.npy')
+            stat = np.load(caAnalysisLocation+'/suite2p/plane0/stat.npy')
 
+            #pdb.set_trace()
             nRois = np.arange(len(F))
             realCells = (iscell[:,0]==1)
             nRois = nRois[realCells]
             Fluo = F[realCells]-0.7*Fneu[realCells]
+            stat = stat[realCells]
             #pdb.set_trace()
-            return (Fluo,nRois,ops,timeStamps)
+            return (Fluo,nRois,ops,timeStamps,stat)
 
     ############################################################
     def saveTif(self,frames,mouse,date,rec,norm=None):

@@ -23,6 +23,9 @@ from collections import OrderedDict
 from scipy.stats.stats import pearsonr
 from scipy.interpolate import interp1d
 #from mtspec import mt_coherence
+from scipy import stats
+import matplotlib.ticker as ticker
+
 
 import tools.dataAnalysis as dataAnalysis
 from tools.pyqtgraph.configfile import *
@@ -1053,6 +1056,259 @@ class createVisualizations:
         ## save figure ############################################################
         date = '2019.06.16'
         fname = self.determineFileName(date, 'correlations_ca-walk-paw', date=None)
+
+        plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+
+            #pdb.set_trace()
+
+    ##########################################################################################
+    def generateCorrelationPlotCaTraces(self,mouse,correlationData, allCorrDataPerSession):
+
+        minMaxCa    = [1,-1]
+        minMaxWheel = [1,-1]
+        minMaxPaw   = [1,-1]
+        # find maxima and minima
+        allCorrEffs = []
+        allEuclDist = []
+        allXYDist   = []
+        for nSess in range(len(correlationData)):
+            allCorrEffs.extend(correlationData[nSess][1][:,3])
+            allEuclDist.extend(correlationData[nSess][1][:,5])
+            allXYDist.extend(correlationData[nSess][1][:,6])
+        #pdb.set_trace()
+        allCorrEffs = np.asarray(allCorrEffs)
+        allEuclDist = np.asarray(allEuclDist)
+        allXYDist = np.asarray(allXYDist)
+
+        # figure #################################
+        fig_width = 6  # width in inches
+        fig_height = 25  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14, 'axes.titlesize': 13, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(6,1,  # ,
+                               #width_ratios=[1,1,0.8,0.8,0.8,0.8,0.8])
+                               #height_ratios=[10, 1, 3])
+                               )
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.3)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.15, right=0.94, top=0.95, bottom=0.1)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.985, 'Correlations mouse : %s' % (mouse), clip_on=False, color='black', weight='bold', size=12)
+
+        # sessionCorrelations.append([nSess, ppCaTraces, corrWheel, corrPaws])
+        ##################################
+        ax0=plt.subplot(gs[0])
+
+        ax0.hist(allCorrEffs,bins=100,histtype='stepfilled')
+        ax0.axvline(x=0,ls='--',c='0.7')
+        ax0.axvline(x=np.mean(allCorrEffs),lw=2,color='C1')
+        print(np.mean(allCorrEffs))
+        self.layoutOfPanel(ax0, xLabel='correlation', yLabel='number of pairs')
+
+        ##################################
+        ax1=plt.subplot(gs[1])
+
+        ax1.hist(allEuclDist,bins=100,histtype='stepfilled')
+        self.layoutOfPanel(ax1, xLabel=u'distance (\u03BCm)', yLabel='number of pairs')
+
+        ##################################
+        ax2=plt.subplot(gs[2])
+
+        bb = np.linspace(np.min(allEuclDist),np.max(allEuclDist),30)
+        bbMean = np.zeros((4,len(bb)-1))
+        for i in range(len(bb)-1):
+            mask = (allEuclDist>= bb[i]) & (allEuclDist<=bb[i+1])
+            bbMean[0,i] = (bb[i]+bb[i+1])/2.
+            if sum(mask)>0:
+                bbMean[1,i] = np.mean(allCorrEffs[mask])
+                bbMean[2,i] = np.std(allCorrEffs[mask])
+                #bbMean[2,i] = np.percentile(allCorrEffs[mask],5)
+                bbMean[3,i] = np.percentile(allCorrEffs[mask], 95)
+
+        ax2.axhline(y=0,c='0.5',ls='--')
+        #ax2.plot(allEuclDist,allCorrEffs,'.',ms=0.6,alpha=0.5)
+        #ax2.errorbar(bbMean[0],bbMean[1],yerr=np.row_stack((bbMean[1]-bbMean[2],bbMean[3]-bbMean[1])))
+        ax2.fill_between(bbMean[0],bbMean[1]+bbMean[2],bbMean[1]-bbMean[2],color='0.6')
+        #ax2.errorbar(bbMean[0],bbMean[1],yerr=bbMean[2])
+        ax2.plot(bbMean[0],bbMean[1],color='black')
+
+        self.layoutOfPanel(ax2, xLabel=u'distance (\u03BCm)', yLabel='correlation')
+
+        ##################################
+        ax3=plt.subplot(gs[3])
+
+        #ax3.scatter(allXYDist[:,0],allXYDist[:,1],s=1,c=allCorrEffs,alpha=0.5)
+
+        self.layoutOfPanel(ax3, xLabel=u'x distance (\u03BCm)', yLabel=u'y distance (\u03BCm)')
+
+        ##################################
+        ax4=plt.subplot(gs[4])
+
+        xTile = np.linspace(np.min(allXYDist[:,0]),np.max(allXYDist[:,0]),20)
+        yTile = np.linspace(np.min(allXYDist[:,1]),np.max(allXYDist[:,1]),20)
+        tiledValues = np.zeros((len(xTile)-1,len(yTile)-1))
+        for i in range(len(xTile)-1):
+            for j in range(len(yTile)-1):
+                maskX = (allXYDist[:,0]>=xTile[i]) & (allXYDist[:,0]<=xTile[i+1])
+                maskY = (allXYDist[:,1]>=yTile[j]) & (allXYDist[:,1]<=yTile[j+1])
+                mask = maskX & maskY
+                tiledValues[i,j] = np.mean(allCorrEffs[mask])
+
+
+
+        imgplot = ax4.imshow(tiledValues,origin='lower',aspect=1,extent=[xTile[0],xTile[-1],yTile[0],yTile[-1]])
+        cb = plt.colorbar(imgplot)
+
+        self.layoutOfPanel(ax4, xLabel=u'x distance (\u03BCm)', yLabel=u'y distance (\u03BCm)')
+
+        ##################################
+        ax5 = plt.subplot(gs[5])
+        dx = xTile[1]-xTile[0]
+        dy = xTile[1]-yTile[0]
+        ax5.plot(xTile[2:-3]+dx/2.,np.mean(tiledValues[2:-2,2:-2],axis=0))
+        ax5.plot(yTile[2:-3]+dy/2.,np.mean(tiledValues[2:-2,2:-2],axis=1))
+
+        self.layoutOfPanel(ax5, xLabel=u'x/y distance (\u03BCm)', yLabel=u'mean correlation')
+
+        ## save figure ############################################################
+        date = '2019.07.03'
+        fname = self.determineFileName(date, 'correlations-ca', date=None)
+
+        plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+
+            #pdb.set_trace()
+
+    ##########################################################################################
+    def generatePCACorrelationPlot(self,mouse,correlationData, allCorrDataPerSession,varExplained):
+
+        minMaxCa    = [1,-1]
+        minMaxWheel = [1,-1]
+        minMaxPaw   = [1,-1]
+        # find maxima and minima
+        allCorrEffs = []
+        allEuclDist = []
+        allXYDist   = []
+        for nSess in range(len(correlationData)):
+            allCorrEffs.extend(correlationData[nSess][1][:,3])
+            allEuclDist.extend(correlationData[nSess][1][:,5])
+            allXYDist.extend(correlationData[nSess][1][:,6])
+        #pdb.set_trace()
+        allCorrEffs = np.asarray(allCorrEffs)
+        allEuclDist = np.asarray(allEuclDist)
+        allXYDist = np.asarray(allXYDist)
+
+        # figure #################################
+        fig_width = 6  # width in inches
+        fig_height = 25  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 14, 'axes.titlesize': 13, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(6,1,  # ,
+                               #width_ratios=[1,1,0.8,0.8,0.8,0.8,0.8])
+                               #height_ratios=[10, 1, 3])
+                               )
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.3)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.15, right=0.94, top=0.95, bottom=0.1)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.985, 'PCA correlations mouse : %s' % (mouse), clip_on=False, color='black', weight='bold', size=12)
+
+        # sessionCorrelations.append([nSess, ppCaTraces, corrWheel, corrPaws])
+        ##################################
+        ax0=plt.subplot(gs[0])
+        varTemp = np.asarray(varExplained)
+        varExp = np.transpose(varTemp)
+        ax0.plot(np.arange(len(varExp))+1,varExp,'o',c='0.5',ms=4)
+        ax0.plot(np.arange(len(varExp))+1,np.average(varExp,axis=1),'D-',lw=3,ms=10,color='purple')
+        ax0.xaxis.set_major_locator(ticker.MultipleLocator(1))
+        self.layoutOfPanel(ax0, xLabel='PCA component #', yLabel='fraction of variance explained')
+
+        ##################################
+        ax1=plt.subplot(gs[1])
+        #pdb.set_trace()
+        barWidth=0.1
+        ddd = 0.8
+        corrs = np.zeros((5,len(varExp),len(correlationData)))
+        for nSess in range(len(correlationData)):
+            pcaCorrs = np.asarray(correlationData[nSess][4])
+            for i in range(len(varExp)):
+                corrs[:,i,nSess] = pcaCorrs[i,1::2]
+                #ax1.plot(i+1+np.arange(5)/10.,pcaCorrs[i,1::2],'o',c='0.6')
+        ax1.axhline(y=0,ls='--',color='0.8')
+        ax1.bar(np.arange(len(varExp))+ddd, np.mean(corrs[0],axis=1),color='0.3', width=barWidth, edgecolor='white',label='wheel')
+        ax1.bar(np.arange(len(varExp))+ddd+barWidth, np.mean(corrs[1],axis=1),color='C0',width=barWidth, edgecolor='white',label='FL paw')
+        ax1.bar(np.arange(len(varExp))+ddd+2*barWidth, np.mean(corrs[2],axis=1),color='C1', width=barWidth, edgecolor='white',label='FR paw')
+        ax1.bar(np.arange(len(varExp))+ddd+3*barWidth, np.mean(corrs[3],axis=1),color='C2', width=barWidth, edgecolor='white',label='HR paw')
+        ax1.bar(np.arange(len(varExp))+ddd+4*barWidth, np.mean(corrs[4],axis=1),color='C3', width=barWidth, edgecolor='white',label='HL paw')
+        ax1.xaxis.set_major_locator(ticker.MultipleLocator(1))
+        self.layoutOfPanel(ax1, xLabel=u'PCA component #', yLabel='mean correlation',Leg=[1,9])
+
+        ##################################
+        ax2=plt.subplot(gs[2])
+
+
+
+        self.layoutOfPanel(ax2, xLabel=u'distance (\u03BCm)', yLabel='correlation')
+
+        ##################################
+        ax3=plt.subplot(gs[3])
+
+
+
+        self.layoutOfPanel(ax3, xLabel=u'x distance (\u03BCm)', yLabel=u'y distance (\u03BCm)')
+
+        ##################################
+        ax4=plt.subplot(gs[4])
+
+
+
+
+        self.layoutOfPanel(ax4, xLabel=u'x distance (\u03BCm)', yLabel=u'y distance (\u03BCm)')
+
+        ##################################
+        ax5 = plt.subplot(gs[5])
+
+
+        ## save figure ############################################################
+        date = '2019.07.03'
+        fname = self.determineFileName(date, 'pca-correlations', date=None)
 
         plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
@@ -3367,20 +3623,20 @@ class createVisualizations:
             frDispl = pawTrackingOutliers[i][7]
             frDisplOrig = pawTrackingOutliers[i][8]
 
-            axList[i][0].plot(onePawData[:, 0], onePawData[:, 1], c='0.5')
-            axList[i][0].plot(onePawDataTmp[:, 0], onePawDataTmp[:, 1], c=ccc[i])
+            axList[i][0].plot(onePawData[:, 0], onePawData[:, 1]*0.025, c='0.5')
+            axList[i][0].plot(onePawDataTmp[:, 0], onePawDataTmp[:, 1]*0.025, c=ccc[i])
             if i == 3:
                 self.layoutOfPanel(axList[i][0], xLabel='frame number', yLabel='x (pixel)')
             else:
-                self.layoutOfPanel(axList[i][0], xLabel=None, yLabel='x (pixel)', xyInvisible=[True, False])
+                self.layoutOfPanel(axList[i][0], xLabel=None, yLabel='x (cm)', xyInvisible=[True, False])
             # ax0.set_ylabel('x (pixel)')
 
-            axList[i][1].plot(onePawData[:, 0], onePawData[:, 2], c='0.5')
-            axList[i][1].plot(onePawDataTmp[:, 0], onePawDataTmp[:, 2], c=ccc[i])
+            axList[i][1].plot(onePawData[:, 0], onePawData[:, 2]*0.025, c='0.5')
+            axList[i][1].plot(onePawDataTmp[:, 0], onePawDataTmp[:, 2]*0.025, c=ccc[i])
             if i == 3:
                 self.layoutOfPanel(axList[i][1], xLabel='frame number', yLabel='y (pixel)')
             else:
-                self.layoutOfPanel(axList[i][1], xLabel=None, yLabel='y (pixel)', xyInvisible=[True, False])
+                self.layoutOfPanel(axList[i][1], xLabel=None, yLabel='y (cm)', xyInvisible=[True, False])
             axList[i][1].invert_yaxis()
             # ax1.set_ylabel('y (pixel)')
 
@@ -3464,7 +3720,7 @@ class createVisualizations:
         # ax1 = fig.add_subplot(3, 2, 3)
         # figure #################################
         fig_width = 6  # width in inches
-        fig_height = 12  # height in inches
+        fig_height = 15  # height in inches
         fig_size = [fig_width, fig_height]
         params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
                   'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
@@ -3482,9 +3738,9 @@ class createVisualizations:
         fig = plt.figure()
 
         # define sub-panel grid and possibly width and height ratios
-        gs = gridspec.GridSpec(3, 1,  # ,
+        gs = gridspec.GridSpec(4, 1,  # ,
                                # width_ratios=[1.2,1]
-                               height_ratios=[1,3,1.6]
+                               height_ratios=[1,3,1,1]
                                )
         # define vertical and horizontal spacing between panels
         gs.update(wspace=0.3, hspace=0.25)
@@ -3498,22 +3754,25 @@ class createVisualizations:
 
         # first sub-plot #######################################################
         ax0 = plt.subplot(gs[0])
+        sN = []
         for i in range(4):
             ax0.plot(np.arange(nDays)+1, stepNumber[:, i],'o-',label=lpaw[i])
+            sN.append(stepNumber[:, i])
 
         self.layoutOfPanel(ax0, xLabel=None, yLabel='average steps during trial',Leg=[1,9])
-
+        np.save('testScripts/meanStepNumber.npy',np.asarray(sN))
         # second sub-plot #######################################################
         gssub1 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs[1],hspace=0.4)
-        gssub2 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[2], hspace=0.4)
-        ax20 = plt.subplot(gssub2[0])
-        ax21 = plt.subplot(gssub2[1])
+        #gssub2 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[2], hspace=0.4)
+        ax20 = plt.subplot(gs[2])
+        ax21 = plt.subplot(gs[3])
         axL = []
         for i in range(4):
             ax = plt.subplot(gssub1[i])
             axL.append(ax)
 
         #for n in range(nDays):
+        sD = []
         for i in range(4):
             stepD = nDays*[[]]
             stepDurationMean = nDays*[[]]
@@ -3525,12 +3784,13 @@ class createVisualizations:
             axL[i].boxplot(stepD,positions=np.arange(nDays)+1,showfliers=False)
             ax20.plot(np.arange(nDays)+1,stepDurationMean,'o-')
             ax21.plot(np.arange(nDays)+1,stepDurationMedian,'o-')
+            sD.append(stepDurationMean)
         for i in range(4):
             if i < 3:
                 self.layoutOfPanel(axL[i], xLabel=None, yLabel=None,xyInvisible=[True,False])
             else:
                 self.layoutOfPanel(axL[i], xLabel='recording session', yLabel='step duration (s)',xyInvisible=[False,False])
-
+        np.save('testScripts/meanStepDuration.npy',np.asarray(sD))
         self.layoutOfPanel(ax20, xLabel=None, yLabel='mean \n step duration (s)',xyInvisible=[True,False])
         self.layoutOfPanel(ax21, xLabel='recording session', yLabel='median \n step duration (s)',xyInvisible=[False,False])
 
@@ -3689,14 +3949,15 @@ class createVisualizations:
                         self.layoutOfPanel(axL[n][i+4][0], xLabel='distance (cm)', yLabel=None,xyInvisible=[False,True])
         # save figure #######################################################
         gssub1 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[1], hspace=0.2)
-
+        ax = plt.subplot(gssub1[0])
         for i in range(4):
-            ax = plt.subplot(gssub1[i])
-            ax.plot(range(nDays), meanStrideLengths[i])
+            #ax = plt.subplot(gssub1[i])
+            ax.plot(np.arange(nDays)+1, meanStrideLengths[i],'o-')
             if i == 0:
                 self.layoutOfPanel(ax, xLabel='recording day', yLabel='mean stride length (cm)', xyInvisible=[False, False])
             elif i > 0:
                 self.layoutOfPanel(ax, xLabel='recording day', yLabel=None, xyInvisible=[False, False])
+            ax.set_ylim(1.6,2.9)
 
             ax1 = plt.subplot(gssub1[4+i])
             ax1.plot(range(nDays), stepC[i,:,0]/stepC[i,:,1])
@@ -3850,7 +4111,12 @@ class createVisualizations:
                     #axL[n][i+4][0].set_ylim(0, 60)
                     axL[n][i+4][0].set_xlim(-100, 300)
                     #axL[n][i+4][0].set_yscale('log')
-
+        for i in range(4):
+            s1 = np.asarray(speedProfile[0][i])
+            s2 = np.asarray(speedProfile[nDays-1][i])
+            mask1 = (s1>-150) & (s1<150)
+            mask2 = (s2>-150) & (s2<150)
+            print('%s ' %i,stats.ks_2samp(s1[mask1], s2[mask2]))
         for n in range(nDays):
             if n < (nDays-1):
                 for i in range(4):
@@ -3871,7 +4137,7 @@ class createVisualizations:
         gssub1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[1], hspace=0.2)
         for i in range(4):
             ax = plt.subplot(gssub1[i])
-            ax.stackplot(range(nDays),  histIntegrals[i],labels=['%s' % i for i in speedRanges])
+            ax.stackplot(np.arange(nDays)+1,  histIntegrals[i],labels=['%s' % i for i in speedRanges])
             if i == 0:
                 self.layoutOfPanel(ax, xLabel='recording day', yLabel='% time in speed ranges', xyInvisible=[False, False])
             elif i>0 and i<3:
@@ -3998,7 +4264,7 @@ class createVisualizations:
         gssub1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[1], hspace=0.2)
         for i in range(4):
             ax = plt.subplot(gssub1[i])
-            ax.stackplot(range(nDays),  stepsPercentages[i],labels=['%s' % i for i in stepDist])
+            ax.stackplot(np.arange(nDays)+1,  stepsPercentages[i],labels=['%s' % i for i in stepDist])
             if i == 0:
                 self.layoutOfPanel(ax, xLabel='recording day', yLabel='fraction of rungs crossed', xyInvisible=[False, False])
             elif i>0 and i<3:
@@ -4006,7 +4272,7 @@ class createVisualizations:
             elif i==3:
                 self.layoutOfPanel(ax, xLabel='recording day', yLabel=None, Leg=[1,9],xyInvisible=[False, True])
 
-
+        np.save('testScripts/rungsCrossedPercentages.npy',stepsPercentages)
 
         # save figure #######################################################
         #rec = rec.replace('/','-')

@@ -9,6 +9,7 @@ import pdb
 import scipy.ndimage
 import itertools
 from scipy.interpolate import interp1d
+from sklearn.decomposition import PCA
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -407,19 +408,36 @@ def detectPawTrackingOutlies(pawTraces,pawMetaData):
 #################################################################################
 def doCorrelationAnalysis(mouse,allCorrDataPerSession):
     #
+    xPixToUm = 0.79
+    yPixToUm = 0.8
     #itertools.combinations(arr,2)
     sessionCorrelations = []
+    varExplained = []
     for nSess in range(len(allCorrDataPerSession)):
         # calculate correcorrelation between individual calcium traces
         fTraces = allCorrDataPerSession[nSess][3][0][0]
+        stat = allCorrDataPerSession[nSess][3][0][4]
+        #pdb.set_trace()
         #frameNumbers = [0] + frameNumbers
         combis = list(itertools.combinations(np.arange(len(fTraces)), 2))
         ppCaTraces = []
+
         for i in range(len(combis)):
             #pdb.set_trace()
-            corrTemp = scipy.stats.pearsonr(fTraces[combis[i][0]],fTraces[combis[i][1]])
-            ppCaTraces.append([i,combis[i][0],combis[i][1],corrTemp[0],corrTemp[1]])
+            xy0 = stat[combis[i][0]]['med']
+            xy1 = stat[combis[i][1]]['med']
 
+            euclDist = np.sqrt(((xy0[1]-xy1[1])*xPixToUm)**2 + ((xy0[0]-xy1[0])*yPixToUm)**2)
+            xyDist = ([(xy1[1]-xy0[1])*xPixToUm,(xy0[0]-xy1[0])*yPixToUm])
+            corrTemp = scipy.stats.pearsonr(fTraces[combis[i][0]],fTraces[combis[i][1]])
+            ppCaTraces.append([i,combis[i][0],combis[i][1],corrTemp[0],corrTemp[1],euclDist,xyDist])
+
+        # allCoord = []
+        # for j in range(len(stat)):
+        #     allCoord.append(stat[j]['med'])
+        # aa = np.asarray(allCoord)
+        # plt.scatter(aa[:,1],512-aa[:,0])
+        # pdb.set_trace()
         ppCaTraces = np.asarray(ppCaTraces)
         # code taken from figure generation
         #for nSess in range(len(allCorrDataPerSession)):
@@ -432,7 +450,6 @@ def doCorrelationAnalysis(mouse,allCorrDataPerSession):
         trials = np.unique(timeStamps[:, 1])
         caTracesDict = {}
         for n in range(len(trials)):
-
             mask = (timeStamps[:, 1] == trials[n])
             triggerStart = timeStamps[:, 5][mask]
             trialStartUnixTimes.append(timeStamps[:,3][mask][0])
@@ -440,16 +457,18 @@ def doCorrelationAnalysis(mouse,allCorrDataPerSession):
                 if oldTriggerStart>triggerStart[0]:
                     print('problem in trial order')
                     sys.exit(1)
-            for i in range(len(fTraces)):
-                caTracesTime = (timeStamps[:, 4][mask] - triggerStart)
-                caTracesFluo = fTraces[:,mask]
-                #pdb.set_trace()
-                #caTraces.append(np.column_stack((caTracesTime,caTracesFluo)))
-                caTracesDict[n] = np.row_stack((caTracesTime,caTracesFluo))
+            #for i in range(len(fTraces)):
+            caTracesTime = (timeStamps[:, 4][mask] - triggerStart)
+            caTracesFluo = fTraces[:,mask]
+            #pdb.set_trace()
+            #caTraces.append(np.column_stack((caTracesTime,caTracesFluo)))
+            caTracesDict[n] = np.row_stack((caTracesTime,caTracesFluo))
 
             oldTriggerStart=triggerStart[0]
 
         # wheel speed  ######################################################
+        # also find calmest pre-motorization period
+        minPreMotorMeanV = 1000.
         wheelTracks = allCorrDataPerSession[nSess][1]
         nFig = 0
         #print(len(wheelTracks))
@@ -467,8 +486,24 @@ def doCorrelationAnalysis(mouse,allCorrDataPerSession):
                 wheelSpeed = wheelTracks[n][1]
                 wheelSpeedDict[nFig] = np.row_stack((wheelTime,wheelSpeed))
 
+                preMMask = (wheelTime < 5.)
+                preMmeanV = np.mean(np.abs(wheelSpeed[preMMask]))
+                print(nSess,nFig,preMmeanV)
+                if preMmeanV < minPreMotorMeanV:
+                    nSlowest = nFig
+                    minPreMotorMeanV = np.copy(preMmeanV)
                 nFig+=1
                 oldRecStartTime = wheelRecStartTime
+
+        # normalize ca-traces #############################################
+        mask = (caTracesDict[nSlowest][0]<5.)
+        F0 = np.mean(caTracesDict[nSlowest][1:][:,mask],axis=1)
+        #pdb.set_trace()
+        for n in range(len(trials)):
+            normalizedCaTraces = (caTracesDict[n][1:] - F0[:,np.newaxis])/F0[:,np.newaxis]
+            caTracesDict[n][1:] = np.copy(normalizedCaTraces)
+
+        #pdb.set_trace()
         # paw speed  ######################################################
         pawTracks = allCorrDataPerSession[nSess][2]
         nFig = 0
@@ -546,9 +581,33 @@ def doCorrelationAnalysis(mouse,allCorrDataPerSession):
 
         corrWheel = np.asarray(corrWheel)
         corrPaws = np.asarray(corrPaws)
-        sessionCorrelations.append([nSess,ppCaTraces,corrWheel,corrPaws])
 
-    return (sessionCorrelations)
+        ###################################################################
+        # correlation btw. PCA components and wheel, paw speeds
+        #pdb.set_trace()
+        pcaComponents = 4
+        print('doing PCA ...')
+        X = np.transpose(caAll)
+        pca = PCA(n_components=pcaComponents)
+        pca.fit(X)
+        X_pca = pca.transform(X)
+        #print(pca.components_)
+        pcaCorrs = []
+        varExplained.append(pca.explained_variance_ratio_)
+        print(pca.explained_variance_ratio_)
+        for i in range(pcaComponents):
+            corrWheelTemp = scipy.stats.pearsonr(X_pca[:,i], wheelAll)
+            corrPaw0Temp = scipy.stats.pearsonr(X_pca[:,i], pawAll[0])
+            corrPaw1Temp = scipy.stats.pearsonr(X_pca[:,i], pawAll[1])
+            corrPaw2Temp = scipy.stats.pearsonr(X_pca[:,i], pawAll[2])
+            corrPaw3Temp = scipy.stats.pearsonr(X_pca[:,i], pawAll[3])
+            pcaCorrs.append([i,corrWheelTemp[0],corrWheelTemp[1],corrPaw0Temp[0],corrPaw0Temp[1],corrPaw1Temp[0],corrPaw1Temp[1],corrPaw2Temp[0],corrPaw2Temp[1],corrPaw3Temp[0],corrPaw3Temp[1]])
+
+
+        ###################################################################
+        sessionCorrelations.append([nSess,ppCaTraces,corrWheel,corrPaws,pcaCorrs])
+
+    return (sessionCorrelations,varExplained)
 
 ##########################################################
 # Get absolute speed of paws
@@ -610,7 +669,7 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
         #
         maskAngle = ((pawTracks[5][i][:,0])>=min(tracks[5][:,0])) & ((pawTracks[5][i][:,0])<=max(tracks[5][:,0]))
         newWheelAngleAtPawTimes = interpAngle(pawTracks[5][i][:,0][maskAngle])
-        newX  = (pawTracks[5][i][:,1][maskAngle])*0.025 + (newWheelAngleAtPawTimes*80./360.) - (pawTracks[5][i][:,1][maskAngle][0])*0.025
+        newX  = (pawTracks[5][i][:,1][maskAngle])*0.025 + (newWheelAngleAtPawTimes*80./360.) #- (pawTracks[5][i][:,1][maskAngle][0])*0.025
         forFit.append([newWheelSpeedAtPawTimes, pawTracks[3][i][:,2][mask],pawTracks[3][i][:,0][mask],mask,np.array(pawTracks[3][i][:,4][mask],dtype=int),np.column_stack((pawTracks[5][i][:,0][maskAngle],newX))])
 
     (p1, success) = scipy.optimize.leastsq(errfunc, p0 ,args=(forFit[0][0],forFit[0][1],forFit[1][0],forFit[1][1],forFit[2][0],forFit[2][1],forFit[3][0],forFit[3][1]))
@@ -786,31 +845,31 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
             ax.plot(forFit[i][2], forFit[i][0])
             ax.plot(forFit[i][2], forFit[i][1] * p1)
 
-            ax.plot(forFit[0][5][:,0],forFit[0][5][:,1])
-            ax.plot(forFit[1][5][:,0],forFit[1][5][:,1])
-            ax.plot(forFit[2][5][:,0],forFit[2][5][:,1])
-            ax.plot(forFit[3][5][:,0],forFit[3][5][:,1])
+            # ax.plot(forFit[0][5][:,0],forFit[0][5][:,1])#+forFit[0][5][:,1][0])
+            # ax.plot(forFit[1][5][:,0],forFit[1][5][:,1])#+forFit[1][5][:,1][0])
+            # ax.plot(forFit[2][5][:,0],forFit[2][5][:,1])#+forFit[2][5][:,1][0])
+            # ax.plot(forFit[3][5][:,0],forFit[3][5][:,1])#+forFit[3][5][:,1][0])
             uniqueRungIdx = np.unique(np.concatenate((pawRungDistances[i][1][:,3],pawRungDistances[i][1][:,6])))
             #c0 = np.append(pawRungDistances[i][1][:,3][1:],0)
             #c1 = np.append(pawRungDistances[i][1][:,6][1:],0)
-            for j in uniqueRungIdx:
-                rMask1 = pawRungDistances[i][1][:,3] == j
-                rMask2 = pawRungDistances[i][1][:,6] == j
-                #ax.plot(pawRungDistances[i][1][:,0][rMask1],pawRungDistances[i][1][:,1][rMask1],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
-                #ax.plot(pawRungDistances[i][1][:,0][rMask2],pawRungDistances[i][1][:,4][rMask2],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
-                ax.plot(forFit[i][2][rMask1],pawRungDistances[i][1][:,1][rMask1],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
-                ax.plot(forFit[i][2][rMask2],pawRungDistances[i][1][:,4][rMask2],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
+            # for j in uniqueRungIdx:
+            #     rMask1 = pawRungDistances[i][1][:,3] == j
+            #     rMask2 = pawRungDistances[i][1][:,6] == j
+            #     #ax.plot(pawRungDistances[i][1][:,0][rMask1],pawRungDistances[i][1][:,1][rMask1],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
+            #     #ax.plot(pawRungDistances[i][1][:,0][rMask2],pawRungDistances[i][1][:,4][rMask2],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
+            #     ax.plot(forFit[i][2][rMask1],pawRungDistances[i][1][:,1][rMask1],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
+            #     ax.plot(forFit[i][2][rMask2],pawRungDistances[i][1][:,4][rMask2],'.',color=plt.cm.prism(j/np.max(uniqueRungIdx)))
             for n in range(len(cleanedSwingIndicies)):
                 startI = int(cleanedSwingIndicies[n][0])
                 endI   = int(cleanedSwingIndicies[n][1]) + 1
                 #print(n,startI,endI,endI-startI,len(cleanedSwingIndicies))
                 if stepCharacter[n][3]:
-                    plt.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='red')
+                    plt.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
                 else:
                     plt.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
                 #plt.plot(range(startI,endI),forFit[i][1][startI:endI] * p1,c='C2')
                 plt.xlabel('time (s)')
-                plt.ylabel('speed (cm/s)')
+                plt.ylabel('speed (cm)')
 
             #plt.xlim(4610, 4720)
             plt.show()

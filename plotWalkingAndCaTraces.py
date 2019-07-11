@@ -13,8 +13,8 @@ import tools.parameters as pas
 
 mouseD = '190101_f15' # id of the mouse to analyze
 #mouseD = '190108_m24'
-expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='some'     # 'all or 'some'
+expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='all'     # 'all or 'some'
 
 readDataAgain = False
 
@@ -56,14 +56,14 @@ else:
             # check for video recording during trial
             (camExistence, camFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'CameraGigEBehavior')
             if camExistence :
-                (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r])
+                (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime,rawPawSpeed,cPawPos) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r])
                 #pdb.set_trace()
                 pawTracks.append([rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime])
         # check for ca-imaging data during entire session
         (caImgExistence, tiffList) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][0], 'SICaImaging')
         if caImgExistence: # (Fluo,nRois,ops,frameNumbers)
-            (Fluo,nRois,ops,timeStamps) =  eSD.getCaImagingRoiData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
-            caImagingRois.append([Fluo,nRois,ops,timeStamps])
+            (Fluo,nRois,ops,timeStamps,stat) =  eSD.getCaImagingRoiData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
+            caImagingRois.append([Fluo,nRois,ops,timeStamps,stat])
         # combine all recordings from a session
         if (not tracks) and (not pawTracks) and (not caImagingRois):
             pass
@@ -74,8 +74,10 @@ else:
 
 #pdb.set_trace()
 # generate overview figure for animal
-correlationData = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
+(correlationData,varExplained) = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
 #pdb.set_trace()
-cV.generateCaWheelPawImage(mouse,allCorrDataPerSession)
-cV.generateCorrelationPlotsCaWheelPaw(mouse,correlationData,allCorrDataPerSession)
+# cV.generateCaWheelPawImage(mouse,allCorrDataPerSession)
+cV.generateCorrelationPlotCaTraces(mouse,correlationData,allCorrDataPerSession)
+#cV.generatePCACorrelationPlot(mouse,correlationData,allCorrDataPerSession,varExplained)
+# cV.generateCorrelationPlotsCaWheelPaw(mouse,correlationData,allCorrDataPerSession)
 
