@@ -11,6 +11,8 @@ import pdb
 import cv2
 import pickle
 import re
+#import matplotlib.pyplot as plt
+from skimage import io
 
 from tools.h5pyTools import h5pyTools
 import tools.googleDocsAccess as googleDocsAccess
@@ -295,7 +297,7 @@ class extractSaveData:
             print(recLocation)
             tiffList = glob.glob(recLocation+'*tif')
             tiffList.sort()
-            #print(tiffList)
+            print(tiffList)
             if len(tiffList)>0:
                 print('Ca imaging was acquired with ScanImage')
                 return (True,tiffList)
@@ -735,16 +737,16 @@ class extractSaveData:
         #tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
         # replace possible backslashes from subdirectory structure and
         rec = rec.replace('/','-')
-        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
+        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior_withCa.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
-
 
         vLength = np.shape(framesRaw)[0]
         width  = np.shape(framesRaw)[1]
         heigth = np.shape(framesRaw)[2]
 
-        #print('number of frames :', vLength)
+        #print('number of frames :', vLength, width, heigth)
         fps    = 80
+        #pdb.set_trace()
         # Define the codec and create VideoWriter object
         #fourcc = cv2.VideoWriter_fourcc(*'DIVX')  # (*'XVID')
         #fourcc = cv2.VideoWriter_fourcc(*'MPEG')  # (*'XVID')
@@ -763,6 +765,64 @@ class extractSaveData:
             cv2.putText(frame, 'time %s sec' % round(midFrameTimes[i],4), (10,20), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
             cv2.putText(frame, 'frame %04d / %s' % (i,(vLength-1)), (10,40), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
             out.write(frame)
+        # Release everything if job is finished
+        #cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
+    ############################################################
+    # (mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
+    def saveBehaviorVideoWithCa(self, mouse, date, rec, framesRaw, expStartTime, expEndTime, imageMetaInfo):
+        #[foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
+        self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
+        midFrameTimes = (expStartTime + expEndTime)/2.
+        #pdb.set_trace()
+        #img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
+        #tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
+        # replace possible backslashes from subdirectory structure and
+        rec = rec.replace('/','-')
+        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior_withCa.avi' % (mouse, date, rec)
+        #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
+        caImg = io.imread('/media/HDnyc_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/190101_f15/2019.03.19_000_suite2p/suite2p/plane0/reg_tif/AVG2_rec3.tif')
+
+        caImg = caImg*255/np.max(caImg)
+        vLength = np.shape(framesRaw)[0]
+        width  = np.shape(framesRaw)[1]
+        heigth = np.shape(framesRaw)[2]
+
+        print('number of frames :', vLength, width, heigth)
+        fps    = 300
+        fBehavior = 200
+        fCa = 15
+        afterEvery = fBehavior/fCa
+        pdb.set_trace()
+        # Define the codec and create VideoWriter object
+        #fourcc = cv2.VideoWriter_fourcc(*'DIVX')  # (*'XVID')
+        #fourcc = cv2.VideoWriter_fourcc(*'MPEG')  # (*'XVID')
+        # M J P G is working great !! 184 MB per video
+        # H F Y U is working great !! 2.7 GB per video
+        # M P E G has issues !! DON'T USE (frames are missing)
+        # X V I D : frame 3001 missing and last nine frames are screwed
+        # 0 (no compression) : frame 3001 missing last 2 frames are the same
+        #fourcc = cv2.VideoWriter_fourcc('H','F','Y','U')
+        fourcc = cv2.VideoWriter_fourcc('M','J','P','G') # cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
+        out = cv2.VideoWriter(videoFileName, fourcc, fps, (width+512, heigth))
+        nCa = 1
+        for i in np.arange(len(framesRaw)):
+            output = np.zeros((heigth, width+512,3), dtype="uint8")
+            frame8bit = np.array(np.transpose(framesRaw[i]), dtype=np.uint8)
+            frame = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
+            cv2.putText(frame, 'time %s sec' % round(midFrameTimes[i],4), (10,20), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
+            cv2.putText(frame, 'frame %04d / %s' % (i,(vLength-1)), (10,40), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
+            output[0:heigth, 0:width,:] = frame
+            # treatment of ca image
+            frameCa8bit = np.array(caImg[nCa-1], dtype=np.uint8)
+            frameCa = cv2.cvtColor(frameCa8bit, cv2.COLOR_GRAY2BGR)
+            output[44:(44+512),(width):(width+512),:] = frameCa
+            out.write(output)
+            if (i > nCa*afterEvery) and nCa<(len(caImg)) :
+                nCa+=1
+                print(i,nCa,nCa*afterEvery)
         # Release everything if job is finished
         #cap.release()
         out.release()

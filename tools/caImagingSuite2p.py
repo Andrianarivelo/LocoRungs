@@ -34,7 +34,6 @@ class caImagingSuite2p:
         # only run on specified tiffs
         if tiffPaths is not None:
             tiffList = [tP.split('/')[-1] for tP in tiffPaths]
-
             print(dataDir,saveDir,tiffList)
         else:
             print(dataDir,saveDir)
@@ -43,13 +42,13 @@ class caImagingSuite2p:
               'h5py': [], # a single h5 file path
               'h5py_key': 'caData',
               'look_one_level_down': False, # whether to look in ALL subfolders when searching for tiffs
-              'data_path': dataDir,
+              'data_path': [dataDir],
                                     # a list of folders with tiffs
                                     # (or folder of folders with tiffs if look_one_level_down is True, or subfolders is not empty)
 
               'subfolders': [], # choose subfolders of 'data_path' to look in (optional)
               'fast_disk': '/tmp/', # string which specifies where the binary file will be stored (should be an SSD)
-              'tiff_list': tiffList # list of tiffs in folder * data_path *!
+              'tiff_list': [] #tiffList # list of tiffs in folder * data_path *!
             }
 
         # set your options for running
@@ -63,7 +62,7 @@ class caImagingSuite2p:
             'nchannels' : 1, # each tiff has these many channels per plane
             'functional_chan' : 1, # this channel is used to extract functional ROIs (1-based)
             'diameter':12, # this is the main parameter for cell detection, 2-dimensional if Y and X are different (e.g. [6 12])
-            'tau':  1., # this is the main parameter for deconvolution
+            'tau':  0.7, # this is the main parameter for deconvolution
             'fs': 30.,  # sampling rate (total across planes)
             # output settings
             'save_mat': False, # whether to save output as matlab files
@@ -77,7 +76,7 @@ class caImagingSuite2p:
             'batch_size': 200, # number of frames per batch
             'maxregshift': 0.1, # max allowed registration shift, as a fraction of frame max(width and height)
             'align_by_chan' : 1, # when multi-channel, you can align by non-functional channel (1-based)
-            'reg_tif': False, # whether to save registered tiffs
+            'reg_tif': True, # whether to save registered tiffs
             'subpixel' : 10, # precision of subpixel registration (1/subpixel steps)
             # cell detection settings
             'connected': True, # whether or not to keep ROIs fully connected (set to 0 for dendrites)
@@ -105,6 +104,7 @@ class caImagingSuite2p:
     def runSuite2pPipeline(self):
 
         #print(tiffList)
+        # pdb.set_trace()
         opsEnd = run_s2p(ops=self.ops, db=self.db)
 
     ############################################################
