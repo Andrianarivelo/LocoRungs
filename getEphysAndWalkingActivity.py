@@ -12,15 +12,17 @@ expDate = '180314'
 wheelCircumsphere = 79.796 # in cm
 
 eSD         = extractSaveData.extractSaveData(mouse,expDate)
-(foldersRecordings,dataFolders) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
+(foldersRecordings,dataFolders) = eSD.getRecordingsList(mouse) # get recordings for specific mouse and date
 
 cV      = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 # loop over all recording folders
 #pdb.set_trace()
 for f in range(len(foldersRecordings)):
-    for r in range(11,len(foldersRecordings[f][1])):
+    print f, foldersRecordings[f][1]
+    for r in range(len(foldersRecordings[f][1])):
         (existenceRot, fileHandleRot) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1][r], 'RotaryEncoder')
         (existenceEphys, fileHandleEphys) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1][r], 'AxoPatch200_2')
+        #print existenceRot, existenceEphys
         #tracks = []
         if existenceRot and existenceEphys:
             (angles, aTimes,timeStamp,monitor) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1][r],'RotaryEncoder',fileHandleRot)
