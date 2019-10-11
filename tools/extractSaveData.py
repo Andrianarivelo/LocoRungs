@@ -249,7 +249,7 @@ class extractSaveData:
                         for r in recList:
                             # only add recordings which were previously selected
                             if recIdx in recInputIdx:
-                                if r[:-4] == 'locomotionTriggerSIAndMotor':
+                                if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin':
                                     subFolders = self.getDirectories(self.dataLocation + '/' + r)
                                     for i in range(len(subFolders)):
                                         tempRecList.append(r + '/' + subFolders[i])
@@ -260,7 +260,7 @@ class extractSaveData:
                     elif recordings=='all':
                         tempRecList = []
                         for r in recList:
-                            if r[:-4] == 'locomotionTriggerSIAndMotor':
+                            if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin':
                                 subFolders = self.getDirectories(self.dataLocation + '/' + r)
                                 for i in range(len(subFolders)):
                                     tempRecList.append(r + '/' + subFolders[i])
