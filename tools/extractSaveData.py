@@ -11,7 +11,7 @@ import pdb
 import cv2
 import pickle
 import re
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from skimage import io
 
 from tools.h5pyTools import h5pyTools
@@ -281,7 +281,7 @@ class extractSaveData:
     ############################################################
     def checkIfDeviceWasRecorded(self,fold,eD,recording, device):
         recLocation =  (self.dataBase2 + '/' + fold + '/' + recording + '/') if eD >= '181018' else (self.dataBase2 + '/' + fold + '/' + recording + '/')
-        #print(recLocation)
+        print(recLocation)
         if os.path.exists(recLocation):
             print('%s constains %s , ' % (fold, recording), end =" ")
         else:
@@ -772,7 +772,7 @@ class extractSaveData:
 
     ############################################################
     # (mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
-    def saveBehaviorVideoWithCa(self, mouse, date, rec, framesRaw, expStartTime, expEndTime, imageMetaInfo):
+    def saveBehaviorVideoWithCa(self, mouse, date, rec, framesRaw, expStartTime, expEndTime, imageMetaInfo,angles,aTimes):
         #[foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
         self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         midFrameTimes = (expStartTime + expEndTime)/2.
@@ -783,19 +783,72 @@ class extractSaveData:
         rec = rec.replace('/','-')
         videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior_withCa.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
-        caImg = io.imread('/media/HDnyc_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/190101_f15/2019.03.19_000_suite2p/suite2p/plane0/reg_tif/AVG2_rec3.tif')
+        caImg = io.imread('/media/HDnyc_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/190101_f15/2019.03.21_000_suite2p/suite2p/plane0/reg_tif/AVG2_output_1-902C.tif')
 
-        caImg = caImg*255/np.max(caImg)
+        caImg = (caImg - np.min(caImg))*255./(np.max(caImg)-np.min(caImg))
+        #caImg = (caImg - 15.)*255./(30.-15.)
         vLength = np.shape(framesRaw)[0]
         width  = np.shape(framesRaw)[1]
         heigth = np.shape(framesRaw)[2]
 
         print('number of frames :', vLength, width, heigth)
-        fps    = 300
+        fps    = 250
         fBehavior = 200
         fCa = 15
         afterEvery = fBehavior/fCa
-        pdb.set_trace()
+        #pdb.set_trace()
+        ##########################################################
+        # create walking dynamics figure instance
+        fig0 = plt.figure(figsize=(6.56, 3.5))
+        plt.subplots_adjust(left=0.18, right=0.95, top=0.97, bottom=0.23)
+        # x1 = 0.
+        # y1 = 0.
+        ax0 = fig0.add_subplot(1, 1, 1)
+        ax0 = plt.axes(xlim=(0, 30), ylim=(-10, 130))
+        line0, = ax0.plot([], [], 'k-', lw=2)
+        ax0.set_ylabel('position (cm)', fontsize=18)
+        ax0.set_xlabel('time (s)', fontsize=18)
+
+        ax0.spines['top'].set_visible(False)
+        ax0.spines['right'].set_visible(False)
+        #
+        ax0.spines['bottom'].set_position(('outward', 10))
+        ax0.xaxis.set_ticks_position('bottom')
+        #
+        # if xyInvisible[1]:
+        # ax.spines['left'].set_visible(False)
+        # ax.yaxis.set_visible(False)
+        # else:
+        ax0.spines['left'].set_position(('outward', 10))
+        ax0.yaxis.set_ticks_position('left')
+
+        ##########################################################
+        # create calcium dynamics figure instance
+        fig = plt.figure(figsize=(6.56,3.5))
+        plt.subplots_adjust(left=0.18, right=0.95, top=0.97, bottom=0.23)
+        #x1 = 0.
+        #y1 = 0.
+        ax = fig.add_subplot(1,1,1)
+        ax = plt.axes(xlim=(0, 30), ylim=(55, 180))
+        line1, = ax.plot([], [], 'g-', lw=2)
+        line2, = ax.plot([], [], 'b-', lw=2)
+        line3, = ax.plot([], [], 'r-', lw=2)
+        ax.set_ylabel('fluorescence (a.u.)', fontsize=18)
+        ax.set_xlabel('time (s)', fontsize=18)
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        #
+        ax.spines['bottom'].set_position(('outward', 10))
+        ax.xaxis.set_ticks_position('bottom')
+        #
+        #if xyInvisible[1]:
+        #ax.spines['left'].set_visible(False)
+        #ax.yaxis.set_visible(False)
+        #else:
+        ax.spines['left'].set_position(('outward', 10))
+        ax.yaxis.set_ticks_position('left')
+        #ax.set_ylabel('fluorescence (a.u.)')
         # Define the codec and create VideoWriter object
         #fourcc = cv2.VideoWriter_fourcc(*'DIVX')  # (*'XVID')
         #fourcc = cv2.VideoWriter_fourcc(*'MPEG')  # (*'XVID')
@@ -806,19 +859,66 @@ class extractSaveData:
         # 0 (no compression) : frame 3001 missing last 2 frames are the same
         #fourcc = cv2.VideoWriter_fourcc('H','F','Y','U')
         fourcc = cv2.VideoWriter_fourcc('M','J','P','G') # cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
-        out = cv2.VideoWriter(videoFileName, fourcc, fps, (width+512, heigth))
+        out = cv2.VideoWriter(videoFileName, fourcc, fps, (width+512, heigth+350))
         nCa = 1
+        ttime = []
+        ffluo = [[],[],[]]
+        colors = [(255,0,0),(0,255,0),(0,0,255)]
+        rois = [[171, 274, 11],
+                [344,242,11],
+                [446,389,11]
+                ]
+        nPos = 0
         for i in np.arange(len(framesRaw)):
-            output = np.zeros((heigth, width+512,3), dtype="uint8")
+            output = np.zeros((heigth+350, width+512,3), dtype="uint8")
             frame8bit = np.array(np.transpose(framesRaw[i]), dtype=np.uint8)
             frame = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
+            #cv2.circle(frame, (100, 100), 50, (0, 255, 0), -1)
             cv2.putText(frame, 'time %s sec' % round(midFrameTimes[i],4), (10,20), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
             cv2.putText(frame, 'frame %04d / %s' % (i,(vLength-1)), (10,40), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
             output[0:heigth, 0:width,:] = frame
+            ttime.append(midFrameTimes[i])
+
+            #####################################
+            mask0 = aTimes<midFrameTimes[i]
+            line0.set_data(aTimes[mask0],angles[mask0]*80./360.)
+            fig0.canvas.draw()
+            img0 = np.fromstring(fig0.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+            img0 = img0.reshape(fig0.canvas.get_width_height()[::-1] + (3,))
+            # img is rgb, convert to opencv's default bgr
+            img0 = cv2.cvtColor(img0, cv2.COLOR_RGB2BGR)
+            output[600:, :656, :] = img0
+            ####################################
             # treatment of ca image
             frameCa8bit = np.array(caImg[nCa-1], dtype=np.uint8)
             frameCa = cv2.cvtColor(frameCa8bit, cv2.COLOR_GRAY2BGR)
+
+            for n in range(len(rois)):
+                cv2.circle(frameCa, (rois[n][0], rois[n][1]), rois[n][2], colors[n], 2)
+            cv2.putText(frameCa, '50 um', (35, 480), cv2.QT_FONT_NORMAL, 0.55, color=(220, 220, 220))
+            cv2.line(frameCa, (30,490), (94, 490), (220, 220, 220), 4)
             output[44:(44+512),(width):(width+512),:] = frameCa
+            # plot roi and add to movie
+            for n in range(len(rois)):
+                mask = np.zeros(shape=frameCa.shape, dtype="uint8")
+                cv2.circle(mask, (rois[n][0], rois[n][1]), rois[n][2], (255, 255, 255), -1)
+                maskedImg = cv2.bitwise_and(src1 = frameCa, src2 = mask)
+                ffluo[n].append(np.mean(maskedImg[maskedImg>0]))
+
+            #########################################
+            line1.set_data(ttime,ffluo[0])
+            line2.set_data(ttime,ffluo[1])
+            line3.set_data(ttime,ffluo[2])
+            fig.canvas.draw()
+            img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+            img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            # img is rgb, convert to opencv's default bgr
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+            ##########################################
+            output[600:, 656:(656+656), :] = img
+            #pdb.set_trace()
+            #
             out.write(output)
             if (i > nCa*afterEvery) and nCa<(len(caImg)) :
                 nCa+=1
