@@ -4,16 +4,16 @@ tools.argparser.add_argument("-d","--date", help="specify name of the mouse", re
 args = tools.argparser.parse_args()
 
 import tools.extractSaveData as extractSaveData
-#import tools.dataAnalysis as dataAnalysis
+import tools.dataAnalysis as dataAnalysis
 import pdb
 import sys
 
-#mouse = '170927_m68'
-#expDate = '171115'
-#mouse = '171126_m90'
-#expDate = '180118'
-mouseD = '180824_f13'
-expDateD = '181025'
+
+mouseD = '190101_f15' # id of the mouse to analyze
+#mouseD = '190108_m24'
+expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='some'     # 'all or 'some'
+
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -22,23 +22,36 @@ else:
     mouse = args.mouse
 
 if args.date == None:
-    expDate = expDateD
+    try:
+        expDate = expDateD
+    except :
+        expDate = 'all'
 else:
     expDate = args.date
 
 
 #print mouse, expDate
 #sys.exit(0) #pdb.set_trace()
-eSD         = extractSaveData.extractSaveData(mouse,expDate)  # find data folder of specific mouse, create data folder, and hdf5 handle
-(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate) # get recordings for specific mouse and date
+eSD         = extractSaveData.extractSaveData(mouse)  # find data folder of specific mouse, create data folder, and hdf5 handle
+#pdb.set_trace()
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
 
-# loop over all recording folders
+#print(len(foldersRecordings))
 
+#pdb.set_trace()
+# loop over all folders, mostly days but sometimes there were two recording sessions per day
 for f in range(len(foldersRecordings)):
-    for r in range(1,len(foldersRecordings[f][2])):
-        (existence,fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior')
-        if existence:
-            #print 'exists'
-            (frames,fTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior',fileHandle)
-            eSD.saveBehaviorVideo(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],frames,fTimes,imageMetaInfo)
-            #pdb.set_trace()
+    # loop over all recordings in that folder
+    for r in range(len(foldersRecordings[f][2])):
+        (existenceFrames,fileHandleFrames) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
+        (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
+        # if camera was recorded
+        if existenceFrames:
+            #print('exists',foldersRecordings[f][0],foldersRecordings[f][2][r])
+            (frames,softFrameTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior',fileHandleFrames)
+        if existenceFTimes:
+            (exposureArray,arrayTimes) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes',fileHandleFTimes)
+            (expStartTime,expEndTime,framesDuringRecording) = dataAnalysis.determineFrameTimes(exposureArray[0],arrayTimes,frames,rec=foldersRecordings[f][2][r])
+        # save data
+        if existenceFrames and existenceFTimes:
+            eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)

@@ -68,3 +68,4 @@ class ScaleBar(GraphicsObject, GraphicsWidgetAnchor):
             self.anchor(itemPos=anchor, parentPos=anchor, offset=offset)
         return ret
 
+

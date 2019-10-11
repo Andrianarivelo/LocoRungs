@@ -1,12 +1,13 @@
+import numpy as np
 from .. import metaarray as metaarray
 from ..Qt import QtCore
 from .GraphicsObject import GraphicsObject
 from .PlotCurveItem import PlotCurveItem
 from .ScatterPlotItem import ScatterPlotItem
-import numpy as np
 from .. import functions as fn
 from .. import debug as debug
 from .. import getConfigOption
+
 
 class PlotDataItem(GraphicsObject):
     """
@@ -441,6 +442,8 @@ class PlotDataItem(GraphicsObject):
         
 
         if y is None:
+            self.updateItems()
+            profiler('update items')
             return
         if y is not None and x is None:
             x = np.arange(len(y))
@@ -489,6 +492,9 @@ class PlotDataItem(GraphicsObject):
             self.curve.hide()
         
         if scatterArgs['symbol'] is not None:
+            
+            if self.opts.get('stepMode', False) is True:
+                x = 0.5 * (x[:-1] + x[1:])                
             self.scatter.setData(x=x, y=y, **scatterArgs)
             self.scatter.show()
         else:
@@ -499,41 +505,20 @@ class PlotDataItem(GraphicsObject):
         if self.xData is None:
             return (None, None)
         
-        #if self.xClean is None:
-            #nanMask = np.isnan(self.xData) | np.isnan(self.yData) | np.isinf(self.xData) | np.isinf(self.yData)
-            #if nanMask.any():
-                #self.dataMask = ~nanMask
-                #self.xClean = self.xData[self.dataMask]
-                #self.yClean = self.yData[self.dataMask]
-            #else:
-                #self.dataMask = None
-                #self.xClean = self.xData
-                #self.yClean = self.yData
-            
         if self.xDisp is None:
             x = self.xData
             y = self.yData
             
-            
-            #ds = self.opts['downsample']
-            #if isinstance(ds, int) and ds > 1:
-                #x = x[::ds]
-                ##y = resample(y[:len(x)*ds], len(x))  ## scipy.signal.resample causes nasty ringing
-                #y = y[::ds]
             if self.opts['fftMode']:
                 x,y = self._fourierTransform(x, y)
+                # Ignore the first bin for fft data if we have a logx scale
+                if self.opts['logMode'][0]:
+                    x=x[1:]
+                    y=y[1:]                
             if self.opts['logMode'][0]:
                 x = np.log10(x)
             if self.opts['logMode'][1]:
                 y = np.log10(y)
-            #if any(self.opts['logMode']):  ## re-check for NANs after log
-                #nanMask = np.isinf(x) | np.isinf(y) | np.isnan(x) | np.isnan(y)
-                #if any(nanMask):
-                    #self.dataMask = ~nanMask
-                    #x = x[self.dataMask]
-                    #y = y[self.dataMask]
-                #else:
-                    #self.dataMask = None
                     
             ds = self.opts['downsample']
             if not isinstance(ds, int):
@@ -542,14 +527,15 @@ class PlotDataItem(GraphicsObject):
             if self.opts['autoDownsample']:
                 # this option presumes that x-values have uniform spacing
                 range = self.viewRect()
-                if range is not None:
+                if range is not None and len(x) > 1:
                     dx = float(x[-1]-x[0]) / (len(x)-1)
-                    x0 = (range.left()-x[0]) / dx
-                    x1 = (range.right()-x[0]) / dx
-                    width = self.getViewBox().width()
-                    if width != 0.0:
-                        ds = int(max(1, int((x1-x0) / (width*self.opts['autoDownsampleFactor']))))
-                    ## downsampling is expensive; delay until after clipping.
+                    if dx != 0.0:
+                        x0 = (range.left()-x[0]) / dx
+                        x1 = (range.right()-x[0]) / dx
+                        width = self.getViewBox().width()
+                        if width != 0.0:
+                            ds = int(max(1, int((x1-x0) / (width*self.opts['autoDownsampleFactor']))))
+                        ## downsampling is expensive; delay until after clipping.
             
             if self.opts['clipToView']:
                 view = self.getViewBox()
@@ -586,8 +572,6 @@ class PlotDataItem(GraphicsObject):
                     
             self.xDisp = x
             self.yDisp = y
-        #print self.yDisp.shape, self.yDisp.min(), self.yDisp.max()
-        #print self.xDisp.shape, self.xDisp.min(), self.xDisp.max()
         return self.xDisp, self.yDisp
 
     def dataBounds(self, ax, frac=1.0, orthoRange=None):
@@ -674,10 +658,11 @@ class PlotDataItem(GraphicsObject):
             x2 = np.linspace(x[0], x[-1], len(x))
             y = np.interp(x2, x, y)
             x = x2
-        f = np.fft.fft(y) / len(y)
-        y = abs(f[1:len(f)/2])
-        dt = x[-1] - x[0]
-        x = np.linspace(0, 0.5*len(x)/dt, len(y))
+        n = y.size
+        f = np.fft.rfft(y) / n
+        d = float(x[-1]-x[0]) / (len(x)-1)
+        x = np.fft.rfftfreq(n, d)
+        y = np.abs(f)
         return x, y
     
 def dataType(obj):
@@ -792,7 +777,7 @@ def isSequence(obj):
         #if isinstance(arg, basestring):
             #return self.data[arg]
         #elif isinstance(arg, int):
-            #return dict([(k, v[arg]) for k, v in self.data.iteritems()])
+            #return dict([(k, v[arg]) for k, v in self.data.items()])
         #elif isinstance(arg, tuple):
             #arg = self._orderArgs(arg)
             #return self.data[arg[1]][arg[0]]
