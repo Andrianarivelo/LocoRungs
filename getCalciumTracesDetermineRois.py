@@ -9,7 +9,7 @@ import tools.caImagingSuite2p as caImaging
 import pdb
 import sys
 
-mouseD = '190101_f15' # id of the mouse to analyze
+mouseD = '190911_f25' # id of the mouse to analyze
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='some'     # 'all or 'some'
 
@@ -44,7 +44,7 @@ for f in range(len(foldersRecordings)):
     #for r in range(len(foldersRecordings[f][2])):
     (existence, tiffList) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][0], 'SICaImaging')
     #pdb.set_trace()
-    tiffList = tiffList[-7:-1]
+    #tiffList = tiffList[-7:-1]
     # if camera was recorded
     if existence:
         #pdb.set_trace()

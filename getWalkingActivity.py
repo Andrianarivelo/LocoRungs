@@ -7,9 +7,10 @@ import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import tools.parameters as par
 import pdb
+import pickle
 
-mouseD = '190610_f1' # id of the mouse to analyze
-expDateD = '190815'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+mouseD = '190610_m3' # id of the mouse to analyze
+expDateD = '190816'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='all'     # 'all or 'some'
 
 
@@ -37,6 +38,8 @@ for f in range(len(foldersRecordings)):
             (angles, aTimes,timeStamp,monitor) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'RotaryEncoder',fileHandle)
             (angularSpeed, linearSpeed, sTimes)  = dataAnalysis.getSpeed(angles,aTimes,par.wheelCircumsphere)
             #pdb.set_trace()
-            eSD.saveWalkingActivity(angularSpeed, linearSpeed, sTimes, angles, aTimes, timeStamp,monitor, [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity'])  # save motion corrected image stack
+            wa = [angularSpeed, linearSpeed, sTimes, angles, aTimes, timeStamp,monitor, [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']]
+            pickle.dump(wa, open( 'walkingActivity_%s_rec%s-%s.p' % (foldersRecordings[f][0],foldersRecordings[f][2][r][-7:-4],foldersRecordings[f][2][r][-3:]), 'wb' ) )
+            #eSD.saveWalkingActivity(angularSpeed, linearSpeed, sTimes, angles, aTimes, timeStamp,monitor, [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity'])  # save motion corrected image stack
 
 del eSD

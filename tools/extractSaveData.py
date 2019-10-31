@@ -263,7 +263,11 @@ class extractSaveData:
                             if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin':
                                 subFolders = self.getDirectories(self.dataLocation + '/' + r)
                                 for i in range(len(subFolders)):
-                                    tempRecList.append(r + '/' + subFolders[i])
+                                    if subFolders[i][0] == '0':
+                                        tempRecList.append(r + '/' + subFolders[i])
+                                    else:
+                                        tempRecList.append(r)
+                                        break
                             else:
                                 tempRecList.append(r)
                         folderRec.append([fold,eD,tempRecList])

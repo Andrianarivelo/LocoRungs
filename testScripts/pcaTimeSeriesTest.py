@@ -27,7 +27,7 @@ plt.plot(t,X_pca[:,0],c='0.3')
 plt.plot(t,X_pca[:,1],c='0.6')
 
 print(pca.components_)
-print(pca.explained_variance_ratio_)
+print(pca.explained_variance_)
 
 # plot how original data is related principal components
 comp = pca.components_
@@ -51,6 +51,8 @@ X_pca = pca.transform(X)
 print("original shape:   ", X.shape)
 print("transformed shape:", X_pca.shape)
 X_new = pca.inverse_transform(X_pca)
+
+
 
 plt.plot(t,X_new)
 plt.show()
