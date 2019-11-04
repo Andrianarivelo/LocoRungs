@@ -5,9 +5,11 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
+import json
 
 import suite2p
 from suite2p.run_s2p import run_s2p
+from ScanImageTiffReader import ScanImageTiffReader
 
 import tools.dataAnalysis as dataAnalysis
 
@@ -32,12 +34,14 @@ class caImagingSuite2p:
         #fName = dataDir + '*.tif'
         #tiffsList = glob.glob(fName)
         # only run on specified tiffs
+
         if tiffPaths is not None:
             tiffList = [tP.split('/')[-1] for tP in tiffPaths]
             print(dataDir,saveDir,tiffList)
         else:
             print(dataDir,saveDir)
             tiffList = []
+
         self.db = {
               'h5py': [], # a single h5 file path
               'h5py_key': 'caData',
@@ -50,7 +54,24 @@ class caImagingSuite2p:
               'fast_disk': '/tmp/', # string which specifies where the binary file will be stored (should be an SSD)
               'tiff_list': [] #tiffList # list of tiffs in folder * data_path *!
             }
-
+        print(dataDir + tiffList[0])
+        reader = ScanImageTiffReader(dataDir + tiffList[0])
+        metaD = reader.metadata()
+        startIdx = metaD.find('SI.hChannels.channelsActive')
+        #eElem = metaD[startIdx]
+        sE1 = metaD[(startIdx+29):].split('\n')
+        sE2 = sE1[0].strip()
+        #print(sE1[0],sE2)
+        if sE2 == '[1;2]':
+            nChan = 2
+            print('2 channels')
+        elif sE2 == '1':
+            nChan = 1
+            print('1 channel')
+        #with ScanImageTiffReader(dataDir + tiffList[0]) as reader:
+        #    o = json.loads(reader.metadata())
+        #    pdb.set_trace()
+        #    print(o["RoiGroups"]["imagingRoiGroup"]["rois"]["scanfields"]["affine"])
         # set your options for running
         # overwrites the run_s2p.default_ops
         self.ops = {
@@ -59,7 +80,7 @@ class caImagingSuite2p:
             'delete_bin': False, # whether to delete binary file after processing
             # main settings
             'nplanes' : 1, # each tiff has these many planes in sequence
-            'nchannels' : 1, # each tiff has these many channels per plane
+            'nchannels' : nChan, # each tiff has these many channels per plane
             'functional_chan' : 1, # this channel is used to extract functional ROIs (1-based)
             'diameter':12, # this is the main parameter for cell detection, 2-dimensional if Y and X are different (e.g. [6 12])
             'tau':  0.7, # this is the main parameter for deconvolution
@@ -76,7 +97,7 @@ class caImagingSuite2p:
             'batch_size': 200, # number of frames per batch
             'maxregshift': 0.1, # max allowed registration shift, as a fraction of frame max(width and height)
             'align_by_chan' : 1, # when multi-channel, you can align by non-functional channel (1-based)
-            'reg_tif': True, # whether to save registered tiffs
+            'reg_tif': False, # whether to save registered tiffs
             'subpixel' : 10, # precision of subpixel registration (1/subpixel steps)
             # cell detection settings
             'connected': True, # whether or not to keep ROIs fully connected (set to 0 for dendrites)
@@ -108,5 +129,16 @@ class caImagingSuite2p:
         opsEnd = run_s2p(ops=self.ops, db=self.db)
 
     ############################################################
-    def generateSummaryFigures(selfs):
+    def generateOverviewFigure(self,suite2pPath,tiffList,mouseID,recFolder):
+        ops = np.load(suite2pPath+'suite2p/plane0/ops.npy').item()
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.set_title('animal %s, rec: %s' % (mouseID,recFolder))
+        ax.imshow(ops['meanImg'],vmax=max(ops['meanImg'].flatten())*0.05)
+
+        plt.savefig(suite2pPath + 'animal_%s_rec_%s.pdf' %(mouseID,recFolder))
+
+    ############################################################
+    def generateSummaryFigures(self):
         pass

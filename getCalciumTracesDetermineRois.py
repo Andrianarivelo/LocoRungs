@@ -59,6 +59,7 @@ for f in range(len(foldersRecordings)):
             #
             eSD.extractAndSaveCaTimeStamps(eSD.dataBase2+foldersRecordings[f][0]+'/',eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
             #
+            caI.generateOverviewFigure(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList,mouseD,foldersRecordings[f][0])
             #pdb.set_trace()
 
 # pdb.set_trace()
