@@ -9,8 +9,8 @@ import tools.parameters as par
 import pdb
 import pickle
 
-mouseD = '190610_m3' # id of the mouse to analyze
-expDateD = '190816'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+mouseD = '190610_f1' # id of the mouse to analyze
+expDateD = '190817'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='all'     # 'all or 'some'
 
 
