@@ -9,8 +9,8 @@ import tools.parameters as par
 import pdb
 import pickle
 
-mouseD = '190610_f1' # id of the mouse to analyze
-expDateD = '190817'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+mouseD = '190101_f15' # id of the mouse to analyze
+expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='all'     # 'all or 'some'
 
 
@@ -31,15 +31,16 @@ eSD         = extractSaveData.extractSaveData(mouse)
 (foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
 
 #tracks = []
+print(foldersRecordings)
 for f in range(len(foldersRecordings)):
     for r in range(len(foldersRecordings[f][2])):
         (existence, fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'RotaryEncoder')
         if existence:
             (angles, aTimes,timeStamp,monitor) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'RotaryEncoder',fileHandle)
-            (angularSpeed, linearSpeed, sTimes)  = dataAnalysis.getSpeed(angles,aTimes,par.wheelCircumsphere)
+            (angularSpeed, linearSpeed, sTimes)  = dataAnalysis.getSpeed(angles,aTimes,par.wheelCircumsphere,par.minSpacing)
             #pdb.set_trace()
-            wa = [angularSpeed, linearSpeed, sTimes, angles, aTimes, timeStamp,monitor, [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']]
-            pickle.dump(wa, open( 'walkingActivity_%s_rec%s-%s.p' % (foldersRecordings[f][0],foldersRecordings[f][2][r][-7:-4],foldersRecordings[f][2][r][-3:]), 'wb' ) )
-            #eSD.saveWalkingActivity(angularSpeed, linearSpeed, sTimes, angles, aTimes, timeStamp,monitor, [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity'])  # save motion corrected image stack
+            #wa = [angularSpeed, linearSpeed, sTimes, angles, aTimes, timeStamp,monitor, [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']]
+            #pickle.dump(wa, open( 'walkingActivity_%s_rec%s-%s.p' % (foldersRecordings[f][0],foldersRecordings[f][2][r][-7:-4],foldersRecordings[f][2][r][-3:]), 'wb' ) )
+            eSD.saveWalkingActivity(angularSpeed, linearSpeed, sTimes, angles, aTimes, timeStamp,monitor, [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity'])  # save motion corrected image stack
 
 del eSD

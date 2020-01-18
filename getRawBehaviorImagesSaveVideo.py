@@ -9,7 +9,7 @@ import pdb
 import sys
 
 
-mouseD = '190610_f1' # id of the mouse to analyze
+mouseD = '190101_f15' # id of the mouse to analyze
 #mouseD = '190108_m24'
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='some'     # 'all or 'some'
@@ -58,4 +58,4 @@ for f in range(len(foldersRecordings)):
             (angles, aTimes, timeStamp, monitor) = eSD.readRawData(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'RotaryEncoder', fileHandleRE)
         if existenceFrames and existenceFTimes:
             eSD.saveBehaviorVideoWithCa(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo,angles,aTimes)
-        pdb.set_trace()
+        #pdb.set_trace()

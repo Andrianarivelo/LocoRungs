@@ -39,45 +39,61 @@ eSD = extractSaveData.extractSaveData(mouse)
 
 cV = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
+if os.path.isfile(eSD.analysisLocation + '/allSingStanceDataPerSession.p') and not readDataAgain:
+    recordingsM = pickle.load( open( eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'rb' ) )
+
 if os.path.isfile(eSD.analysisLocation + '/allDataPerSession.p') and not readDataAgain:
     allCorrDataPerSession = pickle.load( open( eSD.analysisLocation + '/allCorrDataPerSession.p', 'rb' ) )
 else:
     allCorrDataPerSession = []
-    for f in range(len(foldersRecordings)):
-        tracks = []
-        pawTracks = []
-        caImagingRois = []
-        for r in range(len(foldersRecordings[f][2])): # loop over all trials
+    for f in range(len(foldersRecordings)): # loop over all days
+        wheel = []
+        paws = []
+        caimg = []
+        for r in range(len(foldersRecordings[f][2])): # loop over all recordings
+            #print(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r])
             # check for rotary encoder
             (rotaryExistence, rotFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'RotaryEncoder')
             if rotaryExistence:  #angularSpeed,linearSpeed,wTimes,startTime,monitor
                 (angluarSpeed,linearSpeed,sTimes,timeStamp,monitor,angleTimes) = eSD.getWalkingActivity([foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity'])
-                tracks.append([angluarSpeed,linearSpeed,sTimes,timeStamp,monitor,angleTimes,foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r]])
+                wheel.append([angluarSpeed,linearSpeed,sTimes,timeStamp,monitor,angleTimes,foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r]])
             # check for video recording during trial
             (camExistence, camFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'CameraGigEBehavior')
             if camExistence :
                 (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime,rawPawSpeed,cPawPos) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r])
                 #pdb.set_trace()
-                pawTracks.append([rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime])
+                paws.append([rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime])
         # check for ca-imaging data during entire session
         (caImgExistence, tiffList) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][0], 'SICaImaging')
         if caImgExistence: # (Fluo,nRois,ops,frameNumbers)
             (Fluo,nRois,ops,timeStamps,stat) =  eSD.getCaImagingRoiData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
-            caImagingRois.append([Fluo,nRois,ops,timeStamps,stat])
-        # combine all recordings from a session
-        if (not tracks) and (not pawTracks) and (not caImagingRois):
+            caimg.append([Fluo,nRois,ops,timeStamps,stat])
+        # combine all recordings from a session only if all three data-sets were recorded
+        if (not wheel) and (not paws) and (not caimg):
             pass
         else:
-            allCorrDataPerSession.append([foldersRecordings[f][0],tracks,pawTracks,caImagingRois])
+            allCorrDataPerSession.append([foldersRecordings[f][0],wheel,paws,caimg])
 
     pickle.dump(allCorrDataPerSession, open(eSD.analysisLocation + '/allCorrDataPerSession.p', 'wb'))  # eSD.analysisLocation,
 
 #pdb.set_trace()
 # generate overview figure for animal
-(correlationData,varExplained) = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
+#Rvalues = dataAnalysis.doRegressionAnalysis(mouse,allCorrDataPerSession)
+#cV.generateR2ValueFigure(mouse,Rvalues,'R2-Values')
+
+#borders = [10,25]
+#Rvalues2 = dataAnalysis.doRegressionAnalysis(mouse,allCorrDataPerSession,borders=borders)
+#cV.generateR2ValueFigure(mouse,Rvalues2,'R2-Values-LocomotionPeriod_%s-%s_only' % (borders[0],borders[1]))
 #pdb.set_trace()
+
+caTriggeredAverages = dataAnalysis.generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,recordingsM)
+pickle.dump(caTriggeredAverages, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'wb'))  # eSD.analysisLocation,
+pickle.dump(caTriggeredAverages, open('caSwingPhaseTriggeredAverages.p', 'wb'))
+
+pdb.set_trace()
+(correlationData,varExplained) = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
 # cV.generateCaWheelPawImage(mouse,allCorrDataPerSession)
 cV.generateCorrelationPlotCaTraces(mouse,correlationData,allCorrDataPerSession)
 #cV.generatePCACorrelationPlot(mouse,correlationData,allCorrDataPerSession,varExplained)
-# cV.generateCorrelationPlotsCaWheelPaw(mouse,correlationData,allCorrDataPerSession)
+cV.generateCorrelationPlotsCaWheelPaw(mouse,correlationData,allCorrDataPerSession)
 

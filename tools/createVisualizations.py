@@ -4281,3 +4281,69 @@ class createVisualizations:
         plt.savefig(fname + '.pdf')
         #plt.show()
 
+    ##########################################################################################
+    def generateR2ValueFigure(self,mouse,Rvalues,figName):
+
+        RA = np.asarray(Rvalues)
+        nDays = len(RA)
+
+        #stepNumber = np.asarray(stepNumber)
+        # figure #################################
+        fig_width = 6  # width in inches
+        fig_height = 15  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(5, 1,  # ,
+                               # width_ratios=[1.2,1]
+                               #height_ratios=[10,2]
+                               )
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.1, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.1)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.98, '%s, %s days of recordings' % (self.mouse, nDays), clip_on=False, color='black', size=12)
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+        forecasted = ['wheel speed','FR speed','FL speed','HL speed','HR speed']
+        for n in range(5):
+            ax = plt.subplot(gs[n])
+            ax.set_title(forecasted[n])
+
+            ax.axhline(y=0,ls='--',c='0.6')
+            ax.axhline(y=1,ls='-',c='0.6')
+            ax.plot(np.arange(1,nDays+1),RA[:,2*n],'o-',label='training score')
+            ax.plot(np.arange(1,nDays+1),RA[:,2*n+1],'o-',label='testing score')
+
+            majorLocator_x = ticker.MultipleLocator(1)
+            ax.xaxis.set_major_locator(majorLocator_x)
+            if n == 4:
+                self.layoutOfPanel(ax, xLabel='recording day', yLabel=r'R$^2$')
+            elif n==0:
+                self.layoutOfPanel(ax, xLabel=None, yLabel=r'R$^2$', Leg=[1, 9])
+            else:
+                self.layoutOfPanel(ax, xLabel=None, yLabel=r'R$^2$')
+
+        # save figure #######################################################
+        #rec = rec.replace('/','-')
+        fname = self.determineFileName(self.mouse, what=figName)
+        # plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+        #plt.show()
+

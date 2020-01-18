@@ -15,12 +15,31 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 
-def getSpeed(angles,times,circumsphere):
-    angleJumps = angles[np.concatenate((([True]),np.diff(angles)!=0.))]
-    timePoints = times[np.concatenate((([True]),np.diff(angles)!=0.))]
-    angularSpeed = np.diff(angleJumps[::2])/np.diff(timePoints[::2])
-    linearSpeed = angularSpeed*circumsphere/360.
-    speedTimes = (timePoints[::2][1:] + timePoints[::2][:-1])/2.
+def getSpeed(angles,times,circumsphere,minSpacing):
+    angleJumps = angles[np.concatenate((([True]),np.diff(angles)!=0.))] # find angles at the points where the angle value changes
+    timePoints = times[np.concatenate((([True]),np.diff(angles)!=0.))]  # find times at the points where the angle value changes
+    #
+    dt = np.diff(timePoints) # delta t values of the time array
+    dtMultipleSpace = dt//minSpacing # how many times does the minSpacing fit in the gaps
+    dtMultipleSpace = dtMultipleSpace[dtMultipleSpace>1] # gap must be as big as 2 times the spacing to add a point
+    # note that gap must be larger than 2 times the spacing
+    startGap = np.arange(len(timePoints))[np.hstack(((dt>2.*minSpacing),np.array(False)))] # index values of the start of the gap
+    endGap = np.arange(len(timePoints))[np.hstack((np.array(False),(dt>2.*minSpacing)))] # index values of the end of the gap
+    newSpacingValue = (timePoints[endGap] - timePoints[startGap]) / dtMultipleSpace
+    newTvalues = []
+    newAvalues = []
+    for i in range(len(dtMultipleSpace)):
+        newTvalues.extend(timePoints[startGap][i] + newSpacingValue[i] * np.arange(1, dtMultipleSpace[i]))
+        newAvalues.extend(np.repeat(angleJumps[startGap][i], (dtMultipleSpace[i] - 1)))
+    timesNew = np.hstack((timePoints,np.asarray(newTvalues)))
+    anglesNew = np.hstack((angleJumps,np.asarray(newAvalues)))
+    both = np.row_stack((timesNew,anglesNew))
+    bothSorted = both[:,both[0].argsort()]
+    angularSpeed = np.diff(bothSorted[1])/np.diff(bothSorted[0])
+    angularSpeedM = (angularSpeed[1:]+angularSpeed[:-1])/2.
+
+    linearSpeed = angularSpeedM*circumsphere/360.
+    speedTimes = bothSorted[0][1:-1]
     #pdb.set_trace()
     return (angularSpeed,linearSpeed,speedTimes)
 
@@ -402,6 +421,313 @@ def detectPawTrackingOutlies(pawTraces,pawMetaData):
     return pawTrackingOutliers
     #pdb.set_trace()
 
+#################################################################################
+# convert ca traces in easily usable numpy array
+#################################################################################
+def getCaWheelPawInterpolatedDictsPerDay(nSess,allCorrDataPerSession):
+    baselineTime = 5.
+    # calcium traces ##############################################################
+    trialStartUnixTimes = []
+
+    fTraces = allCorrDataPerSession[nSess][3][0][0]
+    timeStamps = allCorrDataPerSession[nSess][3][0][3]
+    recordings = np.unique(timeStamps[:, 1])
+    caTracesDict = {}
+    for n in range(len(recordings)):
+        mask = (timeStamps[:, 1] == recordings[n])
+        triggerStart = timeStamps[:, 5][mask]
+        trialStartUnixTimes.append(timeStamps[:, 3][mask][0])
+        if n > 0:
+            if oldTriggerStart > triggerStart[0]:
+                print('problem in trial order')
+                sys.exit(1)
+        # for i in range(len(fTraces)):
+        caTracesTime = (timeStamps[:, 4][mask] - triggerStart)
+        #pdb.set_trace()
+        caTracesFluo = fTraces[:, mask]
+        # pdb.set_trace()
+        # caTraces.append(np.column_stack((caTracesTime,caTracesFluo)))
+        caTracesDict[n] = np.row_stack((caTracesTime, caTracesFluo))
+        #print(np.shape(np.row_stack((caTracesTime, caTracesFluo))))
+        oldTriggerStart = triggerStart[0]
+
+    # wheel speed  ######################################################
+    # also find calmest pre-motorization period
+    minPreMotorMeanV = 1000.
+    wheelTracks = allCorrDataPerSession[nSess][1]
+    nRec = 0
+    # print(len(wheelTracks))
+    wheelSpeedDict = {}
+    for n in range(len(wheelTracks)):
+        wheelRecStartTime = wheelTracks[n][3]
+        if (trialStartUnixTimes[nRec] - wheelRecStartTime) < 1.:
+            # if not wheelTracks[n][4]:
+            # recStartTime = wheelTracks[0][3]
+            if nRec > 0:
+                if oldRecStartTime > wheelRecStartTime:
+                    print('problem in trial order')
+                    sys.exit(1)
+            wheelTime = wheelTracks[n][2]
+            wheelSpeed = wheelTracks[n][1] # linear wheel speed in cm/s
+            angleSpeed = wheelTracks[n][0]
+            angleTime  = wheelTracks[n][5]
+
+            wheelSpeedDict[nRec] = np.row_stack((wheelTime, wheelSpeed))
+            #pdb.set_trace()
+            preMMask = (wheelTime < baselineTime)
+            preMmeanV = np.mean(np.abs(wheelSpeed[preMMask]))
+            #print(nSess, nRec, preMmeanV)
+            if preMmeanV < minPreMotorMeanV:
+                slowestRec = nRec
+                minPreMotorMeanV = np.copy(preMmeanV)
+
+            nRec += 1
+            oldRecStartTime = wheelRecStartTime
+
+    # normalize ca-traces by baseline fluorescence : fluorescence during the first baselineTime seconds in the last active recording #############################################
+    mask = (caTracesDict[slowestRec][0] < baselineTime)
+    F0 = np.mean(caTracesDict[slowestRec][1:][:, mask], axis=1)
+    #pdb.set_trace()
+    for n in range(len(recordings)):
+        normalizedCaTraces = (caTracesDict[n][1:] - F0[:, np.newaxis]) / F0[:, np.newaxis]
+        caTracesDict[n][1:] = np.copy(normalizedCaTraces)
+
+    # pdb.set_trace()
+    # paw speed  ######################################################
+    pawTracks = allCorrDataPerSession[nSess][2]
+    nRec = 0
+    pawTracksDict = {}
+    pawID = []
+    for n in range(len(pawTracks)):
+        # if not wheelTracks[n][4]:
+        pawRecStartTime = pawTracks[n][4]
+        if (trialStartUnixTimes[nRec] - pawRecStartTime) < 1.:
+            if nRec > 0:
+                if oldRecStartTime > pawRecStartTime:
+                    print('problem in trial order')
+                    sys.exit(1)
+            pawTracksDict[nRec] = {}
+            for i in range(4):
+                # pdb.set_trace()
+                if nRec == 0:
+                    pawID.append(pawTracks[n][2][i][0])
+                # pawTracksDict[nFig][i]['pawID'] = pawTracks[n][2][i][0]
+                pawSpeedTime = pawTracks[n][3][i][:,0] # times of cleared paw speed
+                pawSpeed = pawTracks[n][3][i][:,1]    # 1 is combined speed in 2-d plane of the camera view from below,
+                pawTracksDict[nRec][i] = np.row_stack((pawSpeedTime,pawSpeed))  # interp = interp1d(pawSpeedTime, pawSpeed)  # newPawSpeedAtCaTimes = interp(caTracesTime[nFig])  # pawTracksDict[i]['pawSpeed'].extend(newPawSpeedAtCaTimes)
+
+            oldRecStartTime = pawRecStartTime
+            nRec += 1
+    # interpolation #############################################################################
+    # interp = interp1d(wheelTime, wheelSpeed)
+    # interpMask = (caTracesTime[nFig] >= wheelTime[0]) & (caTracesTime[nFig] <= wheelTime[-1])
+    # newWheelSpeedAtCaTimes = interp(caTracesTime[nFig][interpMask])
+    # wheelSpeedAll.extend(newWheelSpeedAtCaTimes)
+
+    wheelSpeedDictInterp = wheelSpeedDict.copy()
+    pawTracksDictInterp = pawTracksDict.copy()
+    caTracesDictInterp = caTracesDict.copy()
+
+    for nrec in range(len(caTracesDict)):
+        # determine interpolation range
+        startInterpTime = np.max((caTracesDict[nrec][0, 0], wheelSpeedDict[nrec][0, 0], pawTracksDict[nrec][0][0, 0], pawTracksDict[nrec][1][0, 0], pawTracksDict[nrec][2][0, 0], pawTracksDict[nrec][3][0, 0]))
+        endInterpTime = np.min((caTracesDict[nrec][0, -1], wheelSpeedDict[nrec][0, -1], pawTracksDict[nrec][0][0, -1], pawTracksDict[nrec][1][0, -1], pawTracksDict[nrec][2][0, -1], pawTracksDict[nrec][3][0, -1]))
+
+        interpMask = (caTracesDict[nrec][0] >= startInterpTime) & (caTracesDict[nrec][0] <= endInterpTime)
+
+        # restrict ca-traces to interpolation range
+        #pdb.set_trace()
+        #matrix = np.copy(caTracesDict[nrec])
+        caTracesDictInterp[nrec] = caTracesDict[nrec][:,interpMask]
+
+        # interpolate wheel speed
+        interpWheel = interp1d(wheelSpeedDict[nrec][0], wheelSpeedDict[nrec][1])#,kind='cubic')
+        newWheelSpeedAtCaTimes = interpWheel(caTracesDict[nrec][0][interpMask])
+        wheelSpeedDictInterp[nrec] = np.row_stack((caTracesDict[nrec][0][interpMask], newWheelSpeedAtCaTimes))
+
+        # interpolate paw speed
+        for i in range(4):
+            interpPaw = interp1d(pawTracksDict[nrec][i][0], pawTracksDict[nrec][i][1])#,kind='cubic')
+            newPawSpeedAtCaTimes = interpPaw(caTracesDict[nrec][0][interpMask])
+            pawTracksDictInterp[nrec][i] = np.row_stack((caTracesDict[nrec][0][interpMask], newPawSpeedAtCaTimes))
+            #pawAll[i].extend(newPawSpeedAtCaTimes)
+
+
+    return (wheelSpeedDictInterp,pawTracksDictInterp,caTracesDictInterp,wheelSpeedDict,pawTracksDict,caTracesDict)
+
+#################################################################################
+# calculate correlations between ca-imaging, wheel speed and paw speed
+#################################################################################
+def doRegressionAnalysis(mouse,allCorrDataPerSession,borders=None):
+    from sklearn.linear_model import LinearRegression
+    #from sklearn.ensemble import RandomForestRegressor
+
+    recs = [0, 1, 2, 3, 4]
+    Rvalues = []
+    for nSess in range(len(allCorrDataPerSession)):
+        print(allCorrDataPerSession[nSess][0],nSess)
+        (wheelSpeedDict, pawTracksDict, caTracesDict,_,_,_) = getCaWheelPawInterpolatedDictsPerDay(nSess, allCorrDataPerSession)
+        if ((len(wheelSpeedDict) != 5) or (len(pawTracksDict) != 5) or (len(caTracesDict) != 5)):
+            print('problem in number of recordings listed in dictionaries')
+        # loop over 5 different regressions, each using a different combination of test and train samples
+        RTempValues = []
+
+        for reg in range(5):
+            recsForTraining = recs.copy()
+            recsForTraining.remove(reg)
+            recsForTest = [reg]
+            Rval1 = []
+            for d in range(5):  # loop over wheel speed and the four paw speeds
+                #print('recording iteration %s, variable %s' %(reg,d))
+                #pdb.set_trace()
+                # concatenate data
+                if borders is not None:
+                    timeMaskTrain = (caTracesDict[recsForTraining[0]][0]>=borders[0])&(caTracesDict[recsForTraining[0]][0]<=borders[1])
+                    timeMaskTest = (caTracesDict[recsForTest[0]][0] >= borders[0]) & (caTracesDict[recsForTest[0]][0] <= borders[1])
+                else:
+                    timeMaskTrain = (caTracesDict[recsForTraining[0]][0]>=0)&(caTracesDict[recsForTraining[0]][0]<=1000.)
+                    timeMaskTest  = (caTracesDict[recsForTest[0]][0]>=0)&(caTracesDict[recsForTest[0]][0]<=1000.)
+                X = np.copy(caTracesDict[recsForTraining[0]][1:][:,timeMaskTrain])
+                Xtest = np.copy(caTracesDict[recsForTest[0]][1:][:,timeMaskTest])
+                #pdb.set_trace()
+                if d == 0:
+                    Y = np.copy(wheelSpeedDict[recsForTraining[0]][1:][:,timeMaskTrain])
+                    Ytest = np.copy(wheelSpeedDict[recsForTest[0]][1:][:,timeMaskTest])
+                    YtestTime = np.copy(wheelSpeedDict[recsForTest[0]][0][timeMaskTest])
+                else:
+                    pawId = d-1
+                    Y = np.copy(pawTracksDict[recsForTraining[0]][pawId][1:][:,timeMaskTrain])
+                    Ytest = np.copy(pawTracksDict[recsForTest[0]][pawId][1:][:,timeMaskTest])
+                    YtestTime = np.copy(pawTracksDict[recsForTest[0]][pawId][0][timeMaskTest])
+                for t in recsForTraining[1:]:
+                    if borders is not None:
+                        timeMaskTrain = (caTracesDict[t][0] >= borders[0]) & (caTracesDict[t][0] <= borders[1])
+                    else:
+                        timeMaskTrain = (caTracesDict[t][0] >= 0) & (caTracesDict[t][0] <= 1000.)
+                    X = np.column_stack((X,caTracesDict[t][1:][:,timeMaskTrain]))
+                    if d == 0:
+                        Y = np.column_stack((Y,wheelSpeedDict[t][1:][:,timeMaskTrain]))
+                    else:
+                        Y = np.column_stack((Y, pawTracksDict[t][pawId][1:][:,timeMaskTrain]))
+                Y = Y[0]
+                X = np.transpose(X)
+                Ytest = Ytest[0]
+                Xtest = np.transpose(Xtest)
+                # linear regression  ########################################
+                linReg = LinearRegression()
+                linReg.fit(X,Y)
+                YTrainPred = linReg.predict(X)
+                YTestPred  = linReg.predict(Xtest)
+                R2trainLR = linReg.score(X, Y)
+                R2testLR = linReg.score(Xtest, Ytest)
+                #print(linReg.coef_)
+                #print(linReg.intercept_)
+                #yPred = linReg.predict(np.transpose(X))
+                # random forest ##############################################
+                #randForestReg = RandomForestRegressor(n_estimators=20)
+                #randForestReg.fit(X, Y)
+                #R2trainRF = randForestReg.score(X, Y)
+                #R2testRF= randForestReg.score(Xtest, Ytest)
+                #
+                # print('R2 test :',R2testLR)
+                # fig = plt.figure()
+                # ax = fig.add_subplot(111)
+                # ax.plot(YtestTime,Ytest,lw=2)
+                # ax.plot(YtestTime,YTestPred,lw=2)
+                # ax.spines['top'].set_visible(False)
+                # ax.spines['right'].set_visible(False)
+                # ax.spines['bottom'].set_position(('outward', 10))
+                # ax.spines['left'].set_position(('outward', 10))
+                # ax.yaxis.set_ticks_position('left')
+                # ax.xaxis.set_ticks_position('bottom')
+                # plt.show()
+
+                Rval1.extend([R2trainLR,R2testLR])
+            RTempValues.append(Rval1)
+        #pdb.set_trace()
+        Rs = np.zeros(10)
+        for reg in range(5):
+            Rs += RTempValues[reg]
+        Rs /=5.
+        Rvalues.append(Rs)
+
+    return Rvalues
+#################################################################################
+# calculate correlations between ca-imaging, wheel speed and paw speed
+#################################################################################
+def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
+    # check for sanity
+    if len(allCorrDataPerSession) != len(allStepData):
+        print('both dictionaries are not of the same length')
+        print('CaWheelPawDict:',len(allCorrDataPerSession),' StepStanceDict:,',len(allStepData))
+
+    timeAxis = np.linspace(-0.2,0.6,(0.6+0.2)/0.02+1)
+    preStanceMask = timeAxis<0
+    K = len(timeAxis)
+    caTraces = []
+    for nDay in range(1,len(allCorrDataPerSession)):
+        print(allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay)
+        (wheelSpeedDictInterP, pawTracksDictInterP, caTracesDictInterP,wheelSpeedDict,pawTracksDict,caTracesDict) = getCaWheelPawInterpolatedDictsPerDay(nDay, allCorrDataPerSession)
+        if len(allStepData[nDay-1][4])==6:
+            print('more recordings :',len(allStepData[nDay-1][4]))
+            addIdx = 1
+        else:
+            addIdx = 0
+        #pdb.set_trace()
+        N = len(caTracesDict[0][1:])
+        caSnippets = [[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)]] #np.zeros((4,N,K))
+        caSnippetsArray = np.zeros((4,N,K))
+        for nrec in range(5): # loop over the five recordings of a day
+            for i in range(4): # loop over the four paws
+                idxSwings = allStepData[nDay-1][4][nrec+addIdx][3][i][1]
+                #print('Wow nSess',nDay,allStepData[nDay-1][0])
+                recTimes = allStepData[nDay-1][4][nrec+addIdx][4][i][2]
+                #pdb.set_trace()
+                idxSwings = np.asarray(idxSwings)
+                for k in range(len(idxSwings)): # loop over all swings
+                    startSwingTime = recTimes[idxSwings[k, 0]]
+                    if len(caTracesDict[nrec][1:])!=N: print('problem in number of ROIs')
+                    for l in range(len(caTracesDict[nrec][1:])): # loop over all ROIs
+                        interpCa = interp1d(caTracesDict[nrec][0]-startSwingTime, caTracesDict[nrec][l+1])#,kind='cubic')
+                        try:
+                            newCaTraceAtSwing = interpCa(timeAxis)
+                        except ValueError:
+                            pass
+                        else:
+                            #caSnippets[i,l,:] += newCaTraceAtSwing
+                            caSnippets[i][l].append(newCaTraceAtSwing)
+        #pdb.set_trace()
+        for i in range(4):
+            for l in range(N):
+                caTempArray = np.asarray(caSnippets[i][l])
+                caSnippetsZscores = (caTempArray - np.mean(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis])/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
+                caTemp = np.mean(caSnippetsZscores,axis=0)
+                caSnippetsArray[i,l,:] = caTemp
+        caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay,caSnippetsArray])
+
+    return caTraces
+
+    # for n in range(nDays):
+    #     stepDistances.append([[], [], [], []])
+    #     for j in range(len(recs[n][4])):
+    #         for i in range(4):
+    #             pawPos   = recs[n][2][j][5][i]
+    #             linearPawPos = recs[n][4][j][4][i][5]
+    #             #pawSpeed = recs[n][2][j][3][i]
+    #             idxSwings = recs[n][4][j][3][i][1]
+    #             stepCharacter = recs[n][4][j][3][i][3]
+    #             stepC[i, n, 1] += len(stepCharacter)
+    #             recTimes = recs[n][4][j][4][i][2]
+    #             idxSwings = np.asarray(idxSwings)
+    #             for k in range(len(idxSwings)):
+    #                 # pdb.set_trace()
+    #                 # only look at steps during motorization period
+    #                 if linear :
+    #                     mask = (linearPawPos[:, 0] >= recTimes[idxSwings[k, 0]]) & (linearPawPos[:, 0] <= recTimes[idxSwings[k, 1]])
+    #                     # pdb.set_trace()
+    #                     stepDistances[-1][i].extend([(linearPawPos[:, 1][mask][-1] - linearPawPos[:, 1][mask][0])])
+    #                     axL[n][i][0].plot(linearPawPos[:, 0][mask] - linearPawPos[:, 0][mask][0], (linearPawPos[:, 1][mask] - linearPawPos[:, 1][mask][0]), '0.5', lw=0.2, alpha=0.2)
+    #                     #axL[n][i][0].hist((linearPawPos[:, 1][mask] - linearPawPos[:, 1][mask][0]),bins=20)
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
@@ -413,6 +739,7 @@ def doCorrelationAnalysis(mouse,allCorrDataPerSession):
     #itertools.combinations(arr,2)
     sessionCorrelations = []
     varExplained = []
+
     for nSess in range(len(allCorrDataPerSession)):
         # calculate correcorrelation between individual calcium traces
         fTraces = allCorrDataPerSession[nSess][3][0][0]
@@ -443,95 +770,7 @@ def doCorrelationAnalysis(mouse,allCorrDataPerSession):
         #for nSess in range(len(allCorrDataPerSession)):
         trialStartUnixTimes = []
 
-        # ca-traces #######################################################
 
-        fTraces = allCorrDataPerSession[nSess][3][0][0]
-        timeStamps = allCorrDataPerSession[nSess][3][0][3]
-        trials = np.unique(timeStamps[:, 1])
-        caTracesDict = {}
-        for n in range(len(trials)):
-            mask = (timeStamps[:, 1] == trials[n])
-            triggerStart = timeStamps[:, 5][mask]
-            trialStartUnixTimes.append(timeStamps[:,3][mask][0])
-            if n>0:
-                if oldTriggerStart>triggerStart[0]:
-                    print('problem in trial order')
-                    sys.exit(1)
-            #for i in range(len(fTraces)):
-            caTracesTime = (timeStamps[:, 4][mask] - triggerStart)
-            caTracesFluo = fTraces[:,mask]
-            #pdb.set_trace()
-            #caTraces.append(np.column_stack((caTracesTime,caTracesFluo)))
-            caTracesDict[n] = np.row_stack((caTracesTime,caTracesFluo))
-
-            oldTriggerStart=triggerStart[0]
-
-        # wheel speed  ######################################################
-        # also find calmest pre-motorization period
-        minPreMotorMeanV = 1000.
-        wheelTracks = allCorrDataPerSession[nSess][1]
-        nFig = 0
-        #print(len(wheelTracks))
-        wheelSpeedDict = {}
-        for n in range(len(wheelTracks)):
-            wheelRecStartTime = wheelTracks[n][3]
-            if (trialStartUnixTimes[nFig]-wheelRecStartTime)<1.:
-                #if not wheelTracks[n][4]:
-                #recStartTime = wheelTracks[0][3]
-                if nFig>0:
-                    if oldRecStartTime>wheelRecStartTime:
-                        print('problem in trial order')
-                        sys.exit(1)
-                wheelTime  = wheelTracks[n][2]
-                wheelSpeed = wheelTracks[n][1]
-                wheelSpeedDict[nFig] = np.row_stack((wheelTime,wheelSpeed))
-
-                preMMask = (wheelTime < 5.)
-                preMmeanV = np.mean(np.abs(wheelSpeed[preMMask]))
-                print(nSess,nFig,preMmeanV)
-                if preMmeanV < minPreMotorMeanV:
-                    nSlowest = nFig
-                    minPreMotorMeanV = np.copy(preMmeanV)
-                nFig+=1
-                oldRecStartTime = wheelRecStartTime
-
-        # normalize ca-traces #############################################
-        mask = (caTracesDict[nSlowest][0]<5.)
-        F0 = np.mean(caTracesDict[nSlowest][1:][:,mask],axis=1)
-        #pdb.set_trace()
-        for n in range(len(trials)):
-            normalizedCaTraces = (caTracesDict[n][1:] - F0[:,np.newaxis])/F0[:,np.newaxis]
-            caTracesDict[n][1:] = np.copy(normalizedCaTraces)
-
-        #pdb.set_trace()
-        # paw speed  ######################################################
-        pawTracks = allCorrDataPerSession[nSess][2]
-        nFig = 0
-        pawTracksDict = {}
-        pawID = []
-        for n in range(len(pawTracks)):
-            #if not wheelTracks[n][4]:
-            pawRecStartTime = pawTracks[n][4]
-            if (trialStartUnixTimes[nFig]-pawRecStartTime)<1.:
-                if nFig>0:
-                    if oldRecStartTime>pawRecStartTime:
-                        print('problem in trial order')
-                        sys.exit(1)
-                pawTracksDict[nFig] = {}
-                for i in range(4):
-                    #pdb.set_trace()
-                    if nFig==0:
-                        pawID.append(pawTracks[n][2][i][0])
-                    #pawTracksDict[nFig][i]['pawID'] = pawTracks[n][2][i][0]
-                    pawSpeedTime = pawTracks[n][3][i][:,0]
-                    pawSpeed     = pawTracks[n][3][i][:,1]
-                    pawTracksDict[nFig][i] = np.row_stack((pawSpeedTime, pawSpeed))
-                    # interp = interp1d(pawSpeedTime, pawSpeed)
-                    # newPawSpeedAtCaTimes = interp(caTracesTime[nFig])
-                    # pawTracksDict[i]['pawSpeed'].extend(newPawSpeedAtCaTimes)
-
-                oldRecStartTime = pawRecStartTime
-                nFig+=1
 
         ###################################################################
         # interp = interp1d(wheelTime, wheelSpeed)

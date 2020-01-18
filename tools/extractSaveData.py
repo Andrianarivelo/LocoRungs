@@ -236,7 +236,7 @@ class extractSaveData:
             for eD in expDateList:
                 #print(expDateList, self.listOfAllExpts[mouse]['dates'], len(self.listOfAllExpts[mouse]['dates']))
                 dataFolders = self.listOfAllExpts[mouse]['dates'][eD]['folders']
-                #print eD, self.listOfAllExpts[mouse]['dates']
+                #print(eD, self.listOfAllExpts[mouse]['dates'],dataFolders)
                 for fold in dataFolders:
                     self.dataLocation = (self.dataBase2 + fold + '/') if eD >= '181018' else (self.dataBase + fold + '/')
                     if not os.path.exists(self.dataLocation):
@@ -622,7 +622,7 @@ class extractSaveData:
             nRois = np.arange(len(F))
             realCells = (iscell[:,0]==1)
             nRois = nRois[realCells]
-            Fluo = F[realCells]-0.7*Fneu[realCells]
+            Fluo = F[realCells]-0.7*Fneu[realCells] # substract neuropil data
             stat = stat[realCells]
             #pdb.set_trace()
             return (Fluo,nRois,ops,timeStamps,stat)

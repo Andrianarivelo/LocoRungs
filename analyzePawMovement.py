@@ -38,7 +38,7 @@ cV      = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
 for f in range(len(foldersRecordings)) :
     for r in range(8,len(foldersRecordings[f][2])): # for r in recordings[f][1]:
-        print foldersRecordings[f][2][r]
+        #print foldersRecordings[f][2][r]
         (GigExistence,GigFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'CameraGigEBehavior')
         (RotExistence,RotFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][2][r],'RotaryEncoder')
         #print existence
