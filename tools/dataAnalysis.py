@@ -661,8 +661,8 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
         print('both dictionaries are not of the same length')
         print('CaWheelPawDict:',len(allCorrDataPerSession),' StepStanceDict:,',len(allStepData))
 
-    timeAxis = np.linspace(-0.2,0.6,(0.6+0.2)/0.02+1)
-    preStanceMask = timeAxis<0
+    timeAxis = np.linspace(-0.4,0.6,(0.6+0.4)/0.02+1)
+    preStanceMask = timeAxis<-0.1
     K = len(timeAxis)
     caTraces = []
     for nDay in range(1,len(allCorrDataPerSession)):
@@ -676,7 +676,7 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
         #pdb.set_trace()
         N = len(caTracesDict[0][1:])
         caSnippets = [[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)]] #np.zeros((4,N,K))
-        caSnippetsArray = np.zeros((4,N,K))
+        caSnippetsArray = np.zeros((4,N,2,K))
         for nrec in range(5): # loop over the five recordings of a day
             for i in range(4): # loop over the four paws
                 idxSwings = allStepData[nDay-1][4][nrec+addIdx][3][i][1]
@@ -702,7 +702,9 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
                 caTempArray = np.asarray(caSnippets[i][l])
                 caSnippetsZscores = (caTempArray - np.mean(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis])/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
                 caTemp = np.mean(caSnippetsZscores,axis=0)
-                caSnippetsArray[i,l,:] = caTemp
+                caTempSTD = np.std(caSnippetsZscores,axis=0)
+                caSnippetsArray[i,l,0,:] = caTemp
+                caSnippetsArray[i,l,1,:] = caTempSTD
         caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay,caSnippetsArray])
 
     return caTraces
