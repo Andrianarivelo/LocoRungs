@@ -560,24 +560,26 @@ def getCaWheelPawInterpolatedDictsPerDay(nSess,allCorrDataPerSession):
 #################################################################################
 def doRegressionAnalysis(mouse,allCorrDataPerSession,borders=None):
     from sklearn.linear_model import LinearRegression
+    from sklearn.svm import SVR
+    #SVR(kernel='rbf', C=1e3, gamma=0.1)
     #from sklearn.ensemble import RandomForestRegressor
-
+    regressionN = 6
     recs = [0, 1, 2, 3, 4]
     Rvalues = []
     for nSess in range(len(allCorrDataPerSession)):
         print(allCorrDataPerSession[nSess][0],nSess)
-        (wheelSpeedDict, pawTracksDict, caTracesDict,_,_,_) = getCaWheelPawInterpolatedDictsPerDay(nSess, allCorrDataPerSession)
+        (wheelSpeedDict, pawTracksDict, caTracesDict,aa,bb,cc) = getCaWheelPawInterpolatedDictsPerDay(nSess, allCorrDataPerSession)
         if ((len(wheelSpeedDict) != 5) or (len(pawTracksDict) != 5) or (len(caTracesDict) != 5)):
             print('problem in number of recordings listed in dictionaries')
         # loop over 5 different regressions, each using a different combination of test and train samples
         RTempValues = []
 
-        for reg in range(5):
+        for reg in range(5): # loop over all recordings
             recsForTraining = recs.copy()
             recsForTraining.remove(reg)
             recsForTest = [reg]
             Rval1 = []
-            for d in range(5):  # loop over wheel speed and the four paw speeds
+            for d in range(regressionN):  # loop over wheel speed, the four paw speeds and the combined speed
                 #print('recording iteration %s, variable %s' %(reg,d))
                 #pdb.set_trace()
                 # concatenate data
@@ -594,11 +596,20 @@ def doRegressionAnalysis(mouse,allCorrDataPerSession,borders=None):
                     Y = np.copy(wheelSpeedDict[recsForTraining[0]][1:][:,timeMaskTrain])
                     Ytest = np.copy(wheelSpeedDict[recsForTest[0]][1:][:,timeMaskTest])
                     YtestTime = np.copy(wheelSpeedDict[recsForTest[0]][0][timeMaskTest])
-                else:
+                elif (d>0) and (d<5):
                     pawId = d-1
                     Y = np.copy(pawTracksDict[recsForTraining[0]][pawId][1:][:,timeMaskTrain])
                     Ytest = np.copy(pawTracksDict[recsForTest[0]][pawId][1:][:,timeMaskTest])
                     YtestTime = np.copy(pawTracksDict[recsForTest[0]][pawId][0][timeMaskTest])
+                elif d==5: # case where all four paw speeds are added together
+                    pawSpeedTrain = []
+                    pawSpeedTest = []
+                    for i in range(4):
+                        pawSpeedTrain.append(np.copy(pawTracksDict[recsForTraining[0]][i][1:][:, timeMaskTrain]))
+                        pawSpeedTest.append(np.copy(pawTracksDict[recsForTest[0]][i][1:][:, timeMaskTest]))
+                    Y = pawSpeedTrain[0] + pawSpeedTrain[1] + pawSpeedTrain[2] + pawSpeedTrain[3]
+                    Ytest = pawSpeedTest[0] + pawSpeedTest[1] + pawSpeedTest[2] + pawSpeedTest[3]
+                    #pdb.set_trace()
                 for t in recsForTraining[1:]:
                     if borders is not None:
                         timeMaskTrain = (caTracesDict[t][0] >= borders[0]) & (caTracesDict[t][0] <= borders[1])
@@ -607,8 +618,14 @@ def doRegressionAnalysis(mouse,allCorrDataPerSession,borders=None):
                     X = np.column_stack((X,caTracesDict[t][1:][:,timeMaskTrain]))
                     if d == 0:
                         Y = np.column_stack((Y,wheelSpeedDict[t][1:][:,timeMaskTrain]))
-                    else:
+                    elif (d>0) and (d<5):
                         Y = np.column_stack((Y, pawTracksDict[t][pawId][1:][:,timeMaskTrain]))
+                    elif d==5:
+                        pawSpeedTrain = []
+                        for i in range(4):
+                            pawSpeedTrain.append(np.copy(pawTracksDict[t][i][1:][:, timeMaskTrain]))
+                        speedTemp =  pawSpeedTrain[0] + pawSpeedTrain[1] + pawSpeedTrain[2] + pawSpeedTrain[3]
+                        Y = np.column_stack((Y, speedTemp))
                 Y = Y[0]
                 X = np.transpose(X)
                 Ytest = Ytest[0]
@@ -616,10 +633,12 @@ def doRegressionAnalysis(mouse,allCorrDataPerSession,borders=None):
                 # linear regression  ########################################
                 linReg = LinearRegression()
                 linReg.fit(X,Y)
+                #svm_rbf = SVR(kernel='rbf', C=1e3, gamma=0.1)
+                #svm_rbf.fit(X,Y)
                 YTrainPred = linReg.predict(X)
                 YTestPred  = linReg.predict(Xtest)
                 R2trainLR = linReg.score(X, Y)
-                R2testLR = linReg.score(Xtest, Ytest)
+                R2testLR = linReg.score(Xtest, Ytest) # 1. - np.sum((Ytest-YTestPred)**2)/np.sum((Ytest - np.mean(Ytest))**2)#linReg.score(Xtest, Ytest)
                 #print(linReg.coef_)
                 #print(linReg.intercept_)
                 #yPred = linReg.predict(np.transpose(X))
@@ -645,7 +664,7 @@ def doRegressionAnalysis(mouse,allCorrDataPerSession,borders=None):
                 Rval1.extend([R2trainLR,R2testLR])
             RTempValues.append(Rval1)
         #pdb.set_trace()
-        Rs = np.zeros(10)
+        Rs = np.zeros(regressionN*2)
         for reg in range(5):
             Rs += RTempValues[reg]
         Rs /=5.
@@ -662,8 +681,11 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
         print('CaWheelPawDict:',len(allCorrDataPerSession),' StepStanceDict:,',len(allStepData))
 
     timeAxis = np.linspace(-0.4,0.6,(0.6+0.4)/0.02+1)
+    timeAxisRescaled = np.linspace(-1.,2.,(2+1)/0.02+1)
     preStanceMask = timeAxis<-0.1
+    preStanceRescaledMask = timeAxisRescaled<-0.2
     K = len(timeAxis)
+    KRescaled = len(timeAxisRescaled)
     caTraces = []
     for nDay in range(1,len(allCorrDataPerSession)):
         print(allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay)
@@ -676,7 +698,9 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
         #pdb.set_trace()
         N = len(caTracesDict[0][1:])
         caSnippets = [[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)]] #np.zeros((4,N,K))
+        caSnippetsRescaled = [[[] for i in range(N)], [[] for i in range(N)], [[] for i in range(N)], [[] for i in range(N)]]
         caSnippetsArray = np.zeros((4,N,2,K))
+        caSnippetsRescaledArray = np.zeros((4, N, 2, KRescaled))
         for nrec in range(5): # loop over the five recordings of a day
             for i in range(4): # loop over the four paws
                 idxSwings = allStepData[nDay-1][4][nrec+addIdx][3][i][1]
@@ -686,9 +710,11 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
                 idxSwings = np.asarray(idxSwings)
                 for k in range(len(idxSwings)): # loop over all swings
                     startSwingTime = recTimes[idxSwings[k, 0]]
+                    endSwingTime = recTimes[idxSwings[k, 1]]
                     if len(caTracesDict[nrec][1:])!=N: print('problem in number of ROIs')
                     for l in range(len(caTracesDict[nrec][1:])): # loop over all ROIs
                         interpCa = interp1d(caTracesDict[nrec][0]-startSwingTime, caTracesDict[nrec][l+1])#,kind='cubic')
+                        interpCaRescaled = interp1d((caTracesDict[nrec][0]-startSwingTime)/(endSwingTime-startSwingTime), caTracesDict[nrec][l+1])#,kind='cubic')
                         try:
                             newCaTraceAtSwing = interpCa(timeAxis)
                         except ValueError:
@@ -696,40 +722,113 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
                         else:
                             #caSnippets[i,l,:] += newCaTraceAtSwing
                             caSnippets[i][l].append(newCaTraceAtSwing)
+                        try:
+                            newCaTraceAtSwingRescaled = interpCaRescaled(timeAxisRescaled)
+                        except ValueError:
+                            #print('error')
+                            pass
+                        else:
+                            #caSnippets[i,l,:] += newCaTraceAtSwing
+                            caSnippetsRescaled[i][l].append(newCaTraceAtSwingRescaled)
         #pdb.set_trace()
         for i in range(4):
             for l in range(N):
                 caTempArray = np.asarray(caSnippets[i][l])
-                caSnippetsZscores = (caTempArray - np.mean(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis])/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
+                caSnippetsZscores = (caTempArray - np.mean(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]) #/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
                 caTemp = np.mean(caSnippetsZscores,axis=0)
                 caTempSTD = np.std(caSnippetsZscores,axis=0)
                 caSnippetsArray[i,l,0,:] = caTemp
                 caSnippetsArray[i,l,1,:] = caTempSTD
-        caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay,caSnippetsArray])
+                #
+                caTempRescaledArray = np.asarray(caSnippetsRescaled[i][l])
+                #pdb.set_trace()
+                caSnippetsRescaledZscores = (caTempRescaledArray - np.mean(caTempRescaledArray[:,preStanceRescaledMask],axis=1)[:,np.newaxis]) #/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
+                caTempRe = np.mean(caSnippetsRescaledZscores,axis=0)
+                caTempReSTD = np.std(caSnippetsRescaledZscores,axis=0)
+                caSnippetsRescaledArray[i,l,0,:] = caTempRe
+                caSnippetsRescaledArray[i,l,1,:] = caTempReSTD
+        caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay,caSnippetsArray,caSnippetsRescaledArray])
 
     return caTraces
+#################################################################################
+def calcualteAllDeltaTValues(t1,t2):
+    l1 = len(t1)
+    l2 = len(t2)
 
-    # for n in range(nDays):
-    #     stepDistances.append([[], [], [], []])
-    #     for j in range(len(recs[n][4])):
-    #         for i in range(4):
-    #             pawPos   = recs[n][2][j][5][i]
-    #             linearPawPos = recs[n][4][j][4][i][5]
-    #             #pawSpeed = recs[n][2][j][3][i]
-    #             idxSwings = recs[n][4][j][3][i][1]
-    #             stepCharacter = recs[n][4][j][3][i][3]
-    #             stepC[i, n, 1] += len(stepCharacter)
-    #             recTimes = recs[n][4][j][4][i][2]
-    #             idxSwings = np.asarray(idxSwings)
-    #             for k in range(len(idxSwings)):
-    #                 # pdb.set_trace()
-    #                 # only look at steps during motorization period
-    #                 if linear :
-    #                     mask = (linearPawPos[:, 0] >= recTimes[idxSwings[k, 0]]) & (linearPawPos[:, 0] <= recTimes[idxSwings[k, 1]])
-    #                     # pdb.set_trace()
-    #                     stepDistances[-1][i].extend([(linearPawPos[:, 1][mask][-1] - linearPawPos[:, 1][mask][0])])
-    #                     axL[n][i][0].plot(linearPawPos[:, 0][mask] - linearPawPos[:, 0][mask][0], (linearPawPos[:, 1][mask] - linearPawPos[:, 1][mask][0]), '0.5', lw=0.2, alpha=0.2)
-    #                     #axL[n][i][0].hist((linearPawPos[:, 1][mask] - linearPawPos[:, 1][mask][0]),bins=20)
+    fannedOut1 = np.tile(t1,(l2,1))
+    fannedOut2 = np.tile(t2,(l1,1))
+    transposedFannedOut2 = np.transpose(fannedOut2)
+    #print l1, l2
+    #print shape(fannedOut1), shape(transposedFannedOut2)
+    #pdb.set_trace()
+    differences = fannedOut1 - transposedFannedOut2 # subtract(fannedOut1,transposedFannedOut2)
+    return differences.flatten()
+
+#################################################################################
+# calculate correlations between ca-imaging, wheel speed and paw speed
+#################################################################################
+def generateInterstepTimeHistogram(mouse,allCorrDataPerSession,allStepData):
+    # check for sanity
+    if len(allCorrDataPerSession) != len(allStepData):
+        print('both dictionaries are not of the same length')
+        print('CaWheelPawDict:',len(allCorrDataPerSession),' StepStanceDict:,',len(allStepData))
+
+    #timeAxis = np.linspace(-0.4,0.6,(0.6+0.4)/0.02+1)
+    #timeAxisRescaled = np.linspace(-1.,2.,(2+1)/0.02+1)
+    #preStanceMask = timeAxis<-0.1
+    #preStanceRescaledMask = timeAxisRescaled<-0.2
+    #K = len(timeAxis)
+    #KRescaled = len(timeAxisRescaled)
+    pawSwingTimes = []
+    for nDay in range(1,len(allCorrDataPerSession)):
+        print(allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay)
+        (wheelSpeedDictInterP, pawTracksDictInterP, caTracesDictInterP,wheelSpeedDict,pawTracksDict,caTracesDict) = getCaWheelPawInterpolatedDictsPerDay(nDay, allCorrDataPerSession)
+        if len(allStepData[nDay-1][4])==6:
+            print('more recordings :',len(allStepData[nDay-1][4]))
+            addIdx = 1
+        else:
+            addIdx = 0
+        #pdb.set_trace()
+        #N = len(caTracesDict[0][1:])
+        #caSnippets = [[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)]] #np.zeros((4,N,K))
+        #caSnippetsRescaled = [[[] for i in range(N)], [[] for i in range(N)], [[] for i in range(N)], [[] for i in range(N)]]
+        #caSnippetsArray = np.zeros((4,N,2,K))
+        #caSnippetsRescaledArray = np.zeros((4, N, 2, KRescaled))
+        allData = []
+        for nrec in range(5): # loop over the five recordings of a day
+            startSwingTimes = [[] for i in range(4)]
+            endSwingTimes = [[] for i in range(4)]
+            for i in range(4): # loop over the four paws
+                idxSwings = allStepData[nDay-1][4][nrec+addIdx][3][i][1]
+                #print('Wow nSess',nDay,allStepData[nDay-1][0])
+                recTimes = allStepData[nDay-1][4][nrec+addIdx][4][i][2]
+                #pdb.set_trace()
+                idxSwings = np.asarray(idxSwings)
+                startSwingT = recTimes[idxSwings[:,0]]
+                endSwingT = recTimes[idxSwings[:,1]]
+                startSwingTimes[i].append(startSwingT)
+                endSwingTimes[i].append(endSwingT)
+            allData.append([startSwingTimes,endSwingTimes])
+        interPawSwingTimes = [[] for i in range(4)]
+        interStepTimes = []
+        stepLengths = [[] for i in range(4)]
+        #pdb.set_trace()
+        for nrec in range(5):
+            for i in range(4):
+                interPawSwingTimes[i].extend(calcualteAllDeltaTValues(allData[nrec][0][i][0],allData[nrec][0][i][0]))
+                stepLengths[i].extend(allData[nrec][1][i][0]-allData[nrec][0][i][0])
+            interStepTimes.extend(calcualteAllDeltaTValues(allData[nrec][0][0][0],allData[nrec][0][1][0]))
+            interStepTimes.extend(calcualteAllDeltaTValues(allData[nrec][0][0][0], allData[nrec][0][2][0]))
+            interStepTimes.extend(calcualteAllDeltaTValues(allData[nrec][0][0][0], allData[nrec][0][3][0]))
+            interStepTimes.extend(calcualteAllDeltaTValues(allData[nrec][0][1][0], allData[nrec][0][2][0]))
+            interStepTimes.extend(calcualteAllDeltaTValues(allData[nrec][0][1][0], allData[nrec][0][3][0]))
+            interStepTimes.extend(calcualteAllDeltaTValues(allData[nrec][0][2][0], allData[nrec][0][3][0]))
+        #pdb.set_trace()
+        pawSwingTimes.append([allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay,interPawSwingTimes,stepLengths,interStepTimes])
+
+    return pawSwingTimes
+
+
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed

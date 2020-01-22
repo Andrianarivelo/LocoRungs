@@ -4286,11 +4286,11 @@ class createVisualizations:
 
         RA = np.asarray(Rvalues)
         nDays = len(RA)
-
+        regressionN = 6
         #stepNumber = np.asarray(stepNumber)
         # figure #################################
         fig_width = 6  # width in inches
-        fig_height = 15  # height in inches
+        fig_height = 20  # height in inches
         fig_size = [fig_width, fig_height]
         params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
                   'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
@@ -4308,7 +4308,7 @@ class createVisualizations:
         fig = plt.figure()
 
         # define sub-panel grid and possibly width and height ratios
-        gs = gridspec.GridSpec(5, 1,  # ,
+        gs = gridspec.GridSpec(regressionN, 1,  # ,
                                # width_ratios=[1.2,1]
                                #height_ratios=[10,2]
                                )
@@ -4321,8 +4321,8 @@ class createVisualizations:
         # sub-panel enumerations
         plt.figtext(0.06, 0.98, '%s, %s days of recordings' % (self.mouse, nDays), clip_on=False, color='black', size=12)
         # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
-        forecasted = ['wheel speed','FR speed','FL speed','HL speed','HR speed']
-        for n in range(5):
+        forecasted = ['wheel speed','FR speed','FL speed','HL speed','HR speed','all four paws speed']
+        for n in range(regressionN):
             ax = plt.subplot(gs[n])
             ax.set_title(forecasted[n])
 
@@ -4333,7 +4333,7 @@ class createVisualizations:
 
             majorLocator_x = ticker.MultipleLocator(1)
             ax.xaxis.set_major_locator(majorLocator_x)
-            if n == 4:
+            if n == 5:
                 self.layoutOfPanel(ax, xLabel='recording day', yLabel=r'R$^2$')
             elif n==0:
                 self.layoutOfPanel(ax, xLabel=None, yLabel=r'R$^2$', Leg=[1, 9])
@@ -4346,4 +4346,163 @@ class createVisualizations:
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
         #plt.show()
+    ##################################################################################################################
+    def generateSwingTriggeredCaTracesFigure(self,caTriggeredAverages,rescal=True):
 
+        rescaled = rescal
+        #caTriggeredAverages = pickle.load(open('caSwingPhaseTriggeredAverages.p', 'rb'))
+        if rescaled:
+            timeAxis = np.linspace(-1., 2., (2 + 1) / 0.02 + 1)
+            idxCa = 4
+        else:
+            timeAxis = np.linspace(-0.4, 0.6, (0.6 + 0.4) / 0.02 + 1)
+            idxCa = 3
+
+        for nDays in range(len(caTriggeredAverages)):
+            print(caTriggeredAverages[nDays][0])
+            caTraces = caTriggeredAverages[nDays][idxCa]
+            dims = np.shape(caTraces)
+            nSquared = np.sqrt(dims[1])
+
+            nSquaredN = int(nSquared + 1)
+            # figure #################################
+            fig_width = 25  # width in inches
+            fig_height = 25  # height in inches
+            fig_size = [fig_width, fig_height]
+            params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                      'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                      'xtick.major.size': 4  # major tick size in points
+                      # 'edgecolor' : None
+                      # 'xtick.major.size' : 2,
+                      # 'ytick.major.size' : 2,
+                      }
+            rcParams.update(params)
+
+            # set sans-serif font to Arial
+            rcParams['font.sans-serif'] = 'Arial'
+
+            # create figure instance
+            fig = plt.figure()
+
+            # define sub-panel grid and possibly width and height ratios
+            gs = gridspec.GridSpec(nSquaredN, nSquaredN,  # ,
+                                   # width_ratios=[1.2,1]
+                                   # height_ratios=[10,4]
+                                   )
+            # define vertical and horizontal spacing between panels
+            gs.update(wspace=0.15, hspace=0.15)
+
+            # possibly change outer margins of the figure
+            plt.subplots_adjust(left=0.05, right=0.96, top=0.95, bottom=0.05)
+
+            # sub-panel enumerations
+            plt.figtext(0.06, 0.96, '%s recording, %s ROIs' % (caTriggeredAverages[nDays][0], dims[1]), clip_on=False, color='black', size=14)
+            # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+            # create panels #######################################################
+            # gssub0 = gridspec.GridSpecFromSubplotSpec(nDays, 8, subplot_spec=gs[0], hspace=0.2)
+            axL = []
+            col = ['C1', 'C2', 'C3', 'C4']
+            for n in range(nSquaredN * nSquaredN):
+                if n == dims[1]:
+                    break
+                ax = plt.subplot(gs[n])
+                ax.axvline(x=0, ls='--', c='0.8')
+                if rescaled:
+                    ax.axvline(x=1, ls='-', c='0.8')
+                ax.axhline(y=0, ls='--', c='0.8')
+                for i in range(4):
+                    # ax.fill_between(timeAxis, caTraces[i][n][0]-caTraces[i][n][1],caTraces[i][n][0]+caTraces[i][n][1],color=col[i],alpha=0.5)
+                    ax.plot(timeAxis, caTraces[i][n][0], lw=2)
+                # ax.set_ylim(-1.2,3)
+                if rescaled:
+                    majorLocator_x = plt.MultipleLocator(0.5)
+                else:
+                    majorLocator_x = plt.MultipleLocator(0.2)
+                if n==0:
+                    ax.set_ylim(-2,3)
+                else:
+                    ax.set_ylim(-1,1.2)
+                ax.xaxis.set_major_locator(majorLocator_x)
+
+                self.layoutOfPanel(ax)  # axL[n].append(ax)
+            if rescaled:
+                fname = self.determineFileName(self.mouse, what='caTriggeredAverages_rescaled_%s' % caTriggeredAverages[nDays][0])
+                #plt.savefig('caTriggeredAverages_rescaled_%s.pdf' % caTriggeredAverages[nDays][0])
+            else:
+                fname = self.determineFileName(self.mouse, what='caTriggeredAverages_%s' % caTriggeredAverages[nDays][0])
+                #plt.savefig('caTriggeredAverages_%s.pdf' % caTriggeredAverages[nDays][0])  # define vertical and horizontal spacing between panels  # plt.show()
+            # plt.savefig(fname + '.png')
+            plt.savefig(fname + '.pdf')
+
+
+    ##################################################################################################################
+    def generateSwingTimesHistograms(self,pawSwingTimes):
+
+        nDays = len(pawSwingTimes)
+
+        #for nDays in range(len(caTriggeredAverages)):
+        #print(caTriggeredAverages[nDays][0])
+        #caTraces = caTriggeredAverages[nDays][idxCa]
+        #dims = np.shape(caTraces)
+        #nSquared = np.sqrt(dims[1])
+
+        #nSquaredN = int(nSquared + 1)
+        # figure #################################
+        fig_width = 12 # width in inches
+        fig_height = 25  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(nDays, 1,  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[10,4]
+                               )
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.25, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.05, right=0.96, top=0.96, bottom=0.04)
+
+        # sub-panel enumerations
+        #plt.figtext(0.06, 0.96, '%s recording, %s ROIs' % (caTriggeredAverages[nDays][0], dims[1]), clip_on=False, color='black', size=14)
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+        for nDay in range(nDays):
+            # create panels #######################################################
+            gssub0 = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gs[nDay], hspace=0.2)
+            #axL = []
+            col = ['C0', 'C1', 'C2', 'C3']
+            #for n in range(3):
+            ax0 = plt.subplot(gssub0[0])
+            ax0.set_title('%s' % pawSwingTimes[nDay][0])
+            ax1 = plt.subplot(gssub0[1])
+            ax2 = plt.subplot(gssub0[2])
+            for i in range(4):
+                ax0.hist(pawSwingTimes[nDay][3][i],bins=200,color=col[i],range=[-1,1],histtype='step')
+                ax1.hist(pawSwingTimes[nDay][4][i],bins=100,range=[0,1],color=col[i],histtype='step',label='median=%s' % np.round(np.median(pawSwingTimes[nDay][4][i])*1000.,0))
+            ax2.hist(np.abs(pawSwingTimes[nDay][5]),bins=80,color=col[0],range=[0,1])
+            ax0.set_ylim(0,50)
+            self.layoutOfPanel(ax0)  # axL[n].append(ax)
+            self.layoutOfPanel(ax1,Leg=[1,9])  # axL[n].append(ax)
+            self.layoutOfPanel(ax2)  # axL[n].append(ax)
+
+
+        fname = self.determineFileName(self.mouse, what='SwingPhaseTimeHistograms')
+        #plt.savefig('caTriggeredAverages_%s.pdf' % caTriggeredAverages[nDays][0])  # define vertical and horizontal spacing between panels  # plt.show()
+        # plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')

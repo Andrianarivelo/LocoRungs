@@ -86,9 +86,16 @@ else:
 #cV.generateR2ValueFigure(mouse,Rvalues2,'R2-Values-LocomotionPeriod_%s-%s_only' % (borders[0],borders[1]))
 #pdb.set_trace()
 
-caTriggeredAverages = dataAnalysis.generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,recordingsM)
-pickle.dump(caTriggeredAverages, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'wb'))  # eSD.analysisLocation,
-pickle.dump(caTriggeredAverages, open('caSwingPhaseTriggeredAverages.p', 'wb'))
+#caTriggeredAverages = dataAnalysis.generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,recordingsM)
+#pickle.dump(caTriggeredAverages, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'wb'))  # eSD.analysisLocation,
+#caTriggeredAverages = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'rb'))
+#cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=False)
+#cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=True)
+#pickle.dump(caTriggeredAverages, open('caSwingPhaseTriggeredAverages.p', 'wb'))
+
+pawSwingTimes = dataAnalysis.generateInterstepTimeHistogram(mouse,allCorrDataPerSession,recordingsM)
+cV.generateSwingTimesHistograms(pawSwingTimes)
+
 
 pdb.set_trace()
 (correlationData,varExplained) = dataAnalysis.doCorrelationAnalysis(mouse,allCorrDataPerSession)
