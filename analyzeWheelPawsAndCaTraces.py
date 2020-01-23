@@ -73,8 +73,10 @@ else:
             pass
         else:
             allCorrDataPerSession.append([foldersRecordings[f][0],wheel,paws,caimg])
-
     pickle.dump(allCorrDataPerSession, open(eSD.analysisLocation + '/allCorrDataPerSession.p', 'wb'))  # eSD.analysisLocation,
+
+
+allCorrDataPerSession = dataAnalysis.findMatchingRois(mouse,allCorrDataPerSession,refDate=2)
 
 #pdb.set_trace()
 # generate overview figure for animal

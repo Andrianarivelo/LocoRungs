@@ -10,8 +10,12 @@ import scipy.ndimage
 import itertools
 from scipy.interpolate import interp1d
 from sklearn.decomposition import PCA
+import cv2
+from scipy import signal
 
+from matplotlib import rcParams
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import matplotlib.cm as cm
 
 
@@ -827,7 +831,237 @@ def generateInterstepTimeHistogram(mouse,allCorrDataPerSession,allStepData):
         pawSwingTimes.append([allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay,interPawSwingTimes,stepLengths,interStepTimes])
 
     return pawSwingTimes
+#################################################################################
+# remove empty columns and row - from the image registration routine
+#################################################################################
+def removeEmptyColumnAndRows(img):
+    # hmask = np.invert(np.sum(img, axis=0) == 0) # looking for zeros does not work as the boundary values are not zeros all the time
+    # vmask = np.invert(np.sum(img, axis=1) == 0)
+    htemp = (img == img[0,:]) # look instead for same values in row
+    hmask = np.invert(htemp.all(axis=0))
+    vtemp = (img == img[:,0])
+    vmask = np.invert(vtemp.all(axis=1))
+    idxH = np.arange(len(hmask))[np.hstack((False,np.diff(hmask)>0))]
+    idxV = np.arange(len(vmask))[np.hstack((False, np.diff(vmask)>0))]
+    #pdb.set_trace()
+    croppedImg = img[idxV[0]:idxV[1], idxH[0]:idxH[1]]
+    cutLengths = np.vstack((idxV,idxH))
+    #pdb.set_trace()
+    return cutLengths
 
+
+#################################################################################
+# remove empty columns and row - from the image registration routine
+#################################################################################
+def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementValues,figShow=False):
+
+    column1 = np.maximum(cutLengthsA[:,0],cutLengthsB[:,0])
+    column2 = np.minimum(cutLengthsA[:,1],cutLengthsB[:,1])
+    cutLenghts = np.column_stack((column1,column2))
+
+    imgA = imgA[cutLenghts[0,0]:cutLenghts[0,1],cutLenghts[1,0]:cutLenghts[1,1]]
+    imgB = imgB[cutLenghts[0,0]:cutLenghts[0,1],cutLenghts[1,0]:cutLenghts[1,1]]
+    # Find size of ref image
+    sz = imgA.shape
+
+    corr = signal.correlate(imgA - imgA.mean(), imgB - imgB.mean(), mode='same', method='fft')
+    maxIdx = np.unravel_index(np.argmax(corr, axis=None), corr.shape)
+    shifty = np.shape(imgA)[0]/2. - maxIdx[0]
+    shiftx = np.shape(imgA)[1]/2. - maxIdx[1]
+    print('max of cross-correlation : ', shiftx, shifty )
+    #pdb.set_trace()
+    # Define the motion model
+    warp_mode = cv2.MOTION_EUCLIDEAN # cv2.MOTION_TRANSLATION  # MOTION_EUCLIDEAN
+
+    # Define 2x3 or 3x3 matrices and initialize the matrix to identity
+    if warp_mode == cv2.MOTION_HOMOGRAPHY:
+        warp_matrix = np.eye(3, 3, dtype=np.float32)
+    else:
+        warp_matrix = np.eye(2, 3, dtype=np.float32)
+
+    #warp_matrix1[0, 2] = aS.xOffset
+    #warp_matrix1[1, 2] = aS.yOffset
+    if (movementValues[0]!=0) and (movementValues[1]!=0):
+        warp_matrix[0, 2] = movementValues[0] #-20.
+        warp_matrix[1, 2] = movementValues[1] #-40.
+    else:
+        warp_matrix[0, 2] = shiftx #-20.
+        warp_matrix[1, 2] = shifty #-40.
+
+    # Specify the number of iterations.
+    number_of_iterations = 10000;
+
+    # Specify the threshold of the increment
+    # in the correlation coefficient between two iterations
+    termination_eps = 1e-10;
+
+    # Define termination criteria
+    criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, number_of_iterations, termination_eps)
+
+    # Run the ECC algorithm. The results are stored in warp_matrix.
+    try:
+        (cc, warp_matrixRet) = cv2.findTransformECC(imgA, imgB, warp_matrix, warp_mode, criteria)
+    except:
+        print('find image transformation did not converge')
+        warp_matrixRet = np.copy(warp_matrix)
+        cc = 0.
+    else:
+        pass
+    #(cc2, warp_matrix2Ret) = cv2.findTransformECC(imBD, im820, warp_matrix2, warp_mode, criteria)
+
+    if warp_mode == cv2.MOTION_HOMOGRAPHY:
+        # Use warpPerspective for Homography
+        imgB_aligned = cv2.warpPerspective(imgB, warp_matrixRet, (sz[1], sz[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+    else:
+        # Use warpAffine for Translation, Euclidean and Affine
+        imgB_aligned = cv2.warpAffine(imgB, warp_matrixRet, (sz[1], sz[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP);
+
+    print('result of image alignment-> warp-matrix  and correlation coefficient : ', warp_matrixRet, cc)
+
+    if figShow :
+        ##################################################################
+        # Show final results
+        # figure #################################
+        fig_width = 10  # width in inches
+        fig_height = 10  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 11, 'axes.titlesize': 11, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(2, 2  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[1,1]
+                               )
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.3)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.05, right=0.95, top=0.92, bottom=0.06)
+
+        # sub-panel enumerations
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+        # first sub-plot #######################################################
+        # gssub = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0],hspace=0.2)
+        # ax0 = plt.subplot(gssub[0])
+
+        # fig = plt.figure(figsize=(10,10))
+
+        #plt.figtext(0.1, 0.95, '%s ' % (aS.animalID), clip_on=False, color='black', size=14)
+
+        ax0 = plt.subplot(gs[0])
+        ax0.set_title('reference image %s' % refDate)
+        ax0.imshow(imgA)
+
+        ax0 = plt.subplot(gs[1])
+        ax0.set_title('to-be-aligned image %s' % otherDate )
+        ax0.imshow(imgB)
+
+        ax0 = plt.subplot(gs[2])
+        ax0.set_title('overlay of both images')
+        overlayBefore = cv2.addWeighted(imgA, 1, imgB, 1, 0)
+        ax0.imshow(overlayBefore)
+
+        ax0 = plt.subplot(gs[3])
+        ax0.set_title('overlay after alignement \nof BD-AD images', fontsize=10)
+        overlayAfter = cv2.addWeighted(imgA, 1, imgB_aligned, 1, 0)
+        ax0.imshow(overlayAfter)
+
+        plt.show()
+        #plt.savefig(figOutDir + 'ImageAlignment_%s.pdf' % aS.animalID)  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
+
+    return warp_matrix
+
+#################################################################################
+# calculate correlations between ca-imaging, wheel speed and paw speed
+#################################################################################
+def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix):
+    ncellsRef= len(statRef)
+    ncellsAlgin = len(statAlign)
+
+    imMaskRef   = np.zeros((opsRef['Ly'], opsRef['Lx']))
+    imMaskAlign = np.zeros((opsAlign['Ly'], opsAlign['Lx']))
+
+    intersectionROIs = []
+    for n in range(0,ncellsRef):
+        imMaskRef[:] = 0
+        #if iscellBD[n][0]==1:
+        ypixRef = statRef[n]['ypix']
+        xpixRef = statRef[n]['xpix']
+        imMaskRef[ypixRef,xpixRef] = 1
+        for m in range(0,ncellsAlgin):
+            imMaskAlign[:] = 0
+            #if iscellAD[m][0]==1:
+            ypixAl = statAlign[m]['ypix']
+            xpixAl = statAlign[m]['xpix']
+            # perform homographic transform : rotation + translation
+            xpixAlPrime = np.rint(xpixAl*warp_matrix[0,0] + ypixAl*warp_matrix[0,1] - warp_matrix[0,2])
+            ypixAlPrime = np.rint(xpixAl*warp_matrix[1,0] + ypixAl*warp_matrix[1,1] - warp_matrix[1,2]) # - np.rint(warp_matrix[1,2])
+            xpixAlPrime = np.array(xpixAlPrime,dtype=int)
+            ypixAlPrime = np.array(ypixAlPrime, dtype=int)
+            # make sure pixels remain within
+            xpixAlPrime2 = xpixAlPrime[(xpixAlPrime<opsAlign['Lx'])&(ypixAlPrime<opsAlign['Ly'])]
+            ypixAlPrime2 = ypixAlPrime[(xpixAlPrime<opsAlign['Lx'])&(ypixAlPrime<opsAlign['Ly'])]
+            imMaskAlign[ypixAlPrime2,xpixAlPrime2] = 1
+            intersection = np.sum(np.logical_and(imMaskRef,imMaskAlign))
+            eitherOr = np.sum(np.logical_or(imMaskRef,imMaskAlign))
+            if intersection>0:
+                print(n,m,intersection,eitherOr,intersection/eitherOr)
+                intersectionROIs.append([n,m,xpixRef,ypixRef,xpixAlPrime2,ypixAlPrime2,intersection,eitherOr,intersection/eitherOr])
+
+    return intersectionROIs
+    #pickle.dump(intersectionROIs, open( dataOutDir + 'ROIintersections_%s.p' % aS.animalID, 'wb' ) )
+
+#################################################################################
+# calculate correlations between ca-imaging, wheel speed and paw speed
+#################################################################################
+def findMatchingRois(mouse,allCorrDataPerSession,refDate=0):
+    # check for sanity
+    nDays = len(allCorrDataPerSession)
+
+    refDay = allCorrDataPerSession[refDate][0]
+    print('fluo images will be aligned to recordings of :', refDay)
+    refDayCaData = allCorrDataPerSession[refDate][3][0]
+    refImg = refDayCaData[2]['meanImgE']
+    refImgCutLengths = removeEmptyColumnAndRows(refImg)
+    opsRef = refDayCaData[2]
+    statRef = refDayCaData[4]
+
+    # create list of recoridng day indicies
+    recDaysList = [i for i in range(nDays)]
+    movementValuesPreset = np.zeros((len(recDaysList), 2))
+    # movementValuesPreset[0] = np.array([-20,-47])
+    movementValuesPreset[1] = np.array([143, 153])
+    # movementValuesPreset[3] = np.array([-1,15])
+
+    # remove day used for referencing
+    recDaysList.remove(refDate)
+
+    for nDay in recDaysList:
+        print(allCorrDataPerSession[nDay][0],nDay)
+        #imgE = allCorrDataPerSession[nDay][3][0][2]['meanImgE']
+        img = allCorrDataPerSession[nDay][3][0][2]['meanImgE']
+        cutLengths = removeEmptyColumnAndRows(img)
+        warp_matrix = alignTwoImages(refImg,refImgCutLengths,img,cutLengths,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],movementValuesPreset[nDay],figShow=True,)
+        opsAlign  = allCorrDataPerSession[nDay][3][0][2]
+        statAlign = allCorrDataPerSession[nDay][3][0][4]
+        intersectionROIs = alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix)
+
+    return 0
 
 
 #################################################################################
