@@ -787,8 +787,8 @@ class extractSaveData:
         rec = rec.replace('/','-')
         videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior_withCa.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
-        caImg = io.imread('/media/HDnyc_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/190101_f15/2019.03.21_000_suite2p/suite2p/plane0/reg_tif/AVG2_output_1-902C.tif')
-
+        caImg = io.imread('/media/HDnyc_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/190101_f15/2019.03.21_000_suite2p_reg/suite2p/plane0/reg_tif/AVG2_output_1-902C.tif')
+        #pdb.set_trace()
         caImg = (caImg - np.min(caImg))*255./(np.max(caImg)-np.min(caImg))
         #caImg = (caImg - 15.)*255./(30.-15.)
         vLength = np.shape(framesRaw)[0]
@@ -868,9 +868,10 @@ class extractSaveData:
         ttime = []
         ffluo = [[],[],[]]
         colors = [(255,0,0),(0,255,0),(0,0,255)]
-        rois = [[171, 274, 11],
-                [344,242,11],
-                [446,389,11]
+        rois = [[197, 196, 11],
+                [199, 242, 11],
+                [318,235,11],
+                #[446,389,11]
                 ]
         nPos = 0
         for i in np.arange(len(framesRaw)):

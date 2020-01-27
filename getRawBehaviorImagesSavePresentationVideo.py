@@ -58,4 +58,4 @@ for f in range(len(foldersRecordings)):
             (angles, aTimes, timeStamp, monitor) = eSD.readRawData(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'RotaryEncoder', fileHandleRE)
         if existenceFrames and existenceFTimes:
             eSD.saveBehaviorVideoWithCa(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo,angles,aTimes)
-        #pdb.set_trace()
+        pdb.set_trace()
