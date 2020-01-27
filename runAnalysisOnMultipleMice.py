@@ -35,7 +35,7 @@ mouseList = [#'180107_m27',
 
              ]
 
-script = 'getRawBehaviorImagesSaveVideo'
+script = 'getCalciumTracesDetermineRois'
 expDate = '181017'
 
 commandHist = []

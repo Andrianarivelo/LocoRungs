@@ -59,6 +59,16 @@ are plotted in a figure.
 1. run `plotMotionArtefacts.py` generate summary figure over several recordings
 
 
+-----
+#### Work-flow to generate overview figure
 
+The experiment overview figure contains information from the rotary enconder-, the video- and the calcium imaging recordings. It serves to have 
+quick overview of the recordings, their implementation and the number of days an animal has been recorded. 
+The overview figure can be generated with the `plotRecordingOverviewPerAnimal.py` script. Before this script can be run, data has to be extracted 
+and some pre-analysis is required. In particular, the following scripts need to be run before generating the overiew : 
+
+* `getWalkingActivity.py` : extract data from the rotary encoder recording and calculates speed of the wheel. 
+* `getRawBehaviorImagesSaveVideo.py` : extract data from the high-speed video recordings, generates videos and saves timing information of the video recording.
+* `getCalciumTracesDetermineRois.py` : runs Suite2p on the calcium-imaging recordings obtained with ScanImage. 
 
 

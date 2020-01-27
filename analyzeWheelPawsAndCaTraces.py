@@ -76,7 +76,7 @@ else:
     pickle.dump(allCorrDataPerSession, open(eSD.analysisLocation + '/allCorrDataPerSession.p', 'wb'))  # eSD.analysisLocation,
 
 
-allCorrDataPerSession = dataAnalysis.findMatchingRois(mouse,allCorrDataPerSession,refDate=2)
+allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRois(mouse,allCorrDataPerSession,eSD.analysisLocation,refDate=3)
 
 #pdb.set_trace()
 # generate overview figure for animal

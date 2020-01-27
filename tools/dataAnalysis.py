@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import sys
+import os
 import scipy, scipy.io
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -871,7 +872,7 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
     print('max of cross-correlation : ', shiftx, shifty )
     #pdb.set_trace()
     # Define the motion model
-    warp_mode = cv2.MOTION_EUCLIDEAN # cv2.MOTION_TRANSLATION  # MOTION_EUCLIDEAN
+    warp_mode = cv2.MOTION_TRANSLATION  #cv2.MOTION_EUCLIDEAN # cv2.MOTION_TRANSLATION  # MOTION_EUCLIDEAN
 
     # Define 2x3 or 3x3 matrices and initialize the matrix to identity
     if warp_mode == cv2.MOTION_HOMOGRAPHY:
@@ -989,28 +990,31 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
 #################################################################################
-def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix):
+def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,showFig=False):
     ncellsRef= len(statRef)
-    ncellsAlgin = len(statAlign)
+    ncellsAlign = len(statAlign)
 
     imMaskRef   = np.zeros((opsRef['Ly'], opsRef['Lx']))
     imMaskAlign = np.zeros((opsAlign['Ly'], opsAlign['Lx']))
 
     intersectionROIs = []
+    intersectionROIsA = []
     for n in range(0,ncellsRef):
         imMaskRef[:] = 0
         #if iscellBD[n][0]==1:
         ypixRef = statRef[n]['ypix']
         xpixRef = statRef[n]['xpix']
         imMaskRef[ypixRef,xpixRef] = 1
-        for m in range(0,ncellsAlgin):
+        for m in range(0,ncellsAlign):
             imMaskAlign[:] = 0
             #if iscellAD[m][0]==1:
             ypixAl = statAlign[m]['ypix']
             xpixAl = statAlign[m]['xpix']
             # perform homographic transform : rotation + translation
-            xpixAlPrime = np.rint(xpixAl*warp_matrix[0,0] + ypixAl*warp_matrix[0,1] - warp_matrix[0,2])
-            ypixAlPrime = np.rint(xpixAl*warp_matrix[1,0] + ypixAl*warp_matrix[1,1] - warp_matrix[1,2]) # - np.rint(warp_matrix[1,2])
+            xpixAlPrime = np.rint(xpixAl*warp_matrix[0,0] - ypixAl*warp_matrix[0,1] - warp_matrix[0,2])
+            ypixAlPrime = np.rint(-xpixAl*warp_matrix[1,0] + ypixAl*warp_matrix[1,1] - warp_matrix[1,2]) # - np.rint(warp_matrix[1,2])
+            #xpixAlPrime = np.rint((xpixAl- warp_matrix[0,2])*warp_matrix[0,0] + (ypixAl- warp_matrix[1,2])*warp_matrix[0,1])
+            #ypixAlPrime = np.rint((xpixAl- warp_matrix[0,2])*warp_matrix[1,0] + (ypixAl- warp_matrix[1,2])*warp_matrix[1,1]) # - np.rint(warp_matrix[1,2])
             xpixAlPrime = np.array(xpixAlPrime,dtype=int)
             ypixAlPrime = np.array(ypixAlPrime, dtype=int)
             # make sure pixels remain within
@@ -1020,16 +1024,105 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix):
             intersection = np.sum(np.logical_and(imMaskRef,imMaskAlign))
             eitherOr = np.sum(np.logical_or(imMaskRef,imMaskAlign))
             if intersection>0:
-                print(n,m,intersection,eitherOr,intersection/eitherOr)
+                #print(n,m,intersection,eitherOr,intersection/eitherOr)
                 intersectionROIs.append([n,m,xpixRef,ypixRef,xpixAlPrime2,ypixAlPrime2,intersection,eitherOr,intersection/eitherOr])
+                intersectionROIsA.append([n,m,intersection,eitherOr,intersection/eitherOr])
+    # clean up intersection ROIs; each ROI should only overlap once
+    def removeDoubleCellOccurrences(interROIs,column):
+        uniquePerColumn = np.unique(interROIs[:,column],return_counts=True) # find unique occurrences
+        multipleCells = uniquePerColumn[0][uniquePerColumn[1]>1]  # which cells occur more than once in the first column
+        indiciesToRemove = []
+        for i in multipleCells:
+            indicies = np.argwhere(interROIs[:,column]==i)
+            maxIdx = np.argmax(interROIs[indicies[:,0]][:,4])
+            delIndicies = np.delete(indicies,maxIdx)
+            indiciesToRemove.extend(delIndicies)
+        return indiciesToRemove
+    intersectionROIsA = np.asarray(intersectionROIsA)
+    removeIdicies0 = removeDoubleCellOccurrences(intersectionROIsA,0)
+    removeIdicies1 = removeDoubleCellOccurrences(intersectionROIsA,1)
+    removeIndicies = np.asarray(removeIdicies0 + removeIdicies1)
+    removeIndicies = np.unique(removeIndicies)
+    cleanedIntersectionROIs = []
+    for i in range(len(intersectionROIs)):
+        if i not in removeIndicies:
+            cleanedIntersectionROIs.append(intersectionROIs[i])
+    intersectionROIsA = np.delete(intersectionROIsA,removeIndicies,axis=1)
+    #pdb.set_trace()
+    if showFig:
+        imRef = opsRef['meanImgE']
+        imAlign = opsAlign['meanImgE']
+        ##################################################################
+        # Show final results
+        fig = plt.figure(figsize=(15, 15))  ########################
 
-    return intersectionROIs
+        plt.figtext(0.1, 0.95, '%s and %s' % (refDate,otherDate), clip_on=False, color='black', size=14)
+
+        ax0 = fig.add_subplot(3, 2, 1)  #############################
+        ax0.set_title('reference img')
+        ax0.imshow(imRef)
+
+        ax0 = fig.add_subplot(3, 2, 2)  #############################
+        ax0.set_title('image to be aligned')
+        ax0.imshow(imAlign)
+
+
+        ax0 = fig.add_subplot(3, 2, 3)  #############################
+        ax0.set_title('ROIs in reference image')
+        imRef = np.zeros((opsRef['Ly'], opsRef['Lx']))
+
+        for n in range(0, ncellsRef):
+            ypixR = statRef[n]['ypix']
+            xpixR = statRef[n]['xpix']
+            imRef[ypixR, xpixR] = n + 1
+
+        ax0.imshow(imRef, cmap='gist_ncar')
+
+        ax0 = fig.add_subplot(3, 2, 4)  #############################
+        ax0.set_title('ROIs in aligned image')
+        imAlign = np.zeros((opsAlign['Ly'], opsAlign['Lx']))
+
+        for n in range(0, ncellsAlign):
+            ypixA = statAlign[n]['ypix']
+            xpixA = statAlign[n]['xpix']
+            imAlign[ypixA, xpixA] = n + 1
+
+        ax0.imshow(imAlign, cmap='gist_ncar')
+
+
+        ax0 = fig.add_subplot(3, 2, 5)  #############################
+        ax0.set_title('overlapping ROIs Ref-Aligned')
+        imRef = np.zeros((opsRef['Ly'], opsRef['Lx']))
+        imAlign = np.zeros((opsAlign['Ly'], opsAlign['Lx']))
+
+        for n in range(0, len(cleanedIntersectionROIs)):
+            ypixR = cleanedIntersectionROIs[n][3]
+            xpixR = cleanedIntersectionROIs[n][2]
+            ypixA = cleanedIntersectionROIs[n][5]
+            xpixA = cleanedIntersectionROIs[n][4]
+            imRef[ypixR, xpixR] = 1
+            imAlign[ypixA, xpixA] = 2
+
+        overlayBothROIs1 = cv2.addWeighted(imRef, 1, imAlign, 1, 0)
+        ax0.imshow(overlayBothROIs1)
+
+        ax0 = fig.add_subplot(3, 2, 6)  #############################
+        ax0.set_title('fraction of ROI overlap Ref-Aligned')
+        interFractions1 = []
+        for n in range(0, len(cleanedIntersectionROIs)):
+            interFractions1.append(cleanedIntersectionROIs[n][8])
+
+        ax0.hist(interFractions1, bins=15)
+
+        plt.show()
+
+    return (cleanedIntersectionROIs,intersectionROIsA)
     #pickle.dump(intersectionROIs, open( dataOutDir + 'ROIintersections_%s.p' % aS.animalID, 'wb' ) )
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
 #################################################################################
-def findMatchingRois(mouse,allCorrDataPerSession,refDate=0):
+def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
     # check for sanity
     nDays = len(allCorrDataPerSession)
 
@@ -1050,16 +1143,32 @@ def findMatchingRois(mouse,allCorrDataPerSession,refDate=0):
 
     # remove day used for referencing
     recDaysList.remove(refDate)
-
+    if os.path.exists(analysisLocation+'/alignmentData.p'):
+        allDataRead = pickle.load(open(analysisLocation+'/alignmentData.p'))
+    else:
+        allDataRead = None
+    allData = []
     for nDay in recDaysList:
         print(allCorrDataPerSession[nDay][0],nDay)
         #imgE = allCorrDataPerSession[nDay][3][0][2]['meanImgE']
         img = allCorrDataPerSession[nDay][3][0][2]['meanImgE']
         cutLengths = removeEmptyColumnAndRows(img)
-        warp_matrix = alignTwoImages(refImg,refImgCutLengths,img,cutLengths,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],movementValuesPreset[nDay],figShow=True,)
+        if allDataRead is not None:
+            warp_matrix = allDataRead[nDay][3]
+        else:
+            warp_matrix = alignTwoImages(refImg,refImgCutLengths,img,cutLengths,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],movementValuesPreset[nDay],figShow=True,)
         opsAlign  = allCorrDataPerSession[nDay][3][0][2]
         statAlign = allCorrDataPerSession[nDay][3][0][4]
-        intersectionROIs = alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix)
+        (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],showFig=True)
+        print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statRef), len(statAlign), len(cleanedIntersectionROIs))
+        allData.append([allCorrDataPerSession[nDay][0],nDay,cutLengths,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
+
+    intersectingCellsInRefRecording = np.arange(len(statRef))
+    for nDay in recDaysList:
+        intersectingCellsInRefRecording = np.intersect1d(intersectingCellsInRefRecording,allData[nDay][5][:,0])
+        print(nDay,allCorrDataPerSession[nDay][0],intersectingCellsInRefRecording)
+
+    pdb.set_trace()
 
     return 0
 
