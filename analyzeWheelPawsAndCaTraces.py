@@ -88,18 +88,18 @@ else:
 #cV.generateR2ValueFigure(mouse,Rvalues2,'R2-Values-LocomotionPeriod_%s-%s_only' % (borders[0],borders[1]))
 #pdb.set_trace()
 
-#caTriggeredAveragesAllPaws = dataAnalysis.generateStepTriggeredCaTracesAllPaws(mouse,allCorrDataPerSession,recordingsM)
-#pickle.dump(caTriggeredAveragesAllPaws, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAveragesAllPaws.p', 'wb'))
-#caTriggeredAveragesAllPaws = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseTriggeredAveragesAllPaws.p', 'rb'))
-#maxMin = cV.generateSwingTriggeredCaTracesFigureAllPaws(caTriggeredAveragesAllPaws,rescal=False)
-#pickle.dump(maxMin, open(eSD.analysisLocation + '/caSwingPhaseMaximumMinimum.p', 'wb'))
-#maxMin = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseMaximumMinimum.p', 'rb'))
-
-#cV.directionOfChangeSpatialOrganization(maxMin,allCorrDataPerSession)
-#pdb.set_trace()
+# caTriggeredAveragesAllPaws = dataAnalysis.generateStepTriggeredCaTracesAllPaws(mouse,allCorrDataPerSession,recordingsM)
+# pickle.dump(caTriggeredAveragesAllPaws, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAveragesAllPaws.p', 'wb'))
+# caTriggeredAveragesAllPaws = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseTriggeredAveragesAllPaws.p', 'rb'))
+# maxMin = cV.generateSwingTriggeredCaTracesFigureAllPaws(caTriggeredAveragesAllPaws,rescal=False)
+# pickle.dump(maxMin, open(eSD.analysisLocation + '/caSwingPhaseMaximumMinimum.p', 'wb'))
+# maxMin = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseMaximumMinimum.p', 'rb'))
+#
+# cV.directionOfChangeSpatialOrganization(maxMin,allCorrDataPerSession)
+# pdb.set_trace()
 #cV.generateSwingTriggeredCaTracesFigureAllPaws(caTriggeredAveragesAllPaws,rescal=True)
-caTriggeredAverages = dataAnalysis.generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,recordingsM)
-pickle.dump(caTriggeredAverages, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'wb'))  # eSD.analysisLocation,
+#caTriggeredAverages = dataAnalysis.generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,recordingsM)
+#pickle.dump(caTriggeredAverages, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'wb'))  # eSD.analysisLocation,
 caTriggeredAverages = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'rb'))
 cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=False)
 cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=True)

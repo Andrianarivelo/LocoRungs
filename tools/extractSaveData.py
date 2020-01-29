@@ -452,7 +452,7 @@ class extractSaveData:
         return starttime
 
     ############################################################
-    def saveBehaviorVideoData(self,groupNames,frames,expStartTime,expEndTime,imageMetaInfo):
+    def saveBehaviorVideoTimeData(self,groupNames,frames,expStartTime,expEndTime,imageMetaInfo):
         # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         #self.h5pyTools.createOverwriteDS(grpHandle,'behaviorFrames',len(frames))
@@ -462,7 +462,7 @@ class extractSaveData:
         self.h5pyTools.createOverwriteDS(grpHandle,'endExposure', expEndTime)
 
     ############################################################
-    def readBehaviorVideoData(self, groupNames):
+    def readBehaviorVideoTimeData(self, groupNames):
         # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
         firstLastFrames = self.f[grpName+'/firstLastFrames'][()]
@@ -737,7 +737,7 @@ class extractSaveData:
     # (mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
     def saveBehaviorVideo(self, mouse, date, rec, framesRaw, expStartTime, expEndTime, imageMetaInfo):
         #[foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
-        self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
+        #self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         midFrameTimes = (expStartTime + expEndTime)/2.
         #pdb.set_trace()
         #img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
@@ -781,7 +781,7 @@ class extractSaveData:
     # (mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
     def saveBehaviorVideoWithCa(self, mouse, date, rec, framesRaw, expStartTime, expEndTime, imageMetaInfo,angles,aTimes):
         #[foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
-        self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
+        #self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         midFrameTimes = (expStartTime + expEndTime)/2.
         #pdb.set_trace()
         #img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)

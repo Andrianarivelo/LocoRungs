@@ -4366,8 +4366,8 @@ class createVisualizations:
 
             nSquaredN = int(nSquared + 1)
             # figure #################################
-            fig_width = 30  # width in inches
-            fig_height = 20  # height in inches
+            fig_width = 25  # width in inches
+            fig_height = 25  # height in inches
             fig_size = [fig_width, fig_height]
             params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
                       'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
@@ -4385,12 +4385,12 @@ class createVisualizations:
             fig = plt.figure()
 
             # define sub-panel grid and possibly width and height ratios
-            gs = gridspec.GridSpec(7,11,#nSquaredN, nSquaredN,  # ,
+            gs = gridspec.GridSpec(nSquaredN, nSquaredN,  # ,
                                    # width_ratios=[1.2,1]
                                    # height_ratios=[10,4]
                                    )
             # define vertical and horizontal spacing between panels
-            gs.update(wspace=0.15, hspace=0.15)
+            gs.update(wspace=0.2, hspace=0.2)
 
             # possibly change outer margins of the figure
             plt.subplots_adjust(left=0.05, right=0.96, top=0.95, bottom=0.05)
