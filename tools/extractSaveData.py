@@ -249,7 +249,7 @@ class extractSaveData:
                         for r in recList:
                             # only add recordings which were previously selected
                             if recIdx in recInputIdx:
-                                if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin':
+                                if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin' or r[:-4] == 'locomotionTriggerSIAndMotor60sec':
                                     subFolders = self.getDirectories(self.dataLocation + '/' + r)
                                     for i in range(len(subFolders)):
                                         tempRecList.append(r + '/' + subFolders[i])
@@ -260,7 +260,7 @@ class extractSaveData:
                     elif recordings=='all':
                         tempRecList = []
                         for r in recList:
-                            if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin':
+                            if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin' or r[:-4] == 'locomotionTriggerSIAndMotor60sec' :
                                 subFolders = self.getDirectories(self.dataLocation + '/' + r)
                                 for i in range(len(subFolders)):
                                     if subFolders[i][0] == '0':
@@ -285,13 +285,16 @@ class extractSaveData:
     ############################################################
     def checkIfDeviceWasRecorded(self,fold,eD,recording, device):
         recLocation =  (self.dataBase2 + '/' + fold + '/' + recording + '/') if eD >= '181018' else (self.dataBase2 + '/' + fold + '/' + recording + '/')
-        print(recLocation)
+        print(recLocation,eD,int(eD))
         if os.path.exists(recLocation):
             print('%s constains %s , ' % (fold, recording), end =" ")
         else:
             print('Problem, recording does not exist')
         if device in ['CameraGigEBehavior','CameraPixelfly']:
-            pathToFile = recLocation + device + '/' + 'frames.ma'
+            if int(eD) >= 191104:
+                pathToFile = recLocation + device + '/' + 'video_000.ma'
+            else:
+                pathToFile = recLocation + device + '/' + 'frames.ma'
         elif device is 'PreAmpInput':
             pathToFile = recLocation + '%s.ma' % 'DaqDevice'
         elif device is 'frameTimes':
@@ -833,7 +836,7 @@ class extractSaveData:
         #x1 = 0.
         #y1 = 0.
         ax = fig.add_subplot(1,1,1)
-        ax = plt.axes(xlim=(0, 30), ylim=(55, 180))
+        ax = plt.axes(xlim=(0, 30), ylim=(45, 170))
         line1, = ax.plot([], [], 'g-', lw=2)
         line2, = ax.plot([], [], 'b-', lw=2)
         line3, = ax.plot([], [], 'r-', lw=2)
@@ -868,8 +871,8 @@ class extractSaveData:
         ttime = []
         ffluo = [[],[],[]]
         colors = [(255,0,0),(0,255,0),(0,0,255)]
-        rois = [[197, 196, 11],
-                [199, 242, 11],
+        rois = [[464, 452, 11],
+                [329, 99, 11],
                 [318,235,11],
                 #[446,389,11]
                 ]

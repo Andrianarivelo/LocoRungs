@@ -39,7 +39,7 @@ eSD = extractSaveData.extractSaveData(mouse)
 
 cV = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
-if os.path.isfile(eSD.analysisLocation + '/allSingStanceDataPerSession.p') and not readDataAgain:
+if os.path.isfile(eSD.analysisLocation + '/allSingStanceDataPerSession.p'):
     recordingsM = pickle.load( open( eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'rb' ) )
 
 if os.path.isfile(eSD.analysisLocation + '/allDataPerSession.p') and not readDataAgain:
@@ -76,7 +76,7 @@ else:
     pickle.dump(allCorrDataPerSession, open(eSD.analysisLocation + '/allCorrDataPerSession.p', 'wb'))  # eSD.analysisLocation,
 
 
-allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRois(mouse,allCorrDataPerSession,eSD.analysisLocation,refDate=3)
+#allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRois(mouse,allCorrDataPerSession,eSD.analysisLocation,refDate=3)
 
 #pdb.set_trace()
 # generate overview figure for animal
@@ -88,12 +88,24 @@ allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRois(mouse,allCorrDataPe
 #cV.generateR2ValueFigure(mouse,Rvalues2,'R2-Values-LocomotionPeriod_%s-%s_only' % (borders[0],borders[1]))
 #pdb.set_trace()
 
-#caTriggeredAverages = dataAnalysis.generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,recordingsM)
-#pickle.dump(caTriggeredAverages, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'wb'))  # eSD.analysisLocation,
-#caTriggeredAverages = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'rb'))
-#cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=False)
-#cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=True)
+#caTriggeredAveragesAllPaws = dataAnalysis.generateStepTriggeredCaTracesAllPaws(mouse,allCorrDataPerSession,recordingsM)
+#pickle.dump(caTriggeredAveragesAllPaws, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAveragesAllPaws.p', 'wb'))
+#caTriggeredAveragesAllPaws = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseTriggeredAveragesAllPaws.p', 'rb'))
+#maxMin = cV.generateSwingTriggeredCaTracesFigureAllPaws(caTriggeredAveragesAllPaws,rescal=False)
+#pickle.dump(maxMin, open(eSD.analysisLocation + '/caSwingPhaseMaximumMinimum.p', 'wb'))
+#maxMin = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseMaximumMinimum.p', 'rb'))
+
+#cV.directionOfChangeSpatialOrganization(maxMin,allCorrDataPerSession)
+#pdb.set_trace()
+#cV.generateSwingTriggeredCaTracesFigureAllPaws(caTriggeredAveragesAllPaws,rescal=True)
+caTriggeredAverages = dataAnalysis.generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,recordingsM)
+pickle.dump(caTriggeredAverages, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'wb'))  # eSD.analysisLocation,
+caTriggeredAverages = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'rb'))
+cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=False)
+cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=True)
 #pickle.dump(caTriggeredAverages, open('caSwingPhaseTriggeredAverages.p', 'wb'))
+
+pdb.set_trace()
 
 pawSwingTimes = dataAnalysis.generateInterstepTimeHistogram(mouse,allCorrDataPerSession,recordingsM)
 cV.generateSwingTimesHistograms(pawSwingTimes)

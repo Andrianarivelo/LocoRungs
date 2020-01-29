@@ -720,6 +720,7 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
                     for l in range(len(caTracesDict[nrec][1:])): # loop over all ROIs
                         interpCa = interp1d(caTracesDict[nrec][0]-startSwingTime, caTracesDict[nrec][l+1])#,kind='cubic')
                         interpCaRescaled = interp1d((caTracesDict[nrec][0]-startSwingTime)/(endSwingTime-startSwingTime), caTracesDict[nrec][l+1])#,kind='cubic')
+                        ############
                         try:
                             newCaTraceAtSwing = interpCa(timeAxis)
                         except ValueError:
@@ -727,6 +728,7 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
                         else:
                             #caSnippets[i,l,:] += newCaTraceAtSwing
                             caSnippets[i][l].append(newCaTraceAtSwing)
+                        ############
                         try:
                             newCaTraceAtSwingRescaled = interpCaRescaled(timeAxisRescaled)
                         except ValueError:
@@ -755,6 +757,107 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
         caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay,caSnippetsArray,caSnippetsRescaledArray])
 
     return caTraces
+
+#################################################################################
+# calculate correlations between ca-imaging, wheel speed and paw speed
+#################################################################################
+def generateStepTriggeredCaTracesAllPaws(mouse,allCorrDataPerSession,allStepData):
+    maxSeparation = 0.# min separation between swings in sec
+
+    # check for sanity
+    if len(allCorrDataPerSession) != len(allStepData):
+        print('both dictionaries are not of the same length')
+        print('CaWheelPawDict:',len(allCorrDataPerSession),' StepStanceDict:,',len(allStepData))
+
+    timeAxis = np.linspace(-0.4,0.6,(0.6+0.4)/0.02+1)
+    timeAxisRescaled = np.linspace(-1.,2.,(2+1)/0.02+1)
+    preStanceMask = timeAxis<-0.1
+    preStanceRescaledMask = timeAxisRescaled<-0.2
+    K = len(timeAxis)
+    KRescaled = len(timeAxisRescaled)
+    caTraces = []
+    swingT = []
+    for nDay in range(len(allCorrDataPerSession)):
+        (wheelSpeedDictInterP, pawTracksDictInterP, caTracesDictInterP,wheelSpeedDict,pawTracksDict,caTracesDict) = getCaWheelPawInterpolatedDictsPerDay(nDay, allCorrDataPerSession)
+        if len(allStepData[nDay-1][4])==6:
+            print('more recordings :',len(allStepData[nDay-1][4]))
+            addIdx = 1
+        else:
+            addIdx = 0
+        #pdb.set_trace()
+        N = len(caTracesDict[0][1:])
+        print(allCorrDataPerSession[nDay][0], allStepData[nDay - 1][0], nDay, N)
+        caSnippets = [[] for i in range(N)] #np.zeros((4,N,K))
+        caSnippetsRescaled = [[] for i in range(N)]
+        caSnippetsArray = np.zeros((N,2,K))
+        caSnippetsRescaledArray = np.zeros((N, 2, KRescaled))
+        swingSnippets = [[] for i in range(5)]
+        for nrec in range(5): # loop over the five recordings of a day
+            swingTimes = np.zeros(3)
+            for i in range(4): # loop over the four paws and lump all swing times together
+                idxSwings = allStepData[nDay-1][4][nrec+addIdx][3][i][1]
+                #print('Wow nSess',nDay,allStepData[nDay-1][0])
+                recTimes = allStepData[nDay-1][4][nrec+addIdx][4][i][2]
+                #pdb.set_trace()
+                idxSwings = np.asarray(idxSwings)
+                startSwingTimes = recTimes[idxSwings[:,0]]
+                endSwingTimes = recTimes[idxSwings[:,1]]
+                swingTimes = np.vstack((swingTimes,np.column_stack((startSwingTimes, endSwingTimes,np.repeat(i,len(startSwingTimes))))))
+            swingTimes = swingTimes[1:] # remove first element which was zeros only
+            # sort swing times according to swing start
+            swingTimes = swingTimes[swingTimes[:,0].argsort()]
+            # remove swings with fall within the minimum separation betweeen swings
+            diffSwings = np.diff(swingTimes[:,0]) # calculate inter-swing intervals
+            swingTimesSparse = swingTimes[np.concatenate((diffSwings>maxSeparation,np.array([True])))] # only use swings which fall above separation time
+            swingSnippets[nrec] = swingTimes
+            for k in range(len(swingTimesSparse)): # loop over all swings
+                startSwingTime = swingTimesSparse[k, 0]
+                endSwingTime = swingTimesSparse[k, 1]
+
+                if len(caTracesDict[nrec][1:])!=N: print('problem in number of ROIs')
+                for l in range(len(caTracesDict[nrec][1:])): # loop over all ROIs
+                    interpCa = interp1d(caTracesDict[nrec][0]-startSwingTime, caTracesDict[nrec][l+1])#,kind='cubic')
+                    interpCaRescaled = interp1d((caTracesDict[nrec][0]-startSwingTime)/(endSwingTime-startSwingTime), caTracesDict[nrec][l+1])#,kind='cubic')
+                    ############
+                    try:
+                        newCaTraceAtSwing = interpCa(timeAxis)
+                    except ValueError:
+                        pass
+                    else:
+                        #caSnippets[i,l,:] += newCaTraceAtSwing
+                        caSnippets[l].append(newCaTraceAtSwing)
+                    ############
+                    try:
+                        newCaTraceAtSwingRescaled = interpCaRescaled(timeAxisRescaled)
+                    except ValueError:
+                        #print('error')
+                        pass
+                    else:
+                        #caSnippets[i,l,:] += newCaTraceAtSwing
+                        caSnippetsRescaled[l].append(newCaTraceAtSwingRescaled)
+        #pdb.set_trace()
+        #for i in range(4):
+        for l in range(N):
+            caTempArray = np.asarray(caSnippets[l])
+            caSnippetsZscores = (caTempArray - np.mean(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]) #/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
+            caTemp = np.mean(caSnippetsZscores,axis=0)
+            caTempSTD = np.std(caSnippetsZscores,axis=0)
+            caSnippetsArray[l,0,:] = caTemp
+            caSnippetsArray[l,1,:] = caTempSTD
+            #
+            caTempRescaledArray = np.asarray(caSnippetsRescaled[l])
+            #pdb.set_trace()
+            caSnippetsRescaledZscores = (caTempRescaledArray - np.mean(caTempRescaledArray[:,preStanceRescaledMask],axis=1)[:,np.newaxis]) #/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
+            caTempRe = np.mean(caSnippetsRescaledZscores,axis=0)
+            caTempReSTD = np.std(caSnippetsRescaledZscores,axis=0)
+            caSnippetsRescaledArray[l,0,:] = caTempRe
+            caSnippetsRescaledArray[l,1,:] = caTempReSTD
+        swingT.append([allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay,swingSnippets])
+        caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay,caSnippetsArray,caSnippetsRescaledArray])
+
+    return caTraces
+
+
 #################################################################################
 def calcualteAllDeltaTValues(t1,t2):
     l1 = len(t1)

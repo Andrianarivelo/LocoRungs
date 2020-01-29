@@ -4366,8 +4366,8 @@ class createVisualizations:
 
             nSquaredN = int(nSquared + 1)
             # figure #################################
-            fig_width = 25  # width in inches
-            fig_height = 25  # height in inches
+            fig_width = 30  # width in inches
+            fig_height = 20  # height in inches
             fig_size = [fig_width, fig_height]
             params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
                       'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
@@ -4385,7 +4385,7 @@ class createVisualizations:
             fig = plt.figure()
 
             # define sub-panel grid and possibly width and height ratios
-            gs = gridspec.GridSpec(nSquaredN, nSquaredN,  # ,
+            gs = gridspec.GridSpec(7,11,#nSquaredN, nSquaredN,  # ,
                                    # width_ratios=[1.2,1]
                                    # height_ratios=[10,4]
                                    )
@@ -4422,7 +4422,7 @@ class createVisualizations:
                 if n==0:
                     ax.set_ylim(-2,3)
                 else:
-                    ax.set_ylim(-1,1.2)
+                    ax.set_ylim(-1,1.5)
                 ax.xaxis.set_major_locator(majorLocator_x)
 
                 self.layoutOfPanel(ax)  # axL[n].append(ax)
@@ -4434,6 +4434,219 @@ class createVisualizations:
                 #plt.savefig('caTriggeredAverages_%s.pdf' % caTriggeredAverages[nDays][0])  # define vertical and horizontal spacing between panels  # plt.show()
             # plt.savefig(fname + '.png')
             plt.savefig(fname + '.pdf')
+
+    ##################################################################################################################
+    def findLocalMaxMinCloseToZero(self,timee,values):
+        from scipy.signal import argrelextrema
+        argMax = argrelextrema(values,np.greater)
+        argMin = argrelextrema(values,np.less)
+        timesMax = timee[argMax]
+        valuesMax = values[argMax]
+        timesMin = timee[argMin]
+        valuesMin = values[argMin]
+        zeroMinIdx = np.argmin(np.abs(timesMin))
+        zeroMaxIdx = np.argmin(np.abs(timesMax))
+        zeroTimeMin = timesMin[zeroMinIdx]
+        zeroValueMin = valuesMin[zeroMinIdx]
+        zeroTimeMax = timesMax[zeroMaxIdx]
+        zeroValueMax = valuesMax[zeroMaxIdx]
+        if zeroTimeMin <= 0 and  zeroTimeMax > 0 :
+            ttype = 'inc'
+        elif zeroTimeMin >= 0 and  zeroTimeMax < 0 :
+            ttype = 'dec'
+        else:
+            ttype = 'ind'
+        return (zeroTimeMin,zeroValueMin,zeroTimeMax,zeroValueMax,ttype)
+    ##################################################################################################################
+    def generateSwingTriggeredCaTracesFigureAllPaws(self,caTriggeredAverages,rescal=True):
+
+        rescaled = rescal
+        #caTriggeredAverages = pickle.load(open('caSwingPhaseTriggeredAverages.p', 'rb'))
+        if rescaled:
+            timeAxis = np.linspace(-1., 2., (2 + 1) / 0.02 + 1)
+            idxCa = 4
+        else:
+            timeAxis = np.linspace(-0.4, 0.6, (0.6 + 0.4) / 0.02 + 1)
+            idxCa = 3
+
+        MM = []
+        for nDays in range(len(caTriggeredAverages)):
+            print(caTriggeredAverages[nDays][0])
+            caTraces = caTriggeredAverages[nDays][idxCa]
+            dims = np.shape(caTraces)
+            #pdb.set_trace()
+            nSquared = np.sqrt(dims[0])
+
+            nSquaredN = int(nSquared + 1)
+            print(nSquaredN)
+            # figure #################################
+            fig_width = 25  # width in inches
+            fig_height = 25  # height in inches
+            fig_size = [fig_width, fig_height]
+            params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                      'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                      'xtick.major.size': 4  # major tick size in points
+                      # 'edgecolor' : None
+                      # 'xtick.major.size' : 2,
+                      # 'ytick.major.size' : 2,
+                      }
+            rcParams.update(params)
+
+            # set sans-serif font to Arial
+            rcParams['font.sans-serif'] = 'Arial'
+
+            # create figure instance
+            fig = plt.figure()
+
+            # define sub-panel grid and possibly width and height ratios
+            gs = gridspec.GridSpec(nSquaredN,nSquaredN,  # ,
+                                   # width_ratios=[1.2,1]
+                                   # height_ratios=[10,4]
+                                   )
+            # define vertical and horizontal spacing between panels
+            gs.update(wspace=0.15, hspace=0.15)
+
+            # possibly change outer margins of the figure
+            plt.subplots_adjust(left=0.05, right=0.96, top=0.95, bottom=0.05)
+
+            # sub-panel enumerations
+            plt.figtext(0.06, 0.96, '%s recording, %s ROIs' % (caTriggeredAverages[nDays][0], dims[0]), clip_on=False, color='black', size=14)
+            # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+            # create panels #######################################################
+            # gssub0 = gridspec.GridSpecFromSubplotSpec(nDays, 8, subplot_spec=gs[0], hspace=0.2)
+            Mtemp = []
+            #col = ['C1', 'C2', 'C3', 'C4']
+            for n in range(nSquaredN * nSquaredN):
+                if n == dims[0]:
+                    break
+                ax = plt.subplot(gs[n])
+                ax.axvline(x=0, ls='--', c='0.8')
+                if rescaled:
+                    ax.axvline(x=1, ls='-', c='0.8')
+                ax.axhline(y=0, ls='--', c='0.8')
+                #for i in range(4):
+                # ax.fill_between(timeAxis, caTraces[i][n][0]-caTraces[i][n][1],caTraces[i][n][0]+caTraces[i][n][1],color=col[i],alpha=0.5)
+                maxMin = self.findLocalMaxMinCloseToZero(timeAxis, caTraces[n][0])
+                Mtemp.append(maxMin)
+                ax.plot(timeAxis, caTraces[n][0], lw=2,color='0.5')
+                if maxMin[4]=='inc':
+                    ax.plot(maxMin[0],maxMin[1],'^',c='red')
+                    ax.plot(maxMin[2],maxMin[3],'o',c='red')
+                elif maxMin[4]=='dec':
+                    ax.plot(maxMin[0],maxMin[1],'o',c='blue')
+                    ax.plot(maxMin[2],maxMin[3],'^',c='blue')
+                else:
+                    ax.plot(maxMin[0],maxMin[1],'*',c='purple')
+                    ax.plot(maxMin[2],maxMin[3],'*',c='purple')
+                # ax.set_ylim(-1.2,3)
+                if rescaled:
+                    majorLocator_x = plt.MultipleLocator(0.5)
+                else:
+                    majorLocator_x = plt.MultipleLocator(0.2)
+                if n==0:
+                    ax.set_ylim(-2,3)
+                else:
+                    ax.set_ylim(-1,1.2)
+                ax.xaxis.set_major_locator(majorLocator_x)
+
+                self.layoutOfPanel(ax)  # axL[n].append(ax)
+            if rescaled:
+                fname = self.determineFileName(self.mouse, what='caTriggeredAveragesAllPaws_rescaled_%s' % caTriggeredAverages[nDays][0])
+                #plt.savefig('caTriggeredAverages_rescaled_%s.pdf' % caTriggeredAverages[nDays][0])
+            else:
+                fname = self.determineFileName(self.mouse, what='caTriggeredAveragesAllPaws_%s' % caTriggeredAverages[nDays][0])
+                #plt.savefig('caTriggeredAverages_%s.pdf' % caTriggeredAverages[nDays][0])  # define vertical and horizontal spacing between panels  # plt.show()
+            # plt.savefig(fname + '.png')
+            plt.savefig(fname + '.pdf')
+            MM.append([caTriggeredAverages[nDays][0],nDays,Mtemp])
+        return MM
+
+    ##################################################################################################################
+    def directionOfChangeSpatialOrganization(self,maxMin,caData):
+        print(len(maxMin),len(caData))
+        if len(maxMin) != len(caData):
+            print('Problem! Not same length of lists.')
+        nDays = len(caData)
+        #for nday in range(len(caData)):
+        #    print(maxMin[nday][0],caData[nday][0],len(maxMin[nday][2]),len(caData[nday][3][0][4]))
+        #pdb.set_trace()
+        # figure #################################
+        fig_width = 25  # width in inches
+        fig_height = 25  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(1, 1,  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[10,4]
+                               )
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.15, hspace=0.15)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.05, right=0.96, top=0.96, bottom=0.04)
+
+        # sub-panel enumerations
+        # plt.figtext(0.06, 0.96, '%s recording, %s ROIs' % (caTriggeredAverages[nDays][0], dims[1]), clip_on=False, color='black', size=14)
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+        #im = np.zeros((ops['Ly'], ops['Lx']))
+
+        #for n in range(0,ncells):
+        #    ypix = stat[n]['ypix'][~stat[n]['overlap']]
+        #    xpix = stat[n]['xpix'][~stat[n]['overlap']]
+        #    im[ypix,xpix] = n+1
+        for nday in range(nDays): # loop over all recording days
+            print(maxMin[nday][0])
+            ax = plt.subplot(gs[0])
+            ax.set_title(maxMin[nday][0])
+            stat = caData[nday][3][0][4]
+            ops  = caData[nday][3][0][2]
+            im = np.zeros((ops['Ly'], ops['Lx'],4))
+            #im = 0.5
+            ax.imshow(ops['meanImgE'], cmap=plt.cm.gray)
+            #pdb.set_trace()
+            for n in range(len(stat)): # loop over all cells
+                #print(n)
+                ypix = stat[n]['ypix'] #[~stat[n]['overlap']]
+                xpix = stat[n]['xpix'] #[~stat[n]['overlap']]
+                amp = (maxMin[nday][2][n][3] - maxMin[nday][2][n][1])
+                #pdb.set_trace()
+                if maxMin[nday][2][n][4]=='inc':
+                    #im[ypix, xpix] = 1
+                    ampPlot = 0.5 + np.abs(amp)/3.
+                    im[ypix, xpix,:] = plt.cm.seismic(ampPlot)
+                    #ax.plot(xpix,ypix,'o',color=plt.cm.seismic(ampPlot),alpha=0.9) #np.repeat(1.,len(ypix))],cmap=plt.cm.seismic,alpha=0.7)
+                elif maxMin[nday][2][n][4]=='dec':
+                    #im[ypix, xpix] = amp
+                    ampPlot = 0.5 - np.abs(amp)/3.
+                    im[ypix, xpix,:] = plt.cm.seismic(ampPlot)
+                    #ax.plot(xpix, ypix,'o',color=plt.cm.seismic(ampPlot),alpha=0.9)
+                else:
+                    #pass
+                    im[ypix, xpix,:] = plt.cm.copper(0.4)
+                    #ax.plot(xpix, ypix,'o',color='white',alpha=0.7)
+                    #ax.imshow([ypix, xpix, np.repeat(0.5,len(ypix))], cmap=plt.cm.seismic, alpha=0.7)
+            #im[:,:,4][im[:,:,0]==0]
+            ax.imshow(im)
+            plt.show()
+
+
+        #plt.show()
 
 
     ##################################################################################################################
