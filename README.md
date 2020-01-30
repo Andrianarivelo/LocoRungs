@@ -71,4 +71,11 @@ and some pre-analysis is required. In particular, the following scripts need to 
 * `getRawBehaviorImagesSaveVideo.py` : extract data from the high-speed video recordings, generates videos and saves timing information of the video recording.
 * `getCalciumTracesDetermineRois.py` : runs Suite2p on the calcium-imaging recordings obtained with ScanImage. 
 
+To complete the initial analysis, some more scripts need to be run on the data. 
+* `extractRungLocation.py` : extracts the location of the rungs from the video generated with `getRawBehaviorImagesSaveVideo.py`
+* `extractPawTrackingOutliers.py` : Uses the paw tracking data generated with DeepLabCut and remove mis-tacked paw positions based on the paw displacement 
+between frames. Large, unrealistic displacements are removed. 
+* `extractSwingStancePhase.py` : uses information from the wheel speed, paw position and rung position to separate paw trajectoris into swing and stance 
+phases
+
 
