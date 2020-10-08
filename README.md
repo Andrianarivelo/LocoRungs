@@ -2,9 +2,14 @@
 
 (start : Oct 2017)
 
-The scripts and classes are used to extract/analyze/display locomotion and electrophysiological data recorded in the Cerebellum of mice walking on a runged treadmill. The recordings are performed in the Isabel Llano's lab starting Autum 2017.
+The scripts and classes are used to extract/analyze/display locomotion, imaging and electrophysiological data recorded in the Cerebellum of mice walking on a
+runged treadmill. The recordings are performed in the Isabel Llano's lab starting Autum 2017.
 
-The raw data has been recoreded with ACQ4 and is stored on lilith ('/home/labo/2pinvivo/backup/altair_data/') and backed up to spetses. Information about the experiments are furthermore stored in an google document ``Experiments Cerebellum awake : April 2017 onwards`` .
+The raw data is been recorded with ACQ4 as well as ScanImage and is stored on lilith and spetses, the lab backup servers.
+Information about the experiments are furthermore stored in an google document [https://docs.google.com/spreadsheets/d/14UbR4oYZLeGchwlGjw_znBwXQUvtaoW7-E-cmDQbr-c/edit?usp=sharing](***Experiments Cerebellum awake : April 2017 onwards***) . This google spreadsheet
+is read by the analysis scripts and used to access data of specific mice.
+
+
 
 -----
 #### Calcium imaging experiments

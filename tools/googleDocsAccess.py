@@ -54,7 +54,7 @@ def get_credentials():
 
 def convertListToDict(values):
     exDict = OrderedDict([])
-    for n in range(1, len(values)):
+    for n in range(1, len(values)): # loop over all lines in google spread-sheet
         if values[n][0]:
             # print values[n][0]
             # save general information per animal
@@ -85,20 +85,22 @@ def convertListToDict(values):
                     # create new entry for recording session on that date, asociated to a folder '[date]_xxx', m ... index of folder
                     m = j
                     # check if recording was performed on a given date
-                    if len(values[m])>10:
+                    if len(values[m])>5:
                         # loop over folders
+                        #print(m,n,len(values),values[m][5],j)
+                        #if
                         while (m < len(values)) and ((not values[m][5]) or (j == m)):
-
                             try:
-                                content = values[m][10]
+                                content = values[m][11]
                             except IndexError:
                                 pass
                             else:
                                 #print(m, values[n][0], values[j][5], values[m][10])
                                 if content != '':
                                     exDict[values[n][0]]['dates'][values[j][5]]['folders'].update(OrderedDict([
-                                            (values[m][10], {
+                                            (values[m][11], {
                                                 'description': values[m][8],
+                                                'recComputer': values[m][10],
                                                 'recordings': {},
                                                 #'recordings': {}
                                             })
@@ -108,20 +110,20 @@ def convertListToDict(values):
                                     # read out recordings
                                     while (r<len(values)) and ((not values[r][8]) or (r == m)) :  # values[m][11] :
                                         try:
-                                            values[r][11]
+                                            values[r][12]  # check whether recording exists
                                         except:
                                             pass
                                         else:
                                             #print(m,values[n][0], values[j][5], values[m][10], r, values[r][11])
-                                            exDict[values[n][0]]['dates'][values[j][5]]['folders'][values[m][10]]['recordings'].update(
-                                                OrderedDict([(values[r][11], {
+                                            exDict[values[n][0]]['dates'][values[j][5]]['folders'][values[m][11]]['recordings'].update(
+                                                OrderedDict([(values[r][12], {
                                                     'comment': {}, })]))
                                             try:
-                                                values[r][12]
+                                                values[r][13]   # check whether comment exists
                                             except:
                                                 pass
                                             else:
-                                                exDict[values[n][0]]['dates'][values[j][5]]['folders'][values[m][10]]['recordings'][values[r][11]]['comment'] = values[r][12]
+                                                exDict[values[n][0]]['dates'][values[j][5]]['folders'][values[m][11]]['recordings'][values[r][12]]['comment'] = values[r][13]
                                         r += 1
                             m += 1
                 j += 1

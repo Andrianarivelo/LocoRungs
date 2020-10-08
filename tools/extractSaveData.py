@@ -22,7 +22,7 @@ from ScanImageTiffReader import ScanImageTiffReader
 
 class extractSaveData:
     def __init__(self, mouse):
-
+        self.mouse = mouse
         self.h5pyTools = h5pyTools()
 
         # determine location of data files and store location
@@ -42,31 +42,31 @@ class extractSaveData:
         else:
             print('Run this script on a server or laptop. Otherwise, adapt directory locations.')
             sys.exit(1)
-
+        #print('test1')
         self.listOfAllExpts = googleDocsAccess.getExperimentSpreadsheet()
+        #print(self.listOfAllExpts['201007_t00'])
+        # extract recording dates of the specific animal
+        dates = []
+        for d in self.listOfAllExpts[self.mouse]['dates']:
+            dates.append(d)
 
-        # lilith backup
-        self.dataBase     = '/media/invivodata/'
-        # spetses backup
-        self.dataBase2     = '/media/invivodata2/'
+        if dates[0] >= '181018':
+            self.dataBase     = '/media/invivodata2/'
+        else:
+            self.dataBase = '/media/invivodata/'
 
         # check if directory is mounted
         if not os.listdir(self.dataBase):
             os.system('mount %s' % self.dataBase)
-        if not os.listdir(self.dataBase2):
-            os.system('mount %s' % self.dataBase2)
+
         if not os.listdir(self.analysisBase):
             os.system('mount %s' % self.analysisBase)
 
-        if int(mouse[:6]) >= 170829 :
-            self.dataBase +=  'altair_data/dataMichael/'
-        else:
-            self.dataBase += 'altair_data/experiments/data_Michael/acq4/'
-
-        if int(mouse[:6]) == 190409 :
-            self.dataBase2 += 'behaviorPC_data/dataMichael/'
-        else:
-            self.dataBase2 += 'altair_data/dataMichael/'
+        self.dataPCLocation = OrderedDict([
+            ('behaviorPC','behaviorPC_data/dataMichael/'),
+            ('2photonPC', ('altair_data/dataMichael/' if int(self.mouse[:6]) >= 170829 else 'altair_data/experiments/data_Michael/acq4/')),
+            ('', ('altair_data/dataMichael/' if int(self.mouse[:6]) >= 170829 else 'altair_data/experiments/data_Michael/acq4/')),
+        ])
 
         self.analysisLocation = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsData/%s/' % mouse
         self.figureLocation   = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsFigures/%s/' % mouse
@@ -80,6 +80,9 @@ class extractSaveData:
         #if os.path.isfile(fName):
         self.f = h5py.File(fName,'a')
         self.mouse = mouse
+
+        # experiments stored under this name were recorded as sequence with a certain number of repetitions
+        self.listOfSequenceExperiments = ['locomotionTriggerSIAndMotor','locomotionTriggerSIAndMotorJin','locomotionTriggerSIAndMotor60sec','locomotion_recording_setup2']
 
     ############################################################
     def __del__(self):
@@ -102,9 +105,9 @@ class extractSaveData:
         return (imStack,motionCoor,allFiles[0])
 
     ############################################################
-    def saveRungMotionData(self,mouse,date,rec,rungPositions):
+    def saveRungMotionData(self,date,rec,rungPositions):
         rec = rec.replace('/', '-')
-        pickle.dump(rungPositions, open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb'))
+        pickle.dump(rungPositions, open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (self.mouse, date, rec), 'wb'))
 
     ############################################################
     def getRungMotionData(self,mouse,date,rec):
@@ -172,19 +175,19 @@ class extractSaveData:
         return (img,rois,raw_signals)
 
     ############################################################
-    def getRecordingsList(self,mouse,expDate='all',recordings='all'):
+    def getRecordingsList(self,expDate='all',recordings='all'):
 
         folderRec = []
-        if mouse in self.listOfAllExpts:
+        if self.mouse in self.listOfAllExpts:
             #print mouse
             #print expDate, self.listOfAllExpts[mouse]['dates']
             expDateList = []
             #pdb.set_trace()
             # provide choice of which days to include in analysis
             if expDate=='some':
-                print('Dates when experiments where performed with animal %s :' % mouse)
+                print('Dates when experiments where performed with animal %s :' % self.mouse)
                 didx = 0
-                for d in self.listOfAllExpts[mouse]['dates']:
+                for d in self.listOfAllExpts[self.mouse]['dates']:
                     print('  %s %d' % (d,didx))
                     didx+=1
                 print('Choose the dates for analysis by typing the index, e.g, \'1\', or \'0,1,3,5\' : ', end='')
@@ -193,12 +196,12 @@ class extractSaveData:
                 #print(daysInputIdx,daysInputIdx[0],type(daysInputIdx))
             # generate list of days to analyze
             if expDate == 'all' :
-                for d in self.listOfAllExpts[mouse]['dates']:
+                for d in self.listOfAllExpts[self.mouse]['dates']:
                     #print(d)
                     expDateList.append(d)
             elif expDate=='some':
                 didx = 0
-                for d in self.listOfAllExpts[mouse]['dates']:
+                for d in self.listOfAllExpts[self.mouse]['dates']:
                     if didx in daysInputIdx:
                         #print(d)
                         expDateList.append(d)
@@ -212,11 +215,12 @@ class extractSaveData:
                 print('Choose recording to analyze')
                 recIdx = 0
                 for eD in expDateList:
-                    dataFolders = self.listOfAllExpts[mouse]['dates'][eD]['folders']
+                    dataFolders = self.listOfAllExpts[self.mouse]['dates'][eD]['folders']
                     for fold in dataFolders:
                         print(' ',fold)
-                        self.dataLocation = (self.dataBase2 + fold + '/') if eD >= '181018' else (self.dataBase + fold + '/')
-                        #print(self.dataLocation)
+                        #self.dataLocation = (self.dataBase2 + fold + '/') if eD >= '181018' else (self.dataBase + fold + '/')
+                        self.dataLocation = self.dataBase + self.dataPCLocation[dataFolders[fold]['recComputer']] + fold + '/'
+                        print(self.dataLocation)
                         if not os.path.exists(self.dataLocation):
                             #    print('experiment %s exists' % fold)
                             #else:
@@ -235,10 +239,13 @@ class extractSaveData:
             recIdx = 0
             for eD in expDateList:
                 #print(expDateList, self.listOfAllExpts[mouse]['dates'], len(self.listOfAllExpts[mouse]['dates']))
-                dataFolders = self.listOfAllExpts[mouse]['dates'][eD]['folders']
+                dataFolders = self.listOfAllExpts[self.mouse]['dates'][eD]['folders']
                 #print(eD, self.listOfAllExpts[mouse]['dates'],dataFolders)
                 for fold in dataFolders:
-                    self.dataLocation = (self.dataBase2 + fold + '/') if eD >= '181018' else (self.dataBase + fold + '/')
+                    #self.dataLocation = (self.dataBase2 + fold + '/') if eD >= '181018' else (self.dataBase + fold + '/')
+                    #pdb.set_trace()
+                    self.dataLocation =  self.dataBase + self.dataPCLocation[dataFolders[fold]['recComputer']] + fold + '/'
+                    #print(self.dataLocation)
                     if not os.path.exists(self.dataLocation):
                         #print('experiment %s exists' % fold)
                         #else:
@@ -249,7 +256,8 @@ class extractSaveData:
                         for r in recList:
                             # only add recordings which were previously selected
                             if recIdx in recInputIdx:
-                                if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin' or r[:-4] == 'locomotionTriggerSIAndMotor60sec':
+                                #if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin' or r[:-4] == 'locomotionTriggerSIAndMotor60sec':
+                                if r[:-4] in self.listOfSequenceExperiments:
                                     subFolders = self.getDirectories(self.dataLocation + '/' + r)
                                     for i in range(len(subFolders)):
                                         tempRecList.append(r + '/' + subFolders[i])
@@ -260,7 +268,8 @@ class extractSaveData:
                     elif recordings=='all':
                         tempRecList = []
                         for r in recList:
-                            if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin' or r[:-4] == 'locomotionTriggerSIAndMotor60sec' :
+                            #if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin' or r[:-4] == 'locomotionTriggerSIAndMotor60sec' :
+                            if r[:-4] in self.listOfSequenceExperiments:
                                 subFolders = self.getDirectories(self.dataLocation + '/' + r)
                                 for i in range(len(subFolders)):
                                     if subFolders[i][0] == '0':
@@ -284,8 +293,9 @@ class extractSaveData:
 
     ############################################################
     def checkIfDeviceWasRecorded(self,fold,eD,recording, device):
-        recLocation =  (self.dataBase2 + '/' + fold + '/' + recording + '/') if eD >= '181018' else (self.dataBase2 + '/' + fold + '/' + recording + '/')
-        print(recLocation,eD,int(eD))
+        #recLocation =  (self.dataBase2 + '/' + fold + '/' + recording + '/') if eD >= '181018' else (self.dataBase2 + '/' + fold + '/' + recording + '/')
+        recLocation = self.dataBase + self.dataPCLocation[self.listOfAllExpts[self.mouse]['dates'][eD]['folders'][fold]['recComputer']] + fold + '/' + recording + '/'
+        #print(recLocation,eD,int(eD))
         if os.path.exists(recLocation):
             print('%s constains %s , ' % (fold, recording), end =" ")
         else:
@@ -347,7 +357,8 @@ class extractSaveData:
 
     ############################################################
     def readRawData(self, fold, eD, recording, device, fData , readRawData = True):
-        recLocation = (self.dataBase2 + '/' + fold + '/' + recording + '/') if eD >= '181018' else (self.dataBase2 + '/' + fold + '/' + recording + '/')
+        #recLocation = (self.dataBase2 + '/' + fold + '/' + recording + '/') if eD >= '181018' else (self.dataBase2 + '/' + fold + '/' + recording + '/')
+        recLocation = self.dataBase + self.dataPCLocation[self.listOfAllExpts[self.mouse]['dates'][eD]['folders'][fold]['recComputer']] + fold + '/' + recording + '/'
         #print(recLocation)
         if device == 'RotaryEncoder':
             # data from activity monitor
@@ -533,8 +544,8 @@ class extractSaveData:
         return keyWordParameter
 
     ############################################################
-    def readTimeStampOfRecording(self,tiffFile,nFrame):
-        desc = ScanImageTiffReader(tiffFile).description(nFrame)
+    def readTimeStampOfRecording(self,tiffFileObj,nFrame):
+        desc = tiffFileObj.description(nFrame)
         keyWordIdx = desc.find('epoch')
         dateString = re.split('\[|\]', desc[keyWordIdx:])
         dateIdv = dateString[1].split()
@@ -590,14 +601,34 @@ class extractSaveData:
     def extractAndSaveCaTimeStamps(self,dataDir,saveDir,tiffPaths):
         timeStamps = []
         for i in range(len(tiffPaths)):
-            data = ScanImageTiffReader(tiffPaths[i]).data()
+            #data = ScanImageTiffReader(tiffPaths[i]).data()
+            tiffFileObject = ScanImageTiffReader(tiffPaths[i])
+            data = tiffFileObject.data()
+            #pdb.set_trace()
             fN = np.shape(data)[0]
             #frameNumbers.append(fN)
             for n in range(fN):
-                timeStamps.append(self.readTimeStampOfRecording(tiffPaths[i],n))
+                timeStamps.append(self.readTimeStampOfRecording(tiffFileObject,n,))
 
         timeStampsA = np.asarray(timeStamps)
         np.save(saveDir+'/suite2p/plane0/timeStamps.npy',timeStampsA)
+
+    ############################################################
+    def getRawCalciumImagingData(self,dataDir,tiffPaths):
+        imagingData = []
+        timeStamps = []
+        for i in range(len(tiffPaths)):
+            tiffFileObject = ScanImageTiffReader(tiffPaths[i])
+            data = tiffFileObject.data()
+            fN = np.shape(data)[0]
+            #frameNumbers.append(fN)
+            for n in range(fN):
+                timeStamps.append(self.readTimeStampOfRecording(tiffFileObject,n))
+            timeStampsA = np.asarray(timeStamps)
+            imagingData.append([i,data,timeStampsA])
+        #timeStampsA = np.asarray(timeStamps)
+        return(imagingData)
+        #np.save(saveDir+'/suite2p/plane0/timeStamps.npy',timeStampsA)
 
     ############################################################
     def getCaImagingRoiData(self,caAnalysisLocation,tiffList):
