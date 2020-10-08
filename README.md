@@ -6,10 +6,21 @@ The scripts and classes are used to extract/analyze/display locomotion, imaging 
 runged treadmill. The recordings are performed in the Isabel Llano's lab starting Autum 2017.
 
 The raw data is been recorded with ACQ4 as well as ScanImage and is stored on lilith and spetses, the lab backup servers.
-Information about the experiments are furthermore stored in an google document [https://docs.google.com/spreadsheets/d/14UbR4oYZLeGchwlGjw_znBwXQUvtaoW7-E-cmDQbr-c/edit?usp=sharing](***Experiments Cerebellum awake : April 2017 onwards***) . This google spreadsheet
-is read by the analysis scripts and used to access data of specific mice.
 
+Information about the experiments are furthermore stored in an google document [***Experiments Cerebellum awake : April 2017 onwards***](https://docs.google.com/spreadsheets/d/14UbR4oYZLeGchwlGjw_znBwXQUvtaoW7-E-cmDQbr-c/edit?usp=sharing).
+This google spreadsheet is read by the analysis scripts and used to access data of specific mice.
 
+**Content of the documentation**
+
+* [Analyze calcium imaging experiments](#calcium-imaging-experiments)
+
+* [Analyze experiments with walking behavior recordings](#experiments-with-walking-behavior-recordings)
+
+* [Experiments to access motion artefacts](#experiments-to-access-motion-artefacts)
+
+* [Work-flow to generate overview figure](#work-flow-to-generate-overview-figure)
+
+* [Extract paw positions with DeepLabCut](deepLabCut.md)
 
 -----
 #### Calcium imaging experiments
