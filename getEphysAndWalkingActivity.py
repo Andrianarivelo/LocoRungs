@@ -42,7 +42,7 @@ for f in range(len(foldersRecordings)):
             tbins =  np.linspace(0.,len(ephysTimes)*dt,int(len(ephysTimes)*dt/binWidth)+1)
             nspikecountwindow = spikecountwindow/binWidth
             np.save('currentHP.npy',np.column_stack((ephysTimes,currentHP)))
-            np.save('spikeTimes.npy',spikeT)
+            np.save('tempScriptOutput/spikeTimes.npy', spikeT)
 
             binnedspikes, _ = np.histogram(spikeT, tbins)
             spikesconv = scipy.ndimage.filters.gaussian_filter1d(np.array(binnedspikes, float), sigma=nspikecountwindow)

@@ -283,6 +283,67 @@ class openCVImageProcessingTools:
         #mask = np.zeros((self.Vheight, self.Vwidth))
         return (pos,areaWidth)
 
+    ############################################################
+    def findLEDArea(self, frames, coordinates=None):
+        frame8bit = np.array(np.transpose(frames[0]), dtype=np.uint8)
+        dims = np.shape(frame8bit)
+        img = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
+        if coordinates is None:
+            posX = 780
+            posY = 70
+            circleRadius = 15
+        else:
+            posX = coordinates[0]
+            posY = coordinates[1]
+            circleRadius = coordinates[2]
+
+        Npix = 5
+        continueLoop = True
+        # optimize with keyboard
+        while continueLoop:
+            #rungs = []
+            imgCircle = img.copy()
+            cv2.circle(imgCircle, (posX, posY), circleRadius, (255, 0, 255), 2)
+
+            cv2.imshow("ImageWithLEDCircle", imgCircle)
+            print('change circle position with arrow buttons, and circle size with + or - buttons, exit loop with space/enter or ESC :')
+            PressedKey = cv2.waitKey(0)
+            print(PressedKey)
+            if PressedKey == 56 or PressedKey ==82: #UP arrow
+                posY -= Npix
+            elif PressedKey == 50 or PressedKey ==84: #DOWN arrow
+                posY += Npix
+            elif PressedKey == 54 or PressedKey ==83: #RIGHT arrow
+                posX += Npix
+            elif PressedKey == 52 or PressedKey ==81: #LEFT arrow
+                posX -= Npix
+            elif PressedKey == 61 : #+ button
+                circleRadius += Npix
+            elif PressedKey == 45 : #- button
+                circleRadius -= Npix
+            elif PressedKey == 13 or PressedKey == 32: # Enter or Space
+                continueLoop = False
+            elif PressedKey == 27: # Escape
+                continueLoop = False
+            else:
+                pass
+            cv2.destroyWindow("ImageWithLEDCircle")
+
+            print(posX,posY,circleRadius)
+        # get mask for circular area comprising the LED
+        maskGrid = np.indices((dims[0],dims[1]))
+        maskCircle = np.sqrt((maskGrid[1] - posX) ** 2 + (maskGrid[0] - posY) ** 2) < circleRadius
+        # apply mask to the frame array and extract mean brigthness of the LED ROI
+        framesNew = np.transpose(frames, axes=(0, 2, 1)) # permutate last two axes as for the image depiction
+        LEDtrace = np.mean(framesNew[:,maskCircle],axis=1)
+        plt.plot(LEDtrace)
+        plt.show()
+        #pdb.set_trace()
+        #mask = np.zeros((self.Vheight, self.Vwidth))
+        coordinates = [posX,posY,circleRadius]
+        return (coordinates,LEDtrace)
+
+
 
     ############################################################
     def cropImg(self, img,Ycoordinates=None):

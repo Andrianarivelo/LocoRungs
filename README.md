@@ -1,4 +1,4 @@
-# Locomotion data analysis
+# Locomotion data analysis and presentation
 
 (start : Oct 2017)
 
@@ -7,20 +7,20 @@ runged treadmill. The recordings are performed in the Isabel Llano's lab startin
 
 The raw data is been recorded with ACQ4 as well as ScanImage and is stored on lilith and spetses, the lab backup servers.
 
-Information about the experiments are furthermore stored in an google document [***Experiments Cerebellum awake : April 2017 onwards***](https://docs.google.com/spreadsheets/d/14UbR4oYZLeGchwlGjw_znBwXQUvtaoW7-E-cmDQbr-c/edit?usp=sharing).
+Information about the experiments are furthermore stored in an google document [Experiments Cerebellum awake : April 2017 onwards](https://docs.google.com/spreadsheets/d/14UbR4oYZLeGchwlGjw_znBwXQUvtaoW7-E-cmDQbr-c/edit?usp=sharing).
 This google spreadsheet is read by the analysis scripts and used to access data of specific mice.
 
 **Content of the documentation**
 
-* [Analyze calcium imaging experiments](#calcium-imaging-experiments)
+* [**Analyze calcium imaging experiments**](#calcium-imaging-experiments)
 
-* [Analyze experiments with walking behavior recordings](#experiments-with-walking-behavior-recordings)
+* [**Analyze experiments with walking behavior recordings**](#experiments-with-walking-behavior-recordings)
 
-* [Experiments to access motion artefacts](#experiments-to-access-motion-artefacts)
+* [**Experiments to access motion artefacts**](#experiments-to-access-motion-artefacts)
 
-* [Work-flow to generate overview figure](#work-flow-to-generate-overview-figure)
+* [**Work-flow to generate overview figure**](#work-flow-to-generate-overview-figure)
 
-* [Extract paw positions with DeepLabCut](deepLabCut.md)
+* [**Extract paw positions with DeepLabCut**](deepLabCut.md)
 
 -----
 #### Calcium imaging experiments
@@ -43,21 +43,27 @@ are plotted in a figure.
 -----
 #### Experiments with walking behavior recordings
 
-`getWalkingActivity.py` - The script extracts the Rotary encoder data and saves it to hdf5 file.
+The analysis below concerns experiments during which animal behavior has been recorded through the rotary recording on 
+the treadmill and/or the animal was filmed with the high-speed camera (GigE). Global movement parameter is the overall 
+walking progress of the animal during the recording. 
 
-`plotRecordingOverviewPerAnimal.py` - The script uses the extracted Rotary encoder data and generates an overview figures.
+File | What it does
+----- | ------
+`getWalkingActivity.py` | The script extracts the Rotary encoder data and saves it to hdf5 file.
+`plotRecordingOverviewPerAnimal.py` | The script uses the extracted Rotary encoder data and generates an overview figures.
+`extractBehaviorCameraTiming.py` | Sets the ROI location for the LED used for synchronization and determines the exact timing of individual frames.  
+`getRawBehaviorImagesSaveVideo.py` | The script extracts images recorded with the high-speed camera. The extracted images are saved as avi video for the tracking procedures.
+`analyzePawMovement.py` | The script uses openCV to analyze the behavioral videos. Paw and rung locations are extracted.
 
-`getRawBehaviorImagesSaveVideo.py` - The script extracts images recorded with the high-speed camera. The extracted images are saved as avi video for the tracking procedures.
-
-`analyzePawMovement.py` - The script uses openCV to analyze the behavioral videos. Paw and rung locations are extracted.
 
 **Typical work-flow to analyze global movement parameters during walking experiments**
 
-1. run `getWalkingActivity.py` turn behavior camera recordings into movie.
-1. run `plotRecordingOverviewPerAnimal.py` to track paw and rungs.
+1. run `getWalkingActivity.py` to read and save rotary encoder data. 
+1. run `plotRecordingOverviewPerAnimal.py` to generate an overview figure. 
 
 **Typical work-flow to analyze detailed paw movement during walking experiments**
 
+1. run `extractBehaviorCameraTiming.py` sets the ROI location on the LED, extracts the luminosity trace and determines frame times. 
 1. run `getRawBehaviorImagesSaveVideo.py` turn behavior camera recordings into movie.
 1. run `analyzePawMovement.py` to track paw and rungs.
 
