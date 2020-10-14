@@ -32,7 +32,7 @@ class extractSaveData:
         elif platform.node() == 'otillo':
             laptop = False
             self.analysisBase = '/media/paris_data/'
-        elif platform.node() == 'yamal' or platform.node() == 'cerebellum-HP' or  platform.node() == 'andry-ThinkPad-X1-Carbon-2nd':
+        elif platform.node() == 'yamal' or platform.node() == 'cerebellum-HP' or  platform.node() == 'andry-ThinkPad-X1-Carbon-2nd' or platform.node() == 'OptiPlex-7070':
             laptop = False
             self.analysisBase = '/media/HDnyc_data/'
         elif platform.node() == 'bs-analysis':   # andry-ThinkPad-X1-Carbon-2nd
