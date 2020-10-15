@@ -465,12 +465,12 @@ class extractSaveData:
     def checkForLEDPositionCoordinates(self, date, folder, recordings, r):
         # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
         currentGroupNames = [date,recordings[r],'LEDinVideo']
-        (test, currentGrpHandle) = self.h5pyTools.getH5GroupName(self.f, currentGroupNames)
+        (currentGroupName, currentGrpHandle) = self.h5pyTools.getH5GroupName(self.f, currentGroupNames)
         print(currentGrpHandle)
-        currentFrameCoordinates = self.f[currentGrpHandle+'LEDcoordinates'][()]
+        currentFrameCoordinates = self.f[currentGroupName+'/LEDcoordinates'][()]
         if r>0:
             previousGroupNames = [date,recordings[r-1]]
-            (test, previousGrpHandle) = self.h5pyTools.getH5GroupName(self.f, previousGroupNames)
+            (previousGroupName, previousGrpHandle) = self.h5pyTools.getH5GroupName(self.f, previousGroupNames)
 
 
 
