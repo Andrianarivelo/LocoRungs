@@ -53,7 +53,7 @@ for f in range(len(foldersRecordings)):
         if existenceFrames:
             #print('exists',foldersRecordings[f][0],foldersRecordings[f][2][r])
             (frames,softFrameTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior',fileHandleFrames)
-            (LEDcoordinates,ledTrace) = openCVtools.findLEDArea(frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist)
+            (LEDcoordinates,ledTrace) = openCVtools.findLEDArea(frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist,determineAgain=True)
             eSD.saveLEDPositionCoordinates([foldersRecordings[f][0], foldersRecordings[f][2][r], 'LEDinVideo'],LEDcoordinates)
         if existenceFTimes:
             (exposureArray,arrayTimes) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes',fileHandleFTimes)
