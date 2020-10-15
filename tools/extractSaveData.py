@@ -460,6 +460,18 @@ class extractSaveData:
         starttime = config['.']['startTime']
         #pdb.set_trace()
         return starttime
+    ############################################################
+    # foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r
+    def checkForLEDPositionCoordinates(self, date, folder, recordings, r):
+        # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
+        currentGroupNames = [date,recordings[r]]
+        (test, currentGrpHandle) = self.h5pyTools.getH5GroupName(self.f, currentGroupNames)
+        currentFrameCoordinates = self.f[currentGrpHandle+'/LEDcoordinates'][()]
+        if r>0:
+            previousGroupNames = [date,recordings[r-1]]
+            (test, previousGrpHandle) = self.h5pyTools.getH5GroupName(self.f, previousGroupNames)
+
+
 
     ############################################################
     def saveBehaviorVideoTimeData(self,groupNames,frames,expStartTime,expEndTime,imageMetaInfo):
