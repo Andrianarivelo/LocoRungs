@@ -277,11 +277,13 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq):
     #plt.plot(LEDdaq[1],LEDdaq[0][0]/np.max(LEDdaq[0][0]))
     #plt.show()
 
-
+    # maps LED daq control trace to 0 - 1 array
+    ledDAQcontrol = (LEDdaq[0][0] - np.min(LEDdaq[0][0]))/(np.max(LEDdaq[0][0]) - np.min(LEDdaq[0][0]))
+    ledVIDEOroi     =  (LEDroi[0] - np.min(LEDroi[0]))/(np.max(LEDroi[0]) - np.min(LEDroi[0]))
 
     #pdb.set_trace()
     #display = False
-    pdb.set_trace()
+    #pdb.set_trace()
     #numberOfFrames = len(frames)
     # find start and end of camera exposure period
     #exposure = exposure[0][0] > 0.5            # threshold trace
@@ -295,11 +297,20 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq):
         expStart = expStart[:-1]
     #frameDuration = expEnd - expStart
     #midExposure = (expStart + expEnd)/2
-    expStartTime = exposure[1][expStart.astype(int)] # everything was based on indicies up to this point : here indicies -> time
-    expEndTime   = exposure[1][expEnd.astype(int)]   # everything was based on indicies up to this point : here indicies -> time
+    expStart = expStart.astype(int)
+    expEnd   = expEnd.astype(int)
+    expStartTime = exposure[1][expStart] # everything was based on indicies up to this point : here indicies -> time
+    expEndTime   = exposure[1][expEnd]   # everything was based on indicies up to this point : here indicies -> time
     frameDuration = expEndTime - expStartTime
 
+    startEndExp = np.column_stack((expStart,expEnd)) # create a 2-column array with 1st column containing start and 2nd column containing end index
+    illumination = [np.max(ledDAQcontrol[b[0]:b[1]]) for b in startEndExp]  # maximal illumination value - from LED control trace - during exposure period
+
+    print(len(ledVIDEOroi),len(illumination))
+    plt.plot(ledVIDEOroi)
+    plt.plot(illumination)
     pdb.set_trace()
+    #pdb.set_trace()
 
     #framesIdxDuringRec = np.array(len(softFrameTimes))[(arrayTimes[expEnd[0]]+0.002) < softFrameTimes]
     #framesIdxDuringRec = framesIdxDuringRec[:len(expStart)]
