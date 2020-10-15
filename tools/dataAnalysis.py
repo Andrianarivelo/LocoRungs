@@ -308,7 +308,7 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq):
     illumination = [np.max(ledDAQcontrol[b[0]:b[1]]) for b in startEndExp]  # maximal illumination value - from LED control trace - during exposure period
     illumination = np.asarray(illumination)
     cc = crosscorr(1,illumination,ledVIDEOroi[:len(illumination)],20) # calculate cross-correlation between LED in video and LED from DAQ array
-    peaks = find_peaks(cc[:,1],heigth=0)
+    peaks = find_peaks(cc[:,1],height=0)
     if len(peaks[0]) > 1:
         print('multiple peaks found in cross-correlogram between LED brigthness and DAQ array')
         pdb.set_trace()
