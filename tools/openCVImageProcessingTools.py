@@ -285,10 +285,10 @@ class openCVImageProcessingTools:
 
     ############################################################
     # (frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist)
-    def findLEDArea(self, frames, coordinates=None, currentCoordExist=False):
+    def findLEDArea(self, frames, coordinates=None, currentCoordExist=False, determineAgain=False):
 
         # don't check location if recording already exists
-        if not currentCoordExist :
+        if not currentCoordExist and not determineAgain :
             # the below in the clause allows to set the ROI on the LED location
             frame8bit = np.array(np.transpose(frames[0]), dtype=np.uint8)
             img = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
@@ -335,7 +335,7 @@ class openCVImageProcessingTools:
 
                 print(posX,posY,circleRadius)
         else:
-            (posX,posY,circleRadius) = (coordinates[0],coordinates[1],coordinates[1])
+            (posX,posY,circleRadius) = (coordinates[0],coordinates[1],coordinates[2])
         print('coordinates used for extraction :',posX,posY,circleRadius)
         # extract temporal trace of LED area mask
         # get mask for circular area comprising the LED
