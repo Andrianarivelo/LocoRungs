@@ -13,6 +13,7 @@ from scipy.interpolate import interp1d
 from sklearn.decomposition import PCA
 import cv2
 from scipy import signal
+from scipy.signal import find_peaks
 
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
@@ -305,10 +306,18 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq):
 
     startEndExp = np.column_stack((expStart,expEnd)) # create a 2-column array with 1st column containing start and 2nd column containing end index
     illumination = [np.max(ledDAQcontrol[b[0]:b[1]]) for b in startEndExp]  # maximal illumination value - from LED control trace - during exposure period
-
+    illumination = np.asarray(illumination)
+    cc = crosscorr(1,illumination,ledVIDEOroi[:len(illumination)],20) # calculate cross-correlation between LED in video and LED from DAQ array
+    peaks = find_peaks(cc[:,1],heigth=0)
+    if len(peaks[0]) > 1:
+        print('multiple peaks found in cross-correlogram between LED brigthness and DAQ array')
+        pdb.set_trace()
+    else:
+        shift = peaks[0]
     print(len(ledVIDEOroi),len(illumination))
-    plt.plot(ledVIDEOroi)
-    plt.plot(illumination)
+    plt.plot(ledVIDEOroi[shift:(shift+len(illumination))],label='Video roi')
+    plt.plot(illumination,label='from LED daq control')
+    plt.legend()
     pdb.set_trace()
     #pdb.set_trace()
 
