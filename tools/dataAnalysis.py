@@ -303,6 +303,7 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq):
     expStartTime = exposure[1][expStart] # everything was based on indicies up to this point : here indicies -> time
     expEndTime   = exposure[1][expEnd]   # everything was based on indicies up to this point : here indicies -> time
     frameDuration = expEndTime - expStartTime
+    print('first frame started at ', expStartTime[0]*1000., 'ms' )
 
     startEndExp = np.column_stack((expStart,expEnd)) # create a 2-column array with 1st column containing start and 2nd column containing end index
     illumination = [np.max(ledDAQcontrol[b[0]:b[1]]) for b in startEndExp]  # maximal illumination value - from LED control trace - during exposure period
