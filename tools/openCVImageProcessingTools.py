@@ -336,6 +336,7 @@ class openCVImageProcessingTools:
                 print(posX,posY,circleRadius)
         else:
             (posX,posY,circleRadius) = (coordinates[0],coordinates[1],coordinates[1])
+        print('coordinates used for extraction :',posX,posY,circleRadius)
         # extract temporal trace of LED area mask
         # get mask for circular area comprising the LED
         dims = np.shape(np.transpose(frames[0]))

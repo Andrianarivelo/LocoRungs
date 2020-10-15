@@ -478,6 +478,7 @@ class extractSaveData:
         except KeyError:
             currentCoodinatesExist = False
         else:
+            print('coordinates for current recording exist')
             currentCoodinatesExist = True
             return(currentCoodinatesExist,currentLEDcoordinates)
         if r>0:
@@ -488,7 +489,9 @@ class extractSaveData:
             except KeyError:
                 pass
             else:
+                print('coordinates for previous recording exist')
                 return(currentCoodinatesExist,previousLEDcoordinates)
+        print('NO coordinates exist')
         return(currentCoodinatesExist,None)
 
 
