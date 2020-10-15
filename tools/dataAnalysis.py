@@ -306,7 +306,7 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq):
     print('first frame started at ', expStartTime[0]*1000., 'ms' )
 
     startEndExp = np.column_stack((expStart,expEnd)) # create a 2-column array with 1st column containing start and 2nd column containing end index
-    illumination = [np.max(ledDAQcontrol[b[0]:b[1]]) for b in startEndExp]  # maximal illumination value - from LED control trace - during exposure period
+    illumination = [np.max(ledDAQcontrol[b[0]:b[1]]) for b in startEndExp]  # extract maximal illumination value - from LED control trace - during exposure period
     illumination = np.asarray(illumination)
     cc = crosscorr(1,illumination,ledVIDEOroi[:len(illumination)],20) # calculate cross-correlation between LED in video and LED from DAQ array
     peaks = find_peaks(cc[:,1],height=0)
@@ -314,12 +314,14 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq):
         print('multiple peaks found in cross-correlogram between LED brigthness and DAQ array')
         pdb.set_trace()
     else:
-        shift = peaks[0][0]
-        print('video trace has to be shifted by ', shift)
+        shift = cc[:,0][peaks[0][0]]
+        shiftInt = int(shift)
+        print('video trace has to be shifted by (float and int number) ', shift, shiftInt)
     print(len(ledVIDEOroi),len(illumination))
-    plt.plot(ledVIDEOroi[:(len(illumination)-shift)],label='Video roi')
-    plt.plot(illumination[shift:],label='from LED daq control')
+    plt.plot(ledVIDEOroi[:(len(illumination)-shiftInt)],label='Video roi')
+    plt.plot(illumination[shiftInt:],label='from LED daq control')
     plt.legend()
+    plt.show()
     pdb.set_trace()
     #pdb.set_trace()
 
