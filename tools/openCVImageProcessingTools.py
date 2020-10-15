@@ -338,7 +338,7 @@ class openCVImageProcessingTools:
             (posX,posY,circleRadius) = (coordinates[0],coordinates[1],coordinates[1])
         # extract temporal trace of LED area mask
         # get mask for circular area comprising the LED
-        dims = np.shape(frames[0])
+        dims = np.shape(np.transpose(frames[0]))
         maskGrid = np.indices((dims[0],dims[1]))
         maskCircle = np.sqrt((maskGrid[1] - posX) ** 2 + (maskGrid[0] - posY) ** 2) < circleRadius
         # apply mask to the frame array and extract mean brigthness of the LED ROI
