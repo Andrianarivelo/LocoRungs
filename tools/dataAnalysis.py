@@ -314,9 +314,10 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq):
         pdb.set_trace()
     else:
         shift = peaks[0][0]
+        print('video trace has to be shifted by ', shift)
     print(len(ledVIDEOroi),len(illumination))
-    plt.plot(ledVIDEOroi[shift:(shift+len(illumination))],label='Video roi')
-    plt.plot(illumination,label='from LED daq control')
+    plt.plot(ledVIDEOroi[:(len(illumination)-shift)],label='Video roi')
+    plt.plot(illumination[shift:],label='from LED daq control')
     plt.legend()
     pdb.set_trace()
     #pdb.set_trace()
