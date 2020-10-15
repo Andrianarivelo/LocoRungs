@@ -286,11 +286,11 @@ class openCVImageProcessingTools:
     ############################################################
     # (frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist)
     def findLEDArea(self, frames, coordinates=None, currentCoordExist=False):
+
         # don't check location if recording already exists
         if not currentCoordExist :
             # the below in the clause allows to set the ROI on the LED location
             frame8bit = np.array(np.transpose(frames[0]), dtype=np.uint8)
-            dims = np.shape(frame8bit)
             img = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
             if coordinates is None:
                 posX = 780
@@ -338,6 +338,7 @@ class openCVImageProcessingTools:
             (posX,posY,circleRadius) = (coordinates[0],coordinates[1],coordinates[1])
         # extract temporal trace of LED area mask
         # get mask for circular area comprising the LED
+        dims = np.shape(frames[0])
         maskGrid = np.indices((dims[0],dims[1]))
         maskCircle = np.sqrt((maskGrid[1] - posX) ** 2 + (maskGrid[0] - posY) ** 2) < circleRadius
         # apply mask to the frame array and extract mean brigthness of the LED ROI
