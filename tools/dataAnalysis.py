@@ -313,7 +313,7 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq):
         print('multiple peaks found in cross-correlogram between LED brigthness and DAQ array')
         pdb.set_trace()
     else:
-        shift = peaks[0]
+        shift = peaks[0][0]
     print(len(ledVIDEOroi),len(illumination))
     plt.plot(ledVIDEOroi[shift:(shift+len(illumination))],label='Video roi')
     plt.plot(illumination,label='from LED daq control')
