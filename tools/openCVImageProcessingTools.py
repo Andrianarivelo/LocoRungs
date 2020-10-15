@@ -286,9 +286,12 @@ class openCVImageProcessingTools:
     ############################################################
     # (frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist)
     def findLEDArea(self, frames, coordinates=None, currentCoordExist=False, determineAgain=False):
-
+        if determineAgain:
+            doLEDROIdetermination = True
+        else:
+            doLEDROIdetermination = (not currentCoordExist)
         # don't check location if recording already exists
-        if not currentCoordExist and determineAgain :
+        if doLEDROIdetermination :
             # the below in the clause allows to set the ROI on the LED location
             frame8bit = np.array(np.transpose(frames[0]), dtype=np.uint8)
             img = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
