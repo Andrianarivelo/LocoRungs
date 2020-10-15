@@ -348,8 +348,8 @@ class openCVImageProcessingTools:
         # apply mask to the frame array and extract mean brigthness of the LED ROI
         framesNew = np.transpose(frames, axes=(0, 2, 1)) # permutate last two axes as for the image depiction
         LEDtrace = np.mean(framesNew[:,maskCircle],axis=1)
-        plt.plot(LEDtrace)
-        plt.show()
+        #plt.plot(LEDtrace)
+        #plt.show()
         #pdb.set_trace()
         #mask = np.zeros((self.Vheight, self.Vwidth))
         coordinates = np.array([posX,posY,circleRadius])
