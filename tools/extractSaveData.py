@@ -460,18 +460,36 @@ class extractSaveData:
         starttime = config['.']['startTime']
         #pdb.set_trace()
         return starttime
+
+    ############################################################
+    def saveLEDPositionCoordinates(self,groupNames,coordinates):
+        (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'LEDcoordinates', coordinates)
+
     ############################################################
     # foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r
     def checkForLEDPositionCoordinates(self, date, folder, recordings, r):
         # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
         currentGroupNames = [date,recordings[r],'LEDinVideo']
         (currentGroupName, currentGrpHandle) = self.h5pyTools.getH5GroupName(self.f, currentGroupNames)
-        print(currentGrpHandle)
-        currentFrameCoordinates = self.f[currentGroupName+'/LEDcoordinates'][()]
+        # check if coordinates for current recording exist already
+        try:
+            currentLEDcoordinates = self.f[currentGroupName+'/LEDcoordinates'][()]
+        except KeyError:
+            currentCoodinatesExist = False
+        else:
+            currentCoodinatesExist = True
+            return(currentCoodinatesExist,currentLEDcoordinates)
         if r>0:
-            previousGroupNames = [date,recordings[r-1]]
+            previousGroupNames = [date,recordings[r-1],'LEDinVideo']
             (previousGroupName, previousGrpHandle) = self.h5pyTools.getH5GroupName(self.f, previousGroupNames)
-
+            try:
+                previousLEDcoordinates = self.f[previousGroupName+'/LEDcoordinates'][()]
+            except KeyError:
+                pass
+            else:
+                return(currentCoodinatesExist,previousLEDcoordinates)
+        return(currentCoodinatesExist,None)
 
 
     ############################################################
