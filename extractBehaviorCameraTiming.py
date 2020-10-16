@@ -17,6 +17,7 @@ recordings='all'     # 'all or 'some'
 
 # comment
 
+print("Hello world!")
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
     mouse = mouseD
