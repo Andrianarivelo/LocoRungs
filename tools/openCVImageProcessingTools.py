@@ -285,7 +285,7 @@ class openCVImageProcessingTools:
 
     ############################################################
     # (frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist)
-    def findLEDArea(self, frames, coordinates=None, currentCoordExist=False, determineAgain=False):
+    def findLEDArea(self, frames, coordinates=None, currentCoordExist=False, determineAgain=False, verbose=False):
         if determineAgain:
             doLEDROIdetermination = True
         else:
@@ -348,8 +348,9 @@ class openCVImageProcessingTools:
         # apply mask to the frame array and extract mean brigthness of the LED ROI
         framesNew = np.transpose(frames, axes=(0, 2, 1)) # permutate last two axes as for the image depiction
         LEDtrace = np.mean(framesNew[:,maskCircle],axis=1)
-        #plt.plot(LEDtrace)
-        #plt.show()
+        if verbose :
+            plt.plot(LEDtrace)
+            plt.show()
         #pdb.set_trace()
         #mask = np.zeros((self.Vheight, self.Vwidth))
         coordinates = np.array([posX,posY,circleRadius])
