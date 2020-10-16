@@ -462,14 +462,50 @@ class extractSaveData:
         return starttime
 
     ############################################################
-    def saveBehaviorVideoTimeData(self,groupNames,frames,expStartTime,expEndTime,imageMetaInfo):
+    def saveLEDPositionCoordinates(self,groupNames,coordinates):
+        (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'LEDcoordinates', coordinates)
+
+    ############################################################
+    # foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r
+    def checkForLEDPositionCoordinates(self, date, folder, recordings, r):
+        # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
+        currentGroupNames = [date,recordings[r],'LEDinVideo']
+        (currentGroupName, currentGrpHandle) = self.h5pyTools.getH5GroupName(self.f, currentGroupNames)
+        # check if coordinates for current recording exist already
+        try:
+            currentLEDcoordinates = self.f[currentGroupName+'/LEDcoordinates'][()]
+        except KeyError:
+            currentCoodinatesExist = False
+        else:
+            print('coordinates for current recording exist')
+            currentCoodinatesExist = True
+            return(currentCoodinatesExist,currentLEDcoordinates)
+        if r>0:
+            previousGroupNames = [date,recordings[r-1],'LEDinVideo']
+            (previousGroupName, previousGrpHandle) = self.h5pyTools.getH5GroupName(self.f, previousGroupNames)
+            try:
+                previousLEDcoordinates = self.f[previousGroupName+'/LEDcoordinates'][()]
+            except KeyError:
+                pass
+            else:
+                print('coordinates for previous recording exist')
+                return(currentCoodinatesExist,previousLEDcoordinates)
+        print('NO coordinates exist')
+        return(currentCoodinatesExist,None)
+
+
+    ############################################################
+    def saveBehaviorVideoTimeData(self,groupNames,frames,startEndFrameTime,startEndFrameIdx,imageMetaInfo):
+        # framesDuringRecording, startEndFrameTime, startEndFrameIdx, imageMetaInfo)
         # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         #self.h5pyTools.createOverwriteDS(grpHandle,'behaviorFrames',len(frames))
         #pdb.set_trace()
         self.h5pyTools.createOverwriteDS(grpHandle, 'firstLastFrames', np.array((frames[0],frames[-1])),['startTime',imageMetaInfo])
-        self.h5pyTools.createOverwriteDS(grpHandle,'startExposure', expStartTime)
-        self.h5pyTools.createOverwriteDS(grpHandle,'endExposure', expEndTime)
+        self.h5pyTools.createOverwriteDS(grpHandle,'startEndFrameTime', startEndFrameTime)
+        self.h5pyTools.createOverwriteDS(grpHandle,'startEndFrameIdx', startEndFrameIdx)
+
 
     ############################################################
     def readBehaviorVideoTimeData(self, groupNames):

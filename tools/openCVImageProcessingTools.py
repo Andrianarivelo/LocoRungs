@@ -284,63 +284,76 @@ class openCVImageProcessingTools:
         return (pos,areaWidth)
 
     ############################################################
-    def findLEDArea(self, frames, coordinates=None):
-        frame8bit = np.array(np.transpose(frames[0]), dtype=np.uint8)
-        dims = np.shape(frame8bit)
-        img = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
-        if coordinates is None:
-            posX = 780
-            posY = 70
-            circleRadius = 15
+    # (frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist)
+    def findLEDArea(self, frames, coordinates=None, currentCoordExist=False, determineAgain=False, verbose=False):
+        if determineAgain:
+            doLEDROIdetermination = True
         else:
-            posX = coordinates[0]
-            posY = coordinates[1]
-            circleRadius = coordinates[2]
-
-        Npix = 5
-        continueLoop = True
-        # optimize with keyboard
-        while continueLoop:
-            #rungs = []
-            imgCircle = img.copy()
-            cv2.circle(imgCircle, (posX, posY), circleRadius, (255, 0, 255), 2)
-
-            cv2.imshow("ImageWithLEDCircle", imgCircle)
-            print('change circle position with arrow buttons, and circle size with + or - buttons, exit loop with space/enter or ESC :')
-            PressedKey = cv2.waitKey(0)
-            print(PressedKey)
-            if PressedKey == 56 or PressedKey ==82: #UP arrow
-                posY -= Npix
-            elif PressedKey == 50 or PressedKey ==84: #DOWN arrow
-                posY += Npix
-            elif PressedKey == 54 or PressedKey ==83: #RIGHT arrow
-                posX += Npix
-            elif PressedKey == 52 or PressedKey ==81: #LEFT arrow
-                posX -= Npix
-            elif PressedKey == 61 : #+ button
-                circleRadius += Npix
-            elif PressedKey == 45 : #- button
-                circleRadius -= Npix
-            elif PressedKey == 13 or PressedKey == 32: # Enter or Space
-                continueLoop = False
-            elif PressedKey == 27: # Escape
-                continueLoop = False
+            doLEDROIdetermination = (not currentCoordExist)
+        # don't check location if recording already exists
+        if doLEDROIdetermination :
+            # the below in the clause allows to set the ROI on the LED location
+            frame8bit = np.array(np.transpose(frames[0]), dtype=np.uint8)
+            img = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
+            if coordinates is None:
+                posX = 780
+                posY = 70
+                circleRadius = 15
             else:
-                pass
-            cv2.destroyWindow("ImageWithLEDCircle")
+                posX = coordinates[0]
+                posY = coordinates[1]
+                circleRadius = coordinates[2]
 
-            print(posX,posY,circleRadius)
+            Npix = 5
+            continueLoop = True
+            # optimize with keyboard
+            while continueLoop:
+                #rungs = []
+                imgCircle = img.copy()
+                cv2.circle(imgCircle, (posX, posY), circleRadius, (255, 0, 255), 2)
+
+                cv2.imshow("ImageWithLEDCircle", imgCircle)
+                print('change circle position with arrow buttons, and circle size with + or - buttons, exit loop with space/enter or ESC :')
+                PressedKey = cv2.waitKey(0)
+                print(PressedKey)
+                if PressedKey == 56 or PressedKey ==82: #UP arrow
+                    posY -= Npix
+                elif PressedKey == 50 or PressedKey ==84: #DOWN arrow
+                    posY += Npix
+                elif PressedKey == 54 or PressedKey ==83: #RIGHT arrow
+                    posX += Npix
+                elif PressedKey == 52 or PressedKey ==81: #LEFT arrow
+                    posX -= Npix
+                elif PressedKey == 61 : #+ button
+                    circleRadius += Npix
+                elif PressedKey == 45 : #- button
+                    circleRadius -= Npix
+                elif PressedKey == 13 or PressedKey == 32: # Enter or Space
+                    continueLoop = False
+                elif PressedKey == 27: # Escape
+                    continueLoop = False
+                else:
+                    pass
+                cv2.destroyWindow("ImageWithLEDCircle")
+
+                print(posX,posY,circleRadius)
+        else:
+            (posX,posY,circleRadius) = (coordinates[0],coordinates[1],coordinates[2])
+        print('coordinates used for extraction :',posX,posY,circleRadius)
+        # extract temporal trace of LED area mask
         # get mask for circular area comprising the LED
+        dims = np.shape(np.transpose(frames[0]))
         maskGrid = np.indices((dims[0],dims[1]))
         maskCircle = np.sqrt((maskGrid[1] - posX) ** 2 + (maskGrid[0] - posY) ** 2) < circleRadius
         # apply mask to the frame array and extract mean brigthness of the LED ROI
         framesNew = np.transpose(frames, axes=(0, 2, 1)) # permutate last two axes as for the image depiction
         LEDtrace = np.mean(framesNew[:,maskCircle],axis=1)
-        plt.plot(LEDtrace)
-        plt.show()
+        if verbose :
+            plt.plot(LEDtrace)
+            plt.show()
         #pdb.set_trace()
         #mask = np.zeros((self.Vheight, self.Vwidth))
-        coordinates = [posX,posY,circleRadius]
+        coordinates = np.array([posX,posY,circleRadius])
         return (coordinates,LEDtrace)
 
 

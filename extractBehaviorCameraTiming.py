@@ -49,19 +49,21 @@ for f in range(len(foldersRecordings)):
         (existenceFrames,fileHandleFrames) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
         (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
         (existenceLEDControl, fileHandleLED) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput')
+        (currentCoodinatesExist,SavedLEDcoordinates) = eSD.checkForLEDPositionCoordinates(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r)
         # if camera was recorded
         if existenceFrames:
             #print('exists',foldersRecordings[f][0],foldersRecordings[f][2][r])
             (frames,softFrameTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior',fileHandleFrames)
-            (LEDcoordinates,ledTrace) = openCVtools.findLEDArea(frames,coordinates=None)
+            (LEDcoordinates,ledTrace) = openCVtools.findLEDArea(frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist,determineAgain=False,verbose=True)
+            eSD.saveLEDPositionCoordinates([foldersRecordings[f][0], foldersRecordings[f][2][r], 'LEDinVideo'],LEDcoordinates)
         if existenceFTimes:
             (exposureArray,arrayTimes) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes',fileHandleFTimes)
-
         if existenceLEDControl:
             (LEDArray, LEDarrayTimes) = eSD.readRawData(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput', fileHandleLED)
         # save data
         #pdb.set_trace()
         if existenceFrames and existenceFTimes and existenceLEDControl:
-            (expStartTime,expEndTime,framesDuringRecording) = dataAnalysis.determineFrameTimesBasedOnLED([ledTrace,softFrameTimes],[exposureArray,arrayTimes],[LEDArray, LEDarrayTimes])
-            #eSD.saveBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video'], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
+            (startEndFrameTime,startEndFrameIdx,recordedFramesIdx) = dataAnalysis.determineFrameTimesBasedOnLED([ledTrace,softFrameTimes],[exposureArray,arrayTimes],[LEDArray, LEDarrayTimes],verbose=True)
+            framesDuringRecording = frames[recordedFramesIdx]
+            eSD.saveBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video'], framesDuringRecording, startEndFrameTime, startEndFrameIdx, imageMetaInfo)
             #eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
