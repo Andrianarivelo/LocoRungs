@@ -10,7 +10,7 @@ import pdb
 import sys
 
 
-mouseD = '201026_t00' #'200801_m58' # id of the mouse to analyze
+mouseD = '201026_t01' #'200801_m58' # id of the mouse to analyze
 #mouseD = '190108_m24'
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='some'     # 'all or 'some'
@@ -61,7 +61,7 @@ for f in range(len(foldersRecordings)):
         if existenceLEDControl:
             (LEDArray, LEDarrayTimes) = eSD.readRawData(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput', fileHandleLED)
         # save data
-        pdb.set_trace()
+        #pdb.set_trace()
         if existenceFrames and existenceFTimes and existenceLEDControl:
             (startEndFrameTime,startEndFrameIdx,recordedFramesIdx) = dataAnalysis.determineFrameTimesBasedOnLED([ledTrace,softFrameTimes],[exposureArray,arrayTimes],[LEDArray, LEDarrayTimes],verbose=True)
             framesDuringRecording = frames[recordedFramesIdx]

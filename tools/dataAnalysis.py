@@ -295,8 +295,10 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq,verbose=False):
     expEnd = np.arange(len(exposureInt))[np.concatenate((np.array([False]), difference < 0))]  # a difference of -1 is the end the exposure period
     #pdb.set_trace()
     if (expEnd[0] - expStart[0]) < 0.:  # if trace starts above threshold
+        print('exposure at start of recording')
         expEnd = expEnd[1:]
     if (expEnd[-1] - expStart[-1]) < 0.:  # if trace ends above threshold
+        print('exposure during end of recording')
         expStart = expStart[:-1]
     #frameDuration = expEnd - expStart
     #midExposure = (expStart + expEnd)/2
@@ -349,7 +351,7 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq,verbose=False):
     recordedFramesIdx = frameIdx[shiftInt:(len(illumination)+shiftInt)]
     #pdb.set_trace()
     return (startEndExpTime,startEndExpIdx,recordedFramesIdx)
-
+    #####  end of current implementation ##########################################################
     #framesIdxDuringRec = np.array(len(softFrameTimes))[(arrayTimes[expEnd[0]]+0.002) < softFrameTimes]
     #framesIdxDuringRec = framesIdxDuringRec[:len(expStart)]
 
