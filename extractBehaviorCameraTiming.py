@@ -15,6 +15,7 @@ mouseD = '201026_t00' #'200801_m58' # id of the mouse to analyze
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='some'     # 'all or 'some'
 
+# comment
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
