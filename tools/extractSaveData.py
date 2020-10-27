@@ -259,7 +259,11 @@ class extractSaveData:
                                 if r[:-4] in self.listOfSequenceExperiments:
                                     subFolders = self.getDirectories(self.dataLocation + '/' + r)
                                     for i in range(len(subFolders)):
-                                        tempRecList.append(r + '/' + subFolders[i])
+                                        if subFolders[i][0] == '0':
+                                            tempRecList.append(r + '/' + subFolders[i])
+                                        else:
+                                            tempRecList.append(r)
+                                            break
                                 else:
                                     tempRecList.append(r)
                             recIdx += 1
