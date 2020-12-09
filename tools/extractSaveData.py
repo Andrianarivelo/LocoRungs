@@ -477,8 +477,8 @@ class extractSaveData:
         posY = temp[:,1]
         nLED = self.f[currentGroupName + '/LEDcoordinates'].attrs['nLED']
         circleRadius = self.f[currentGroupName + '/LEDcoordinates'].attrs['circleRadius']
-        print(nLED,posX,posY,circleRadius)
-        coordinates = np.array([nLED,posX,posY,circleRadius])
+        #print(nLED,posX,posY,circleRadius)
+        coordinates = np.array([nLED,np.array(posX),np.array(posY),circleRadius])
         return coordinates
 
     ############################################################
