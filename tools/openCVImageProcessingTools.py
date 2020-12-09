@@ -421,7 +421,7 @@ class openCVImageProcessingTools:
             plt.show()
         #pdb.set_trace()
         #mask = np.zeros((self.Vheight, self.Vwidth))
-        coordinates = np.array([nLED,posX,posY,circleRadius])
+        coordinates = np.array([nLED,posX,posY,circleRadius],dtype=object)
         return (coordinates,LEDtraces)
 
 
