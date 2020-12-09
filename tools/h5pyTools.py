@@ -23,7 +23,11 @@ class h5pyTools:
             rec[:] = data
         # save attributes
         if at:
-            grp[dsname].attrs[at[0]]=at[1]
+            if len(np.shape(at))==1:
+                grp[dsname].attrs[at[0]]=at[1]
+            else:
+                for i in range(len(at)):
+                    grp[dsname].attrs[at[i][0]]=at[i][1]
 
     ############################################################
     def getH5GroupName(self,f,groupNames):

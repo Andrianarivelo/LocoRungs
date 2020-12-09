@@ -285,7 +285,22 @@ class openCVImageProcessingTools:
 
     ############################################################
     # (frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist)
-    def findLEDArea(self, frames, coordinates=None, currentCoordExist=False, determineAgain=False, verbose=False):
+    def findLEDNumberArea(self, frames, coordinates=None, currentCoordExist=False, determineAgain=False, verbose=False):
+        # auxilary functions
+        def rotatePoints(theta,x,y):
+            posXTemp = x[1:] - x[0]  # move the rotation point to the origin
+            posYTemp = y[1:] - y[0]  # move the rotation point to the origin
+            rotMatrix = np.array([[np.cos(theta*np.pi/180.), -np.sin(theta*np.pi/180.)], [np.sin(theta*np.pi/180.), np.cos(theta*np.pi/180.)]])
+            posRotTemp = np.matmul(rotMatrix, np.row_stack((posXTemp, posYTemp)))
+            x[1:] = posRotTemp[0] + x[0]
+            y[1:] = posRotTemp[1] + y[0]
+            return ((x+0.5).astype(int),(y+0.5).astype(int)) # 0.5 is added to get the correct rounding
+        def changeSpacing(nLED,spacing,x,y):
+            for i in range(1, nLED):
+                x[i] = x[0] + (i % 2) * spacing
+                y[i] = y[0] + (i // 2) * spacing
+            return (x,y)
+        ##############################
         if determineAgain:
             doLEDROIdetermination = True
         else:
@@ -295,66 +310,119 @@ class openCVImageProcessingTools:
             # the below in the clause allows to set the ROI on the LED location
             frame8bit = np.array(np.transpose(frames[0]), dtype=np.uint8)
             img = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
-            if coordinates is None:
-                posX = 780
-                posY = 70
-                circleRadius = 15
-            else:
-                posX = coordinates[0]
-                posY = coordinates[1]
-                circleRadius = coordinates[2]
-
-            Npix = 5
-            continueLoop = True
-            # optimize with keyboard
-            while continueLoop:
+            # first let's decide on how many LED's (if any) are present in the FOV
+            continueCountLEDLoop = True
+            while continueCountLEDLoop:
                 #rungs = []
-                imgCircle = img.copy()
-                cv2.circle(imgCircle, (posX, posY), circleRadius, (255, 0, 255), 2)
-
-                cv2.imshow("ImageWithLEDCircle", imgCircle)
-                print('change circle position with arrow buttons, and circle size with + or - buttons, exit loop with space/enter or ESC :')
+                imgPure = img.copy()
+                cv2.imshow("PureImage", imgPure)
+                print('specify how many LEDs are present in the field of view (e.g., 1,4 or 0 if none) :')
                 PressedKey = cv2.waitKey(0)
                 print(PressedKey)
-                if PressedKey == 56 or PressedKey ==82: #UP arrow
-                    posY -= Npix
-                elif PressedKey == 50 or PressedKey ==84: #DOWN arrow
-                    posY += Npix
-                elif PressedKey == 54 or PressedKey ==83: #RIGHT arrow
-                    posX += Npix
-                elif PressedKey == 52 or PressedKey ==81: #LEFT arrow
-                    posX -= Npix
-                elif PressedKey == 61 : #+ button
-                    circleRadius += Npix
-                elif PressedKey == 45 : #- button
-                    circleRadius -= Npix
-                elif PressedKey == 13 or PressedKey == 32: # Enter or Space
-                    continueLoop = False
-                elif PressedKey == 27: # Escape
-                    continueLoop = False
-                else:
+                if PressedKey == 49:
+                    nLED = 1
+                elif PressedKey == 52 :
+                    nLED = 4
+                elif PressedKey == 48:
+                    nLED = 0
+                try:
+                    print('Number of LEDs in image :',nLED)
+                except:
                     pass
-                cv2.destroyWindow("ImageWithLEDCircle")
+                else:
+                    continueCountLEDLoop = False
+                cv2.destroyWindow("PureImage")
+            ## ROI detection for ONE LED
+            if nLED > 0:
+                movePixels = 3
+                spacing = 40
+                rotAngle = 3
+                continueLoop = True
+                # optimize with keyboard
+                if coordinates is None:
+                    posX = np.full(nLED,0)
+                    posY = np.full(nLED,0)
+                    posX[0] = 780
+                    posY[0] = 70
+                    circleRadius = 15
+                    (posX,posY) = changeSpacing(nLED,spacing,posX,posY)
+                else:
+                    nLED = coordinates[0]
+                    posX = coordinates[1]
+                    posY = coordinates[2]
+                    circleRadius = coordinates[3]
+                print(posX,posY)
+                while continueLoop:
+                    #rungs = []
+                    imgCircle = img.copy()
+                    for i in range(nLED):
+                        cv2.circle(imgCircle, (posX[i], posY[i]), circleRadius, (255, 0, 255), 2)
+                        cv2.putText(imgCircle,'%s' % i, (posX[i], posY[i]), fontFace=cv2.FONT_HERSHEY_DUPLEX, thickness=1, fontScale=0.6,color=(255,0,0))
+                    cv2.imshow("ImageWithLEDCircles", imgCircle)
+                    print('change circle position with arrow buttons; circle size with + or - buttons; rotation with r, l button; spacing with w,c buttons; exit loop with space/enter or ESC :')
+                    PressedKey = cv2.waitKey(0)
+                    print(PressedKey)
+                    if PressedKey == 56 or PressedKey ==82: #UP arrow
+                        posY -= movePixels
+                    elif PressedKey == 50 or PressedKey ==84: #DOWN arrow
+                        posY += movePixels
+                    elif PressedKey == 54 or PressedKey ==83: #RIGHT arrow
+                        posX += movePixels
+                    elif PressedKey == 52 or PressedKey ==81: #LEFT arrow
+                        posX -= movePixels
+                    elif PressedKey == 61 : #+ button
+                        circleRadius += movePixels
+                    elif PressedKey == 45 : #- button
+                        circleRadius -= movePixels
+                    elif PressedKey == 114 : # r button
+                        theta = rotAngle
+                        (posX,posY) = rotatePoints(theta,posX,posY)
+                    elif PressedKey == 108 : # l button
+                        theta = -rotAngle
+                        (posX, posY) = rotatePoints(theta, posX, posY)
+                    elif PressedKey == 119 : # w button
+                        spacing +=5
+                        (posX,posY) = changeSpacing(nLED,spacing,posX,posY)
+                    elif PressedKey == 99 : # c button
+                        spacing -= 5
+                        (posX, posY) = changeSpacing(nLED,spacing, posX, posY)
+                    elif PressedKey == 13 or PressedKey == 32: # Enter or Space
+                        continueLoop = False
+                    elif PressedKey == 27: # Escape
+                        continueLoop = False
+                    else:
+                        pass
+                    cv2.destroyWindow("ImageWithLEDCircles")
 
                 print(posX,posY,circleRadius)
+            else:
+                print('No LED in field of view.')
+                posX = None
+                posY = None
+                circleRadius = None
         else:
-            (posX,posY,circleRadius) = (coordinates[0],coordinates[1],coordinates[2])
-        print('coordinates used for extraction :',posX,posY,circleRadius)
+            (nLEDs,posX,posY,circleRadius) = (coordinates[0],coordinates[1],coordinates[2],coordinates[3])
+        print('coordinates used for extraction :',nLED,posX,posY,circleRadius)
         # extract temporal trace of LED area mask
         # get mask for circular area comprising the LED
         dims = np.shape(np.transpose(frames[0]))
         maskGrid = np.indices((dims[0],dims[1]))
-        maskCircle = np.sqrt((maskGrid[1] - posX) ** 2 + (maskGrid[0] - posY) ** 2) < circleRadius
-        # apply mask to the frame array and extract mean brigthness of the LED ROI
-        framesNew = np.transpose(frames, axes=(0, 2, 1)) # permutate last two axes as for the image depiction
-        LEDtrace = np.mean(framesNew[:,maskCircle],axis=1)
+        framesNew = np.transpose(frames, axes=(0, 2, 1))  # permutate last two axes as for the image depiction
+        LEDtraces = []
+        for i in range(nLED):
+            maskCircle = np.sqrt((maskGrid[1] - posX[i]) ** 2 + (maskGrid[0] - posY[i]) ** 2) < circleRadius
+            # apply mask to the frame array and extract mean brigthness of the LED ROI
+            LEDtr = np.mean(framesNew[:,maskCircle],axis=1)
+            LEDtraces.append(LEDtr)
+            if verbose :
+                print('LED number', i)
+                plt.plot(LEDtr)
         if verbose :
-            plt.plot(LEDtrace)
             plt.show()
         #pdb.set_trace()
         #mask = np.zeros((self.Vheight, self.Vwidth))
-        coordinates = np.array([posX,posY,circleRadius])
-        return (coordinates,LEDtrace)
+        coordinates = np.array([nLED,posX,posY,circleRadius])
+        return (coordinates,LEDtraces)
 
 
 

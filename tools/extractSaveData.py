@@ -468,7 +468,17 @@ class extractSaveData:
     ############################################################
     def saveLEDPositionCoordinates(self,groupNames,coordinates):
         (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
-        self.h5pyTools.createOverwriteDS(grpHandle, 'LEDcoordinates', coordinates)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'LEDcoordinates', np.column_stack((coordinates[1],coordinates[2])),[['nLED',coordinates[0]],['circleRadius',coordinates[3]]])
+
+    ############################################################
+    def readLEDPositionCoordinates(self,currentGroupName):
+        temp = self.f[currentGroupName + '/LEDcoordinates'][()]
+        posX = temp[:,0]
+        posY = temp[:,1]
+        nLED = self.f[currentGroupName + '/LEDcoordinates'].attrs['nLED']
+        circleRadius = self.f[currentGroupName + '/LEDcoordinates'].attrs['circleRadius']
+        coordinates = np.array([nLED,posX,posY,circleRadius])
+        return coordinates
 
     ############################################################
     # foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r
@@ -478,7 +488,7 @@ class extractSaveData:
         (currentGroupName, currentGrpHandle) = self.h5pyTools.getH5GroupName(self.f, currentGroupNames)
         # check if coordinates for current recording exist already
         try:
-            currentLEDcoordinates = self.f[currentGroupName+'/LEDcoordinates'][()]
+            currentLEDcoordinates = self.readLEDPositionCoordinates(currentGroupName)
         except KeyError:
             currentCoodinatesExist = False
         else:
@@ -489,7 +499,7 @@ class extractSaveData:
             previousGroupNames = [date,recordings[r-1],'LEDinVideo']
             (previousGroupName, previousGrpHandle) = self.h5pyTools.getH5GroupName(self.f, previousGroupNames)
             try:
-                previousLEDcoordinates = self.f[previousGroupName+'/LEDcoordinates'][()]
+                previousLEDcoordinates = self.readLEDPositionCoordinates(previousGroupName) #self.f[previousGroupName+'/LEDcoordinates'][()]
             except KeyError:
                 pass
             else:

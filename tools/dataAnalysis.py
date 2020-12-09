@@ -269,27 +269,33 @@ def determineFrameTimes(exposureArray,arrayTimes,frames,rec=None):
 #################################################################################
 # maps an abritray input array to the entire range of X-bit encoding
 #################################################################################
-# dataAnalysis.determineFrameTimes(exposureArray[0],arrayTimes,frames)
-# ([ledTrace,LEDcoordinates],[exposureArray,arrayTimes],[LEDArray, LEDarrayTimes])
-def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq,verbose=False):
+# ([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],verbose=True)
+def determineFrameTimesBasedOnLED(ledVideoRoi,cameraExposure,ledDAQc,verbose=False):
+    # auxiliary function to convert bimodal trace into boolean array
+    def traceToBinary(trace,threshold=None):
+        rescaledTrace = (trace - np.min(trace)) / (np.max(trace) - np.min(trace))
+        if threshold is None:
+            rescaledTraceBin = rescaledTrace > 0.3
+        else:
+            rescaledTraceBin = rescaledTrace > threshold
+        return rescaledTraceBin
+    ##############################################################################################################
     #pdb.set_trace()
     #plt.plot(LEDroi[1],LEDroi[0]/np.max(LEDroi[0]))
     #plt.plot(exposure[1], exposure[0][0]/np.max(exposure[0][0]))
     #plt.plot(LEDdaq[1],LEDdaq[0][0]/np.max(LEDdaq[0][0]))
     #plt.show()
 
-    # maps LED daq control trace to 0 - 1 array
-    LEDcontrolIdx = 4
-    ledDAQcontrol = (LEDdaq[0][LEDcontrolIdx] - np.min(LEDdaq[0][LEDcontrolIdx]))/(np.max(LEDdaq[0][LEDcontrolIdx]) - np.min(LEDdaq[0][LEDcontrolIdx]))
-    ledVIDEOroi     =  (LEDroi[0] - np.min(LEDroi[0]))/(np.max(LEDroi[0]) - np.min(LEDroi[0]))
+    # maps LED daq control trace to boolean array ################################################################
+    LEDcontrolIdx = 0 # which trace of the DAQ recording is linked to the
+    ledDAQcontrolBin = traceToBinary(ledDAQc[0][LEDcontrolIdx])
+    # convert LED roi traces from video to boolean arrays
+    ledVideoRoiBins = []
+    for i in range(ledVideoRoi[1][0]):
+        ledVideoRoiBins.append(traceToBinary(ledVideoRoi[0][i]))
 
-    #pdb.set_trace()
-    #display = False
-    #pdb.set_trace()
-    #numberOfFrames = len(frames)
-    # find start and end of camera exposure period
-    #exposure = exposure[0][0] > 0.5            # threshold trace
-    exposureInt = np.array(exposure[0][0], dtype=int)  # convert boolean array into array of zeros and ones
+    # find start and end of camera exposure period ################################################################
+    exposureInt = np.array(cameraExposure[0][0], dtype=int)  # convert boolean array into array of zeros and ones
     difference = np.diff(exposureInt)            # calculate difference
     expStart = np.arange(len(exposureInt))[np.concatenate((np.array([False]), difference > 0))]  # a difference of one is the start of the exposure
     expEnd = np.arange(len(exposureInt))[np.concatenate((np.array([False]), difference < 0))]  # a difference of -1 is the end the exposure period
@@ -300,21 +306,50 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq,verbose=False):
     if (expEnd[-1] - expStart[-1]) < 0.:  # if trace ends above threshold
         print('exposure during end of recording')
         expStart = expStart[:-1]
-    #frameDuration = expEnd - expStart
-    #midExposure = (expStart + expEnd)/2
     expStart = expStart.astype(int)
     expEnd   = expEnd.astype(int)
-    expStartTime = exposure[1][expStart] # everything was based on indicies up to this point : here indicies -> time
-    expEndTime   = exposure[1][expEnd]   # everything was based on indicies up to this point : here indicies -> time
+    expStartTime = cameraExposure[1][expStart] # everything was based on indicies up to this point : here indicies -> time
+    expEndTime   = cameraExposure[1][expEnd]   # everything was based on indicies up to this point : here indicies -> time
     frameDuration = expEndTime - expStartTime
     print('first frame started at ', expStartTime[0]*1000., 'ms' )
 
-    startEndExpTime = np.column_stack((expStartTime, expEndTime))
-    startEndExpIdx = np.column_stack((expStart,expEnd)) # create a 2-column array with 1st column containing start and 2nd column containing end index
-    illumination = [np.max(ledDAQcontrol[b[0]:b[1]]) for b in startEndExpIdx]  # extract maximal illumination value - from LED control trace - during exposure period
-    illumination = np.asarray(illumination)
-    #pdb.set_trace()
-    if len(illumination) <= len(ledVIDEOroi):
+    ## based on exposure start-stop, how bright should the DAQ LED signal be ##########################################
+    startEndExposureTime = np.column_stack((expStartTime, expEndTime))
+    startEndExposurepIdx = np.column_stack((expStart,expEnd)) # create a 2-column array with 1st column containing start and 2nd column containing end index
+    illumLEDcontrol = [np.max(ledDAQcontrolBin[b[0]:b[1]]) for b in startEndExposurepIdx]  # extract maximal illumination value - from LED control trace - during exposure period
+    illumLEDcontrol = np.asarray(illumLEDcontrol)
+
+    ## loop over frame numbers and extract binary number shown by leds ################################################
+    nFrames = len(ledVideoRoiBins[0])
+    binNumbers = np.array([[False,False,False],[True,False,False],[False,True,False],[True,True,False],[False,False,True],[True,False,True],[False,True,True],[True,True,True]])
+    recordedFrames = 0
+    frameCount = []
+    binNumberInFrame = np.column_stack((ledVideoRoiBins[0],ledVideoRoiBins[1],ledVideoRoiBins[2]))
+    frameNBefore = 0
+    for i in range(nFrames):
+        matchBool = np.all(np.equal(binNumberInFrame[i],binNumbers),axis=1) # which of the boolean number corresponds to the current frame pattern : return is a boolean list from 0 to 8 with one TRUE entry
+        matchFrameN = np.arange(len(binNumbers))[matchBool][0]   # converts the boolean list into the index corresponding to the match
+        frameDiff = matchFrameN - frameNBefore  # difference in count to previous frame
+        if frameDiff < 0: # negative difference indicates that the counter restarted
+            frameDiff+=7
+        frameCount.append([i,matchFrameN,frameDiff,int(ledVideoRoiBins[3][i])])
+        frameNBefore = matchFrameN
+    frameCount = np.asarray(frameCount,dtype=int)
+    idxRecordedFrames = np.cumsum(frameCount[:,2]) # use the frame differences to generate new index corresponding ot video recording
+    idxCounting = np.argwhere(idxRecordedFrames>0) # start and end index with first and last frame recording the counter
+    idxRecordedFramesCleaned = idxRecordedFrames[idxCounting[0,0]:(idxCounting[-1,0]+1)] - 1 # remove leading and trailing zeros, and remove one to have the new index start with zero
+    for i in range(5):
+        #print(i)
+        idxTest = idxRecordedFramesCleaned[1:]-1
+        totLength = len(illumLEDcontrol[idxTest])
+        ret = np.array_equal(illumLEDcontrol[idxRecordedFramesCleaned],ledVideoRoiBins[3][i:(totLength+i)])
+        print(i,ret)
+        pdb.set_trace()
+    pdb.set_trace()
+
+
+
+    if len(illumLEDcontrol) <= len(ledVIDEOroi):
         illuminationLonger = True
         ledVIDEOroiMask = np.arange(len(ledVIDEOroi)) < len(illumination)
         illuminationMask = np.arange(len(illumination)) < len(illumination)
@@ -351,7 +386,7 @@ def determineFrameTimesBasedOnLED(LEDroi,exposure,LEDdaq,verbose=False):
     recordedFramesIdx = frameIdx[shiftInt:(len(illumination)+shiftInt)]
     #pdb.set_trace()
     return (startEndExpTime,startEndExpIdx,recordedFramesIdx)
-    #####  end of current implementation ##########################################################
+    #####  end of current implementation ##############################################################################################
     #framesIdxDuringRec = np.array(len(softFrameTimes))[(arrayTimes[expEnd[0]]+0.002) < softFrameTimes]
     #framesIdxDuringRec = framesIdxDuringRec[:len(expStart)]
 
