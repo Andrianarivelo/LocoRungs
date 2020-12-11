@@ -510,15 +510,18 @@ class extractSaveData:
 
 
     ############################################################
-    def saveBehaviorVideoTimeData(self,groupNames,frames,startEndFrameTime,startEndFrameIdx,imageMetaInfo):
+    # idxVideo,idxTimePoints,startEndExposureTime,startEndExposurepIdx,rightShift, imageMetaInfo)
+    def saveBehaviorVideoTimeData(self,groupNames,idxVideo,idxTimePoints,startEndExposureTime,startEndExposurepIdx,rightShift,imageMetaInfo):
         # framesDuringRecording, startEndFrameTime, startEndFrameIdx, imageMetaInfo)
         # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         (test,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         #self.h5pyTools.createOverwriteDS(grpHandle,'behaviorFrames',len(frames))
         #pdb.set_trace()
-        self.h5pyTools.createOverwriteDS(grpHandle, 'firstLastFrames', np.array((frames[0],frames[-1])),['startTime',imageMetaInfo])
-        self.h5pyTools.createOverwriteDS(grpHandle,'startEndFrameTime', startEndFrameTime)
-        self.h5pyTools.createOverwriteDS(grpHandle,'startEndFrameIdx', startEndFrameIdx)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'indexVideo', idxVideo ,['startTime',imageMetaInfo])
+        self.h5pyTools.createOverwriteDS(grpHandle,'indexTimePoints', idxTimePoints)
+        self.h5pyTools.createOverwriteDS(grpHandle,'startEndExposureTime', startEndExposureTime)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'startEndExposurepIndex', startEndExposurepIdx)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'correctShift', rightShift)
 
 
     ############################################################
