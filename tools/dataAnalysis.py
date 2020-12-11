@@ -281,11 +281,15 @@ def determineFrameTimesBasedOnLED(ledVideoRoi,cameraExposure,ledDAQc,verbose=Fal
     for i in range(len(ledVideoRoi[2])):
         if i>0:
             frameDiffAllPix = cv2.absdiff(ledVideoRoi[2][i],ledVideoRoi[2][i-1])
-            fD = np.sum(frameDiffAllPix)
+            fD = np.average(frameDiffAllPix)
             frameDiff.append(fD)
-        lineDiffAllLines = cv2.absdiff(ledVideoRoi[2][i][1:],ledVideoRoi[2][i][:-1])
-        lD = np.sum(lineDiffAllLines,axis=0)
-        pdb.set_trace()
+        lineDiffAllLines = cv2.absdiff(ledVideoRoi[2][i][:,1:],ledVideoRoi[2][i][:,:-1])
+        lD = np.average(lineDiffAllLines,axis=0)
+        lineDiff.append(lD)
+        #pdb.set_trace()
+    frameDiff = np.asarray(frameDiff)
+    lineDiff = np.asarray(lineDiff)
+
     pdb.set_trace()
 
 
