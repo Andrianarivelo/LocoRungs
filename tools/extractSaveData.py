@@ -313,17 +313,17 @@ class extractSaveData:
         elif device is 'frameTimes':
             pathToFile = recLocation + '%s/%s.ma' % ('CameraGigEBehavior','daqResult')
         elif device is 'SICaImaging':
-            recLocation = (self.dataBase2 + '/' + fold + '/')
+            recLocation = self.dataBase + self.dataPCLocation[self.listOfAllExpts[self.mouse]['dates'][eD]['folders'][fold]['recComputer']] + fold + '/'
             print(recLocation)
             tiffList = glob.glob(recLocation+'*tif')
             tiffList.sort()
             print(tiffList)
             if len(tiffList)>0:
                 print('Ca imaging was acquired with ScanImage')
-                return (True,tiffList)
+                return (True,tiffList,recLocation)
             else:
                 print('No Ca imaging with ScanImage here.')
-                return (False,[])
+                return (False,[],None)
         else:
             pathToFile = recLocation + '%s.ma' % device
         print(pathToFile)
@@ -508,6 +508,27 @@ class extractSaveData:
         print('NO coordinates exist')
         return(currentCoodinatesExist,None)
 
+    ############################################################
+    def checkForErroneousFramesIdx(self, date, folder, recordings, r):
+        # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
+        currentGroupNames = [date, recordings[r], 'erroneousFrames']
+        try:
+            (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, currentGroupNames)
+            idxExc = self.f[grpName + '/idxToExclude'][()]
+            # check if coordinates for current recording exist already
+        except KeyError:
+            excludeIdxExist = False
+            return (excludeIdxExist,None)
+        else:
+            print('idx of erroneous frames exist')
+            excludeIdxExist = True
+            return (excludeIdxExist, idxExc)
+
+    ############################################################
+    def saveErroneousFramesIdx(self, groupNames, idxEclude):
+        # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
+        (grpName,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
+        self.h5pyTools.createOverwriteDS(grpHandle,'idxToExclude',idxEclude)
 
     ############################################################
     # idxVideo,idxTimePoints,startEndExposureTime,startEndExposurepIdx,rightShift, imageMetaInfo)

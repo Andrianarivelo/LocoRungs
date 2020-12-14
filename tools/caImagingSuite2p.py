@@ -51,25 +51,24 @@ class caImagingSuite2p:
               'data_path': [dataDir],
                                     # a list of folders with tiffs
                                     # (or folder of folders with tiffs if look_one_level_down is True, or subfolders is not empty)
-
+              'save_path0': saveDir,
               'subfolders': [], # choose subfolders of 'data_path' to look in (optional)
               'fast_disk': '/tmp/', # string which specifies where the binary file will be stored (should be an SSD)
-              'tiff_list': [] #tiffList # list of tiffs in folder * data_path *!
+              #'tiff_list': [], #tiffList # list of tiffs in folder * data_path *!
+              'input_format': 'tif'
             }
         print(dataDir + tiffList[0])
         reader = ScanImageTiffReader(dataDir + tiffList[0])
         metaD = reader.metadata()
-        startIdx = metaD.find('SI.hChannels.channelsActive')
-        #eElem = metaD[startIdx]
-        sE1 = metaD[(startIdx+29):].split('\n')
-        sE2 = sE1[0].strip()
+        sE2 = self.extractInfoFromMetaData(metaD,'SI.hChannels.channelSave')
         #print(sE1[0],sE2)
+        #pdb.set_trace()
         if sE2 == '[1;2]':
             nChan = 2
-            print('2 channels')
+            print('2 channels saved')
         elif sE2 == '1':
             nChan = 1
-            print('1 channel')
+            print('1 channel saved')
         #with ScanImageTiffReader(dataDir + tiffList[0]) as reader:
         #    o = json.loads(reader.metadata())
         #    pdb.set_trace()
@@ -137,10 +136,21 @@ class caImagingSuite2p:
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.set_title('animal %s, rec: %s' % (mouseID,recFolder))
-        ax.imshow(ops['meanImg'],vmax=max(ops['meanImg'].flatten())*0.05)
+        ax.imshow(ops['meanImg'],vmax=max(ops['meanImg'].flatten())*0.3)
 
         plt.savefig(suite2pPath + 'animal_%s_rec_%s.pdf' %(mouseID,recFolder))
 
     ############################################################
     def generateSummaryFigures(self):
         pass
+
+    ############################################################
+    def extractInfoFromMetaData(self,metaD,keyWord):
+        #print(metaD)
+        startIdx = metaD.find(keyWord)
+        #eElem = metaD[startIdx]
+        sE1 = metaD[(startIdx+len(keyWord)+2):].split('\n')
+        #pdb.set_trace()
+        sE2 = sE1[0].strip()
+        return sE2
+
