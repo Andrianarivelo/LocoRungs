@@ -503,19 +503,19 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
         #compare = np.equal()
     shiftDifference = np.asarray(shiftDifference)
     shiftToZero = shiftDifference[:,0][shiftDifference[:,1]==0]
-    lll = shiftDifference[:,2][shiftDifference[:,1]==0]
-    if len(shiftToZero)>0:
+    finalLength = shiftDifference[:,2][shiftDifference[:,1]==0]
+    if len(shiftToZero)>1:
         print('Problem! More than one shift led to perfect overlay!')
         pdb.set_trace()
     else:
         idxTemp = idxRecordedFramesCleaned + shiftToZero
         idx = idxTemp[idxTemp>=0]
         idxIllumFinal = idx[idx<len(illumLEDcontrolBin)]
-        illum = illumLEDcontrolBin[idxIllumFinal][:lll]
-        frameTimes = startEndExposureTime[idxIllumFinal][:lll]
-        frameStartStopIdx = startEndExposurepIdx[idxIllumFinal][:lll]
+        illum = illumLEDcontrolBin[idxIllumFinal][:finalLength[0]]
+        frameTimes = startEndExposureTime[idxIllumFinal][:finalLength[0]]
+        frameStartStopIdx = startEndExposurepIdx[idxIllumFinal][:finalLength[0]]
         #
-        videoIdx = np.arange(len(ledVideoRoiBins[3]))[mask][missedFramesBegin:]
+        videoIdx = np.arange(len(ledVideoRoiBins[3]))[mask][missedFramesBegin:finalLength[0]]
         recFrames = ledVideoRoi[2][videoIdx]
     pdb.set_trace()
 
