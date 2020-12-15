@@ -517,6 +517,11 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
         #
         videoIdx = np.arange(len(ledVideoRoiBins[3]))[mask][missedFramesBegin:][:finalLength[0]]
         recFrames = ledVideoRoi[2][videoIdx]
+        ddd = np.diff(idxIllumFinal)
+        print('Total number of dropped and excluded frames : ', np.sum(ddd-1), 'out of',len(ledVideoRoi[2]),'frame in total.')
+        print('Excluded frames :', len(idxToExclude))
+        print('Dropped framess :', len(ledVideoRoi[2])-len(idxToExclude))
+
     pdb.set_trace()
 
     for i in range(10):
