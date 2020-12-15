@@ -309,10 +309,10 @@ def determineFramesToExclude(frames,probIdx):
                 currIdx -=1
             elif PressedKey == 83: # right arrow key
                 currIdx +=1
-            elif PressedKey == 121: # y key
+            elif PressedKey == 101: # y key
                 print('%s added to exclude list' %currIdx)
                 listOfFramesToExclude.append(currIdx)
-            elif PressedKey == 101: # e key
+            elif PressedKey == 114: # e key
                 print('%s removed from exclude list' % currIdx)
                 listOfFramesToExclude.remove(currIdx)
             elif PressedKey == 111 : # o key
@@ -320,6 +320,8 @@ def determineFramesToExclude(frames,probIdx):
                 currIdx = int(nIdx)
             elif PressedKey == 102: # f key
                 continueDetectLoop = False
+            else:
+                print('Key not recognized, try again.')
             print('current exclude list :',listOfFramesToExclude)
             cv2.destroyWindow("PureImage")
 
@@ -327,6 +329,7 @@ def determineFramesToExclude(frames,probIdx):
     lofEx.sort()
     print('starting list of indexes :', probIdx)
     print('indexes to exclude :', lofEx)
+    lofEx = np.asarray(lofEx)
     #pdb.set_trace()
     return lofEx
 
@@ -436,6 +439,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     frameNBefore = 0
     oldI = -1
     exceptionsInFrameCount = []
+    idxToExclude = ledVideoRoi[5]
     for i in range(nFrames):
         if i not in idxToExclude:
             matchBool = np.all(np.equal(binNumberInFrame[i],binNumbers),axis=1) # which of the boolean number corresponds to the current frame pattern : return is a boolean list from 0 to 8 with one TRUE entry
@@ -454,21 +458,74 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
             frameCount.append([i,matchFrameN,frameDiff,int(ledVideoRoiBins[3][i]),oldI])
             frameNBefore = matchFrameN
             oldI = i
-    frameCount = np.asarray(frameCount,dtype=int)
-    idxRecordedFrames = np.cumsum(frameCount[:,2]) # use the frame differences to generate new index corresponding ot video recording
+    frameCount = np.asarray(frameCount,dtype=int) # convert list to integer array
+    idxRecordedFrames = np.cumsum(frameCount[:,2]) # use the frame differences to generate new index corresponding to video recording
     idxCounting = np.argwhere(idxRecordedFrames>0) # start and end index with first and last frame recording the counter
     idxRecordedFramesCleaned = idxRecordedFrames[idxCounting[0,0]:(idxCounting[-1,0]+1)] - 1 # remove leading and trailing zeros, and remove one to have the new index start with zero
-    pdb.set_trace()
-    ## allign LED #4 brightness inferred from DAQ control and actual LED brightness in Video
-    idxTestMask = idxRecordedFramesCleaned < len(illumLEDcontrolBin)
+
+    idxTestMask = idxRecordedFramesCleaned < len(illumLEDcontrolBin) # index should not exceed length of array
     illum = illumLEDcontrolBin[idxRecordedFramesCleaned[idxTestMask]]
-    shifting = []
+    ##  the excluded frames - based on distortions - need to be removed from the video sequence
+    videoRoi = ledVideoRoiBins[3]
+    mask = np.ones(len(videoRoi),dtype=bool)
+    mask[idxToExclude]  = False
+    ## first loop to align the START of the frame recording - in illumLEDcontrolBin - with the video recording
+    if any(idxToExclude < 20):
+        print('Early frames to exclude. Problem!')
+        pdb.set_trace()
+    else:
+        for j in range(10):
+            videoRoiWOEX = videoRoi[mask][j:]
+            if np.all(videoRoiWOEX[:20] == illumLEDcontrolBin[:20]):
+                missedFramesBegin = j
+                break
+    print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin)
+    videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
+
+    ## second loop in order to align the
+    shiftDifference = []
+    for i in range(-10,11,1): # loop to shift the mask over
+        idxTemp = idxRecordedFramesCleaned + i
+        idx = idxTemp[idxTemp>=0]
+        illum = illumLEDcontrolBin[idx[idx<len(illumLEDcontrolBin)]]
+        len0 = len(illum)
+        len1 = len(videoRoiWOEX)
+        if len0 < len1:
+            compare = np.sum(np.equal(illum,videoRoiWOEX[:len0]))
+            versch = compare - len0
+            totLength = len0
+        else:
+            compare = np.sum(np.equal(illum[:len1],videoRoiWOEX))
+            versch = compare - len1
+            totLength = len1
+        shiftDifference.append([i,versch,totLength])
+        print(i,versch,totLength)
+        #compare = np.equal()
+    shiftDifference = np.asarray(shiftDifference)
+    shiftToZero = shiftDifference[:,0][shiftDifference[:,1]==0]
+    lll = shiftDifference[:,2][shiftDifference[:,1]==0]
+    if len(shiftToZero)>0:
+        print('Problem! More than one shift led to perfect overlay!')
+        pdb.set_trace()
+    else:
+        idxTemp = idxRecordedFramesCleaned + shiftToZero
+        idx = idxTemp[idxTemp>=0]
+        idxIllumFinal = idx[idx<len(illumLEDcontrolBin)]
+        illum = illumLEDcontrolBin[idxIllumFinal][:lll]
+        frameTimes = startEndExposureTime[idxIllumFinal][:lll]
+        frameStartStopIdx = startEndExposurepIdx[idxIllumFinal][:lll]
+        #
+        videoIdx = np.arange(len(ledVideoRoiBins[3]))[mask][missedFramesBegin:]
+        recFrames = ledVideoRoi[2][videoIdx]
+    pdb.set_trace()
+
     for i in range(10):
         #print(i)
         #idxTest = idxRecordedFramesCleaned[1:-3] - 1
         #compare = ledVideoRoiBins[3][2:-3] == illumLEDcontrolBin[idxTest]
         #shortestLength = [len(illum) if (0<(len(ledVideoRoiBins)-(len(illum)+i))) else ]
-        videoRoi = ledVideoRoiBins[3][i:len(illum)+i]
+
+        videoRoi = ledVideoRoiBins[3][i]
         if len(videoRoi) > len(illum):
             #shortestLength = len(illum)
             #else:

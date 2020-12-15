@@ -509,7 +509,7 @@ class extractSaveData:
         return(currentCoodinatesExist,None)
 
     ############################################################
-    def checkForErroneousFramesIdx(self, date, folder, recordings, r):
+    def checkForErroneousFramesIdx(self, date, folder, recordings, r, determineAgain=False):
         # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
         currentGroupNames = [date, recordings[r], 'erroneousFrames']
         try:
@@ -522,12 +522,17 @@ class extractSaveData:
         else:
             print('idx of erroneous frames exist')
             excludeIdxExist = True
-            return (excludeIdxExist, idxExc)
+            if determineAgain:
+                return (False, idxExc)
+            else:
+                return (excludeIdxExist, idxExc)
 
     ############################################################
     def saveErroneousFramesIdx(self, groupNames, idxEclude):
         # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
+        print(groupNames)
         (grpName,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
+        print(grpName,grpHandle)
         self.h5pyTools.createOverwriteDS(grpHandle,'idxToExclude',idxEclude)
 
     ############################################################
