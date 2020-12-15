@@ -392,7 +392,7 @@ class openCVImageProcessingTools:
                         continueLoop = False
                     else:
                         pass
-                    cv2.destroyWindow("ImageWithLEDCircles")
+                cv2.destroyWindow("ImageWithLEDCircles")
 
                 print(posX,posY,circleRadius)
             else:

@@ -323,7 +323,8 @@ def determineFramesToExclude(frames,probIdx):
             else:
                 print('Key not recognized, try again.')
             print('current exclude list :',listOfFramesToExclude)
-            cv2.destroyWindow("PureImage")
+
+    cv2.destroyWindow("PureImage") # only destroy window at the end of the exploration
 
     lofEx = list(dict.fromkeys(listOfFramesToExclude)) # removes duplicates
     lofEx.sort()
@@ -522,7 +523,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
         print('Excluded frames :', len(idxToExclude))
         print('Dropped framess :', np.sum(ddd-1)-len(idxToExclude))
         frameSummary = np.array([len(ledVideoRoi[2]),np.sum(ddd-1),len(idxToExclude), np.sum(ddd-1)-len(idxToExclude)])
-        pdb.set_trace()
+        #pdb.set_trace()
         return (idxIllumFinal,frameTimes,frameStartStopIdx,videoIdx,frameSummary)
 
     pdb.set_trace()
