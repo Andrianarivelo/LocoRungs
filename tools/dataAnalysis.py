@@ -510,17 +510,20 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     else:
         idxTemp = idxRecordedFramesCleaned + shiftToZero[0]
         idx = idxTemp[idxTemp>=0]
-        idxIllumFinal = idx[idx<len(illumLEDcontrolBin)]
-        illum = illumLEDcontrolBin[idxIllumFinal][:finalLength[0]]
-        frameTimes = startEndExposureTime[idxIllumFinal][:finalLength[0]]
-        frameStartStopIdx = startEndExposurepIdx[idxIllumFinal][:finalLength[0]]
+        idxIllumFinal = idx[idx<len(illumLEDcontrolBin)][:finalLength[0]]
+        #illum = illumLEDcontrolBin[idxIllumFinal]
+        frameTimes = startEndExposureTime[idxIllumFinal]
+        frameStartStopIdx = startEndExposurepIdx[idxIllumFinal]
         #
         videoIdx = np.arange(len(ledVideoRoiBins[3]))[mask][missedFramesBegin:][:finalLength[0]]
-        recFrames = ledVideoRoi[2][videoIdx]
+        #recFrames = ledVideoRoi[2][videoIdx]
         ddd = np.diff(idxIllumFinal)
         print('Total number of dropped and excluded frames : ', np.sum(ddd-1), 'out of',len(ledVideoRoi[2]),'frame in total.')
         print('Excluded frames :', len(idxToExclude))
-        print('Dropped framess :', len(ledVideoRoi[2])-len(idxToExclude))
+        print('Dropped framess :', np.sum(ddd-1)-len(idxToExclude))
+        frameSummary = np.array([len(ledVideoRoi[2]),np.sum(ddd-1),len(idxToExclude), np.sum(ddd-1)-len(idxToExclude)])
+        pdb.set_trace()
+        return (idxIllumFinal,frameTimes,frameStartStopIdx,videoIdx,frameSummary)
 
     pdb.set_trace()
 

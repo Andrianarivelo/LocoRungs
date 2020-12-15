@@ -69,7 +69,8 @@ for f in range(len(foldersRecordings)):
             eSD.saveErroneousFramesIdx([foldersRecordings[f][0], foldersRecordings[f][2][r], 'erroneousFrames'],idxToExclude)
         #pdb.set_trace()
         if existenceFrames and existenceFTimes and existenceLEDControl:
-            (idxVideo,idxTimePoints,startEndExposureTime,startEndExposurepIdx,rightShift) = dataAnalysis.determineFrameTimesBasedOnLED([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],verbose=True)
+            #(idxIllumFinal, frameTimes, frameStartStopIdx, videoIdx, frameSummary)
+            (idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary) = dataAnalysis.determineFrameTimesBasedOnLED([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],verbose=True)
             #framesDuringRecording = frames[recordedFramesIdx]
-            eSD.saveBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video'], idxVideo,idxTimePoints,startEndExposureTime,startEndExposurepIdx,rightShift, imageMetaInfo)
+            eSD.saveBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo'],idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary, imageMetaInfo)
             #eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
