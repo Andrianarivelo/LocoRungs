@@ -515,6 +515,8 @@ class extractSaveData:
         try:
             (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, currentGroupNames)
             idxExc = self.f[grpName + '/idxToExclude'][()]
+            #print(type(idxExc))
+            idxExc = np.array(idxExc,dtype=int)
             # check if coordinates for current recording exist already
         except KeyError:
             excludeIdxExist = False

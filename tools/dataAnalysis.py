@@ -330,7 +330,7 @@ def determineFramesToExclude(frames,probIdx):
     lofEx.sort()
     print('starting list of indexes :', probIdx)
     print('indexes to exclude :', lofEx)
-    lofEx = np.asarray(lofEx)
+    lofEx = np.asarray(lofEx,dtype=int)
     #pdb.set_trace()
     return lofEx
 
@@ -402,7 +402,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     ledVideoRoiBins = []
     ledVideoRoiRescaled = []
     for i in range(ledVideoRoi[1][0]):
-        ledVideoRoiBins.append(traceToBinary(ledVideoRoi[0][i],threshold=0.6)[1])
+        ledVideoRoiBins.append(traceToBinary(ledVideoRoi[0][i],threshold=0.4)[1])  # 0.6 before 0.4
         ledVideoRoiRescaled.append(traceToBinary(ledVideoRoi[0][i])[0])
 
     # find start and end of camera exposure period ################################################################
@@ -414,6 +414,9 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     if (expEnd[0] - expStart[0]) < 0.:  # if trace starts above threshold
         print('exposure at start of recording')
         expEnd = expEnd[1:]
+        exposureAtStart = True
+    else:
+        exposureAtStart = False
     if (expEnd[-1] - expStart[-1]) < 0.:  # if trace ends above threshold
         print('exposure during end of recording')
         expStart = expStart[:-1]
@@ -429,7 +432,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     startEndExposurepIdx = np.column_stack((expStart,expEnd)) # create a 2-column array with 1st column containing start and 2nd column containing end index
     illumLEDcontrol = [np.mean(ledDAQcontrolBin[b[0]:b[1]]) for b in startEndExposurepIdx]  # extract maximal illumination value - from LED control trace - during exposure period
     illumLEDcontrol = np.asarray(illumLEDcontrol)
-    illumLEDcontrolBin = traceToBinary(illumLEDcontrol,threshold=0.15)[1]
+    (illumLEDcontrolrescaled,illumLEDcontrolBin) = traceToBinary(illumLEDcontrol,threshold=0.02) # 0.15 before
 
     ## loop over frame numbers and extract binary number shown by leds ################################################
     nFrames = len(ledVideoRoiBins[0])
@@ -462,10 +465,13 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     frameCount = np.asarray(frameCount,dtype=int) # convert list to integer array
     idxRecordedFrames = np.cumsum(frameCount[:,2]) # use the frame differences to generate new index corresponding to video recording
     idxCounting = np.argwhere(idxRecordedFrames>0) # start and end index with first and last frame recording the counter
-    idxRecordedFramesCleaned = idxRecordedFrames[idxCounting[0,0]:(idxCounting[-1,0]+1)] - 1 # remove leading and trailing zeros, and remove one to have the new index start with zero
+    idxFramesDuringRecording = idxRecordedFrames[idxCounting[0,0]:(idxCounting[-1,0]+1)] - 1  # remove leading and trailing zeros, and remove one to have the new index start with zero
+    if exposureAtStart:
+        idxFramesDuringRecording = idxFramesDuringRecording[1:] - 1
+    idxMissingFrames = np.delete(np.arange(idxFramesDuringRecording[-1]),idxFramesDuringRecording)
 
-    idxTestMask = idxRecordedFramesCleaned < len(illumLEDcontrolBin) # index should not exceed length of array
-    illum = illumLEDcontrolBin[idxRecordedFramesCleaned[idxTestMask]]
+    #idxTestMask = idxFramesDuringRecording < len(illumLEDcontrolBin) # index should not exceed length of array
+    #illum = illumLEDcontrolBin[idxFramesDuringRecording[idxTestMask]]
     ##  the excluded frames - based on distortions - need to be removed from the video sequence
     videoRoi = ledVideoRoiBins[3]
     mask = np.ones(len(videoRoi),dtype=bool)
@@ -475,20 +481,30 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
         print('Early frames to exclude. Problem!')
         pdb.set_trace()
     else:
+        tmpIdx = np.where(videoRoi==True)
+        idxFirstFrameRec = tmpIdx[0][0]
+        if exposureAtStart:
+            idxFirstFrameRec+=1
         for j in range(10):
             videoRoiWOEX = videoRoi[mask][j:]
             if np.all(videoRoiWOEX[:20] == illumLEDcontrolBin[:20]):
                 missedFramesBegin = j
                 break
-    print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin)
-    videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
-
+    if idxFirstFrameRec == missedFramesBegin:
+        print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin)
+        videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
+    else:
+        print('Problem with determining index of first recorded frame.')
+        pdb.set_trace()
     ## second loop in order to align the
     shiftDifference = []
     for i in range(-10,11,1): # loop to shift the mask over
-        idxTemp = idxRecordedFramesCleaned + i
+        idxTemp = idxFramesDuringRecording + i
         idx = idxTemp[idxTemp>=0]
-        illum = illumLEDcontrolBin[idx[idx<len(illumLEDcontrolBin)]]
+        idxIllum = idx[idx<len(illumLEDcontrolBin)]
+        illum = illumLEDcontrolBin[idxIllum]
+        idxMissing = np.delete(np.arange(idxIllum[-1]), idxIllum)
+        compareIdx = np.sum(idxMissing == idxMissingFrames) - len(idxMissing)
         len0 = len(illum)
         len1 = len(videoRoiWOEX)
         if len0 < len1:
@@ -499,34 +515,35 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
             compare = np.sum(np.equal(illum[:len1],videoRoiWOEX))
             versch = compare - len1
             totLength = len1
-        shiftDifference.append([i,versch,totLength])
-        print(i,versch,totLength)
+        shiftDifference.append([i,versch,totLength,compareIdx])
+        print(i,versch,totLength,compareIdx,idxMissing,idxMissingFrames)
         #compare = np.equal()
     shiftDifference = np.asarray(shiftDifference)
-    shiftToZero = shiftDifference[:,0][shiftDifference[:,1]==0]
-    finalLength = shiftDifference[:,2][shiftDifference[:,1]==0]
-    if len(shiftToZero)>1:
+    shiftToZero = shiftDifference[:,0][(shiftDifference[:,1]==0) & (shiftDifference[:,3]==0)]
+    finalLength = shiftDifference[:,2][(shiftDifference[:,1]==0) & (shiftDifference[:,3]==0)]
+    if len(shiftToZero)>1 or len(shiftToZero)==0:
         print('Problem! More than one shift led to perfect overlay!')
+        #np.arange(np.diff(idxRecordedFrames)>1)
         pdb.set_trace()
-    else:
-        idxTemp = idxRecordedFramesCleaned + shiftToZero[0]
-        idx = idxTemp[idxTemp>=0]
-        idxIllumFinal = idx[idx<len(illumLEDcontrolBin)][:finalLength[0]]
-        #illum = illumLEDcontrolBin[idxIllumFinal]
-        frameTimes = startEndExposureTime[idxIllumFinal]
-        frameStartStopIdx = startEndExposurepIdx[idxIllumFinal]
-        #
-        videoIdx = np.arange(len(ledVideoRoiBins[3]))[mask][missedFramesBegin:][:finalLength[0]]
-        #recFrames = ledVideoRoi[2][videoIdx]
-        ddd = np.diff(idxIllumFinal)
-        print('Total number of dropped and excluded frames : ', np.sum(ddd-1), 'out of',len(ledVideoRoi[2]),'frame in total.')
-        print('Excluded frames :', len(idxToExclude))
-        print('Dropped framess :', np.sum(ddd-1)-len(idxToExclude))
-        frameSummary = np.array([len(ledVideoRoi[2]),np.sum(ddd-1),len(idxToExclude), np.sum(ddd-1)-len(idxToExclude)])
-        #pdb.set_trace()
-        return (idxIllumFinal,frameTimes,frameStartStopIdx,videoIdx,frameSummary)
-
-    pdb.set_trace()
+    #else:
+    idxTemp = idxFramesDuringRecording + shiftToZero[0]
+    idx = idxTemp[idxTemp>=0]
+    idxIllumFinal = idx[idx<len(illumLEDcontrolBin)][:finalLength[0]]
+    #illum = illumLEDcontrolBin[idxIllumFinal]
+    frameTimes = startEndExposureTime[idxIllumFinal]
+    frameStartStopIdx = startEndExposurepIdx[idxIllumFinal]
+    #
+    videoIdx = np.arange(len(ledVideoRoiBins[3]))[mask][missedFramesBegin:][:finalLength[0]]
+    #recFrames = ledVideoRoi[2][videoIdx]
+    ddd = np.diff(idxIllumFinal)
+    print('Total number of dropped and excluded frames : ', np.sum(ddd-1), 'out of',len(ledVideoRoi[2]),'frame in total.')
+    print('Excluded frames :', len(idxToExclude))
+    print('Dropped framess :', np.sum(ddd-1)-len(idxToExclude))
+    frameSummary = np.array([len(ledVideoRoi[2]),np.sum(ddd-1),len(idxToExclude), np.sum(ddd-1)-len(idxToExclude)])
+    #pdb.set_trace()
+    return (idxIllumFinal,frameTimes,frameStartStopIdx,videoIdx,frameSummary)
+    ##############################################################################################################################
+    #pdb.set_trace()
 
     for i in range(10):
         #print(i)

@@ -48,18 +48,22 @@ for f in range(len(foldersRecordings)):
     # if camera was recorded
     if existence:
         #pdb.set_trace()
+        specificTiffLists = caI.decideWhichTiffFilesToUse(recLocation,tiffList)
+        print(len(specificTiffLists),specificTiffLists)
+        #pdb.set_trace()
         dataDirs.append(eSD.dataBase+foldersRecordings[f][0]+'/')
         allTiffs.extend(tiffList)
         if not onAllData:
-            print('analysis on :',tiffList)
-            caI.setSuite2pParameters(recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
-            #
-            caI.runSuite2pPipeline()
-            #
-            eSD.extractAndSaveCaTimeStamps(recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
-            #
-            caI.generateOverviewFigure(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList,mouseD,foldersRecordings[f][0])
-            #pdb.set_trace()
+            for i in range(len(specificTiffLists)):
+                print('analysis on :',specificTiffLists[i])
+                caI.setSuite2pParameters(recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
+                #
+                caI.runSuite2pPipeline()
+                #
+                eSD.extractAndSaveCaTimeStamps(recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
+                #
+                caI.generateOverviewFigure(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0],mouseD,foldersRecordings[f][0])
+                #pdb.set_trace()
 
 # pdb.set_trace()
 if onAllData:

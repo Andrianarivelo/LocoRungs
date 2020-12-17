@@ -311,28 +311,31 @@ class openCVImageProcessingTools:
             frame8bit = np.array(np.transpose(frames[0]), dtype=np.uint8)
             img = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
             # first let's decide on how many LED's (if any) are present in the FOV
-            continueCountLEDLoop = True
-            while continueCountLEDLoop:
-                #rungs = []
-                imgPure = img.copy()
-                cv2.imshow("PureImage", imgPure)
-                print('specify how many LEDs are present in the field of view (e.g., 1,4 or 0 if none) :')
-                PressedKey = cv2.waitKey(0)
-                print(PressedKey)
-                if PressedKey == 49:
-                    nLED = 1
-                elif PressedKey == 52 :
-                    nLED = 4
-                elif PressedKey == 48:
-                    nLED = 0
-                try:
-                    print('Number of LEDs in image :',nLED)
-                except:
-                    pass
-                else:
-                    continueCountLEDLoop = False
-                cv2.destroyWindow("PureImage")
-            ## ROI detection for ONE LED
+            if coordinates is None:
+                continueCountLEDLoop = True
+                while continueCountLEDLoop:
+                    #rungs = []
+                    imgPure = img.copy()
+                    cv2.imshow("PureImage", imgPure)
+                    print('specify how many LEDs are present in the field of view (e.g., 1,4 or 0 if none) :')
+                    PressedKey = cv2.waitKey(0)
+                    print(PressedKey)
+                    if PressedKey == 49:
+                        nLED = 1
+                    elif PressedKey == 52 :
+                        nLED = 4
+                    elif PressedKey == 48:
+                        nLED = 0
+                    try:
+                        print('Number of LEDs in image :',nLED)
+                    except:
+                        pass
+                    else:
+                        continueCountLEDLoop = False
+                    cv2.destroyWindow("PureImage")
+            else:
+                nLED = coordinates[0]
+            ## sets the location of the ROIs for all LEDs
             if nLED > 0:
                 movePixels = 3
                 spacing = 40

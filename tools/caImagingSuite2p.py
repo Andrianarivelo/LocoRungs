@@ -32,6 +32,35 @@ class caImagingSuite2p:
         print('suite2p : on exit')
 
     ############################################################
+    def decideWhichTiffFilesToUse(self,dataDir,tiffFiles,defaultNumber=5):
+        specificList = []
+        availableIdxs = []
+        # first show available tiff files with index
+        print('List of available tiff files with index :')
+        for n in range(len(tiffFiles)):
+            print(' ',tiffFiles[n],n)
+        # in case of the default number of tiff-files per recording, no hand-selection is required
+        if len(tiffFiles)==defaultNumber:
+            ll = []
+            nn = ''
+            for n in range(len(tiffFiles)):
+                ll.append(tiffFiles[n])
+                nn+= str(tiffFiles[n][-5:-4])
+            specificList.append([ll,nn])
+        else: # pick the lists by hand in case of more than the default number of tiff-files
+            nn = ''
+            listIdxs = input('Enter indices of the tiff files to be analyzed together separated by a space, different lists are separated by coma (e.g. 1 2 3 4 5, 6):')   # Python 3
+            separateLists = listIdxs.split(',')
+            for i in range(len(separateLists)):
+                sl = [int(s) for s in separateLists[i].split()]
+                ll = []
+                nn = ''
+                for j in sl:
+                    ll.append(tiffFiles[j])
+                    nn+= str(tiffFiles[j][-5:-4])
+                specificList.append([ll,nn])
+        return specificList
+    ############################################################
     def setSuite2pParameters(self,dataDir,saveDir,tiffPaths=None):
         #fName = dataDir + '*.tif'
         #tiffsList = glob.glob(fName)
@@ -54,7 +83,7 @@ class caImagingSuite2p:
               'save_path0': saveDir,
               'subfolders': [], # choose subfolders of 'data_path' to look in (optional)
               'fast_disk': '/tmp/', # string which specifies where the binary file will be stored (should be an SSD)
-              #'tiff_list': [], #tiffList # list of tiffs in folder * data_path *!
+              'tiff_list': tiffList, #tiffList # list of tiffs in folder * data_path *!
               'input_format': 'tif'
             }
         print(dataDir + tiffList[0])
