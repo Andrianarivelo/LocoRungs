@@ -54,7 +54,7 @@ for f in range(len(foldersRecordings)):
         dataDirs.append(eSD.dataBase+foldersRecordings[f][0]+'/')
         allTiffs.extend(tiffList)
         if not onAllData:
-            for i in range(len(specificTiffLists)):
+            for i in range(len(specificTiffLists)): # loop over the the lists of tiff files to analyze
                 print('analysis on :',specificTiffLists[i])
                 caI.setSuite2pParameters(recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
                 #

@@ -512,6 +512,8 @@ class extractSaveData:
     def checkForErroneousFramesIdx(self, date, folder, recordings, r, determineAgain=False):
         # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
         currentGroupNames = [date, recordings[r], 'erroneousFrames']
+        #print(currentGroupNames)
+        #pdb.set_trace()
         try:
             (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, currentGroupNames)
             idxExc = self.f[grpName + '/idxToExclude'][()]
@@ -530,12 +532,13 @@ class extractSaveData:
                 return (excludeIdxExist, idxExc)
 
     ############################################################
-    def saveErroneousFramesIdx(self, groupNames, idxEclude):
+    def saveErroneousFramesIdx(self, groupNames, idxToExclude):
         # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
         print(groupNames)
         (grpName,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
         print(grpName,grpHandle)
-        self.h5pyTools.createOverwriteDS(grpHandle,'idxToExclude',idxEclude)
+        self.h5pyTools.createOverwriteDS(grpHandle,'idxToExclude',idxToExclude)
+        print('saved successfully', idxToExclude)
 
     ############################################################
     # idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo
@@ -556,11 +559,13 @@ class extractSaveData:
     def readBehaviorVideoTimeData(self, groupNames):
         # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
         (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
-        firstLastFrames = self.f[grpName+'/firstLastFrames'][()]
-        startTime = self.f[grpName+'/firstLastFrames'].attrs['startTime']
-        expStartTime = self.f[grpName+'/startExposure'][()]
-        expEndTime = self.f[grpName+'/endExposure'][()]
-        return (firstLastFrames, expStartTime, expEndTime,startTime)
+        videoIdx = self.f[grpName+'/indexVideo'][()]
+        imageMetaInfo = self.f[grpName+'/indexVideo'].attrs['startTime']
+        idxTimePoints = self.f[grpName+'/indexTimePoints'][()]
+        startEndExposureTime = self.f[grpName+'/startEndExposureTime'][()]
+        startEndExposurepIdx = self.f[grpName+'/startEndExposurepIndex'][()]
+        frameSummary = self.f[grpName+'/frameDropExcludeSummary'][()]
+        return (idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo)
 
     ############################################################
     def getBehaviorVideoData(self, groupNames):
@@ -846,16 +851,16 @@ class extractSaveData:
 
     ############################################################
     # (mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
-    def saveBehaviorVideo(self, mouse, date, rec, framesRaw, expStartTime, expEndTime, imageMetaInfo):
+    def saveBehaviorVideo(self, mouse, date, rec, framesRaw, idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo):
         #[foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
         #self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
-        midFrameTimes = (expStartTime + expEndTime)/2.
+        midFrameTimes = (startEndExposureTime[:,0] + startEndExposureTime[:,1])/2.
         #pdb.set_trace()
         #img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
         #tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
         # replace possible backslashes from subdirectory structure and
         rec = rec.replace('/','-')
-        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior_withCa.avi' % (mouse, date, rec)
+        videoFileName = self.analysisLocation + '%s_%s_%s_raw_behavior.avi' % (mouse, date, rec)
         #cap = cv2.VideoCapture(self.analysisLocation + '%s_%s_%s_behavior.avi' (mouse, date, rec))
 
         vLength = np.shape(framesRaw)[0]
@@ -876,12 +881,12 @@ class extractSaveData:
         #fourcc = cv2.VideoWriter_fourcc('H','F','Y','U')
         fourcc = cv2.VideoWriter_fourcc('M','J','P','G') # cv2.VideoWriter_fourcc(*'MPEG') # 'HFYU' is a lossless codec, alternatively use 'MPEG'
         out = cv2.VideoWriter(videoFileName, fourcc, fps, (width, heigth))
-
-        for i in np.arange(len(framesRaw)):
-            frame8bit = np.array(np.transpose(framesRaw[i]), dtype=np.uint8)
+        #pdb.set_trace()
+        for i in np.arange(len(videoIdx)):
+            frame8bit = np.array(np.transpose(framesRaw[videoIdx[i]]), dtype=np.uint8)
             frame = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
             cv2.putText(frame, 'time %s sec' % round(midFrameTimes[i],4), (10,20), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
-            cv2.putText(frame, 'frame %04d / %s' % (i,(vLength-1)), (10,40), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
+            cv2.putText(frame, 'frame %04d / %s' % (videoIdx[i],(vLength-1)), (10,40), cv2.QT_FONT_NORMAL, 0.6, color=(220, 220, 220))
             out.write(frame)
         # Release everything if job is finished
         #cap.release()

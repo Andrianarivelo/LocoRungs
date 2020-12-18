@@ -357,6 +357,7 @@ def determineErroneousFrames(frames):
     lineDiffSum = np.sum(lineDiff,axis=1)
     frameDiffDiff = np.diff(frameDiff)
     generatePlotWithSTD([lineDiffSum,frameDiff,frameDiffDiff],std=[3,4],names=['lineDiffSum','frameDiff','diff of FrameDiff'])
+    cv2.imshow()
     thresholdingInput = input("Specify which trace to use (lineDiffSum - 0, frameDiff - 1, diff of frameDiff - 2; and which multiple of the STD (e.g. 1 3.5) : ")
     threshold = [float(i) for i in thresholdingInput.split()]
     print('choice :', threshold)
@@ -376,6 +377,7 @@ def determineErroneousFrames(frames):
     idxToExclude = determineFramesToExclude(frames,outlierIdx)
     #excludeMask = np.ones(len(ledVideoRoi[2]),dtype=bool)
     #excludeMask[idxToExclude] = False
+    plt.close('all')
     return idxToExclude
 
 #################################################################################
@@ -524,6 +526,9 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     if len(shiftToZero)>1 or len(shiftToZero)==0:
         print('Problem! More than one shift led to perfect overlay!')
         #np.arange(np.diff(idxRecordedFrames)>1)
+        #
+        shortest = [len(ledVideoRoiRescaled[4][mask][missedFramesBegin:]) if len(ledVideoRoiRescaled[4][mask][missedFramesBegin:])<len(illumLEDcontrolrescaled[idxIllum]) else len(illumLEDcontrolrescaled[idxIllum])]
+        plt.plot(ledVideoRoiRescaled[4][mask][missedFramesBegin:][:shortest[0]],illumLEDcontrolrescaled[idxIllum][:shortest[0]])
         pdb.set_trace()
     #else:
     idxTemp = idxFramesDuringRecording + shiftToZero[0]
