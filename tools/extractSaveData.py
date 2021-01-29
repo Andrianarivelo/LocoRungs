@@ -630,26 +630,47 @@ class extractSaveData:
 
     ############################################################
     def readTimeStampOfRecording(self,tiffFileObj,nFrame):
+        # frameNumberAcqMode
+        # numeric, number of frame, counted from beginning of acquisition mode
+        #
+        # frameNumberAcq
+        # numeric, number of frame in current acquisition
+        #
+        # acqNumber
+        # numeric, number of current acquisition
+        #
+        # epochAcqMode
+        # string, time of the acquisition of the acquisiton of the first pixel in the current acqMode; format: output of datestr(now) '25-Jul-2014 12:55:21'
+        #
+        # frameTimestamp
+        # [s] time of the first pixel in the frame passed since acqModeEpoch
+        #
+        # acqStartTriggerTimestamp
+        # [s] time of the acq start trigger for the current acquisition
+        #
+        # nextFileMarkerTimestamp
+        # [s] time of the last nextFileMarker recorded. NaN if no nextFileMarker was recorded
+
         desc = tiffFileObj.description(nFrame)
-        keyWordIdx = desc.find('epoch')
+        keyWordIdx = desc.find('epoch')  # string, time of the acquisition of the acquisiton of the first pixel in the current acqMode; format: output of datestr(now) '25-Jul-2014 12:55:21'
         dateString = re.split('\[|\]', desc[keyWordIdx:])
         dateIdv = dateString[1].split()
         #print(dateIdv)
         unixStartTime = int(datetime.datetime(int(dateIdv[0]),int(dateIdv[1]),int(dateIdv[2]),int(dateIdv[3]),int(dateIdv[4]),int(float(dateIdv[5]))).strftime('%s'))
         #
-        keyWordIdx = desc.find('frameTimestamps_sec')
+        keyWordIdx = desc.find('frameTimestamps_sec') # [s] time of the first pixel in the frame passed since acqModeEpoch
         splitString = re.split('=|\n', desc[keyWordIdx:])
         frameTimestamps = float(splitString[1])
 
-        keyWordIdx = desc.find('acqTriggerTimestamps_sec')
+        keyWordIdx = desc.find('acqTriggerTimestamps_sec') # [s] time of the acq start trigger for the current acquisition
         splitString = re.split('=|\n', desc[keyWordIdx:])
         acqTriggerTimestamps = float(splitString[1])
 
-        keyWordIdx = desc.find('frameNumberAcquisition')
+        keyWordIdx = desc.find('frameNumberAcquisition') # numeric, number of frame in current acquisition
         splitString = re.split('=|\n', desc[keyWordIdx:])
         frameNumberAcquisition = int(splitString[1])
 
-        keyWordIdx = desc.find('acquisitionNumbers')
+        keyWordIdx = desc.find('acquisitionNumbers') # numeric, number of current acquisition
         splitString = re.split('=|\n', desc[keyWordIdx:])
         acquisitionNumbers = int(splitString[1])
 

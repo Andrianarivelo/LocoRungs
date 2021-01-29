@@ -357,7 +357,7 @@ def determineErroneousFrames(frames):
     lineDiffSum = np.sum(lineDiff,axis=1)
     frameDiffDiff = np.diff(frameDiff)
     generatePlotWithSTD([lineDiffSum,frameDiff,frameDiffDiff],std=[3,4],names=['lineDiffSum','frameDiff','diff of FrameDiff'])
-    cv2.imshow()
+    #cv2.imshow()
     thresholdingInput = input("Specify which trace to use (lineDiffSum - 0, frameDiff - 1, diff of frameDiff - 2; and which multiple of the STD (e.g. 1 3.5) : ")
     threshold = [float(i) for i in thresholdingInput.split()]
     print('choice :', threshold)
@@ -404,7 +404,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     ledVideoRoiBins = []
     ledVideoRoiRescaled = []
     for i in range(ledVideoRoi[1][0]):
-        ledVideoRoiBins.append(traceToBinary(ledVideoRoi[0][i],threshold=0.4)[1])  # 0.6 before 0.4
+        ledVideoRoiBins.append(traceToBinary(ledVideoRoi[0][i],threshold=0.6)[1])  # 0.6 before 0.4
         ledVideoRoiRescaled.append(traceToBinary(ledVideoRoi[0][i])[0])
 
     # find start and end of camera exposure period ################################################################
@@ -434,7 +434,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     startEndExposurepIdx = np.column_stack((expStart,expEnd)) # create a 2-column array with 1st column containing start and 2nd column containing end index
     illumLEDcontrol = [np.mean(ledDAQcontrolBin[b[0]:b[1]]) for b in startEndExposurepIdx]  # extract maximal illumination value - from LED control trace - during exposure period
     illumLEDcontrol = np.asarray(illumLEDcontrol)
-    (illumLEDcontrolrescaled,illumLEDcontrolBin) = traceToBinary(illumLEDcontrol,threshold=0.02) # 0.15 before
+    (illumLEDcontrolrescaled,illumLEDcontrolBin) = traceToBinary(illumLEDcontrol,threshold=0.2) # 0.15 before
 
     ## loop over frame numbers and extract binary number shown by leds ################################################
     nFrames = len(ledVideoRoiBins[0])
@@ -527,8 +527,13 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
         print('Problem! More than one shift led to perfect overlay!')
         #np.arange(np.diff(idxRecordedFrames)>1)
         #
-        shortest = [len(ledVideoRoiRescaled[4][mask][missedFramesBegin:]) if len(ledVideoRoiRescaled[4][mask][missedFramesBegin:])<len(illumLEDcontrolrescaled[idxIllum]) else len(illumLEDcontrolrescaled[idxIllum])]
-        plt.plot(ledVideoRoiRescaled[4][mask][missedFramesBegin:][:shortest[0]],illumLEDcontrolrescaled[idxIllum][:shortest[0]])
+        idxTemp = idxFramesDuringRecording + 0
+        idx = idxTemp[idxTemp>=0]
+        idxIllum = idx[idx<len(illumLEDcontrolBin)]
+        pdb.set_trace()
+        shortest = [len(ledVideoRoiRescaled[3][mask][missedFramesBegin:]) if len(ledVideoRoiRescaled[3][mask][missedFramesBegin:])<len(illumLEDcontrolrescaled[idxIllum]) else len(illumLEDcontrolrescaled[idxIllum])]
+
+        plt.plot(ledVideoRoiRescaled[3][mask][missedFramesBegin:][:shortest[0]],illumLEDcontrolrescaled[idxIllum][:shortest[0]])
         pdb.set_trace()
     #else:
     idxTemp = idxFramesDuringRecording + shiftToZero[0]
