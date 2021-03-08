@@ -119,7 +119,7 @@ class caImagingSuite2p:
             'save_mat': False, # whether to save output as matlab files
             'combined': True, # combine multiple planes into a single result /single canvas for GUI
             # parallel settings
-            'num_workers': 4, # 0 to select num_cores, -1 to disable parallelism, N to enforce value
+            'num_workers': 0, # 0 to select num_cores, -1 to disable parallelism, N to enforce value
             'num_workers_roi': -1, # 0 to select number of planes, -1 to disable parallelism, N to enforce value
             # registration settings
             'do_registration': True, # whether to register data
