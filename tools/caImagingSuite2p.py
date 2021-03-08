@@ -119,7 +119,7 @@ class caImagingSuite2p:
             'save_mat': False, # whether to save output as matlab files
             'combined': True, # combine multiple planes into a single result /single canvas for GUI
             # parallel settings
-            'num_workers': 0, # 0 to select num_cores, -1 to disable parallelism, N to enforce value
+            'num_workers': 4, # 0 to select num_cores, -1 to disable parallelism, N to enforce value
             'num_workers_roi': -1, # 0 to select number of planes, -1 to disable parallelism, N to enforce value
             # registration settings
             'do_registration': True, # whether to register data
@@ -135,7 +135,7 @@ class caImagingSuite2p:
             'nsvd_for_roi': 1000, # max number of SVD components to keep for ROI detection
             'max_iterations': 20, # maximum number of iterations to do cell detection
             'ratio_neuropil': 6., # ratio between neuropil basis size and cell radius
-            'anatomical_only': 2.0, #
+            'anatomical_only': 1, #
             'ratio_neuropil_to_cell': 3, # minimum ratio between neuropil radius and cell radius
             'tile_factor': 1., # use finer (>1) or coarser (<1) tiles for neuropil estimation during cell detection
             'threshold_scaling': 1., # adjust the automatically determined threshold by this scalar multiplier
