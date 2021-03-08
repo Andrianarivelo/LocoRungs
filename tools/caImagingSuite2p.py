@@ -161,7 +161,7 @@ class caImagingSuite2p:
 
     ############################################################
     def generateOverviewFigure(self,suite2pPath,tiffList,mouseID,recFolder):
-        ops = np.load(suite2pPath+'suite2p/plane0/ops.npy').item()
+        ops = np.load(suite2pPath+'suite2p/plane0/ops.npy',allow_pickle=True).item()
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
