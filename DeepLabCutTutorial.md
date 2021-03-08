@@ -1,88 +1,146 @@
 # Tutorial on how to extract paw position using DeepLabCut
 
-(written by Jeremy Gabillet 29-Sept-2020, adapted by Michael Graupner Jan 2021)
+(written by [Jeremy Gabillet 29-Sept-2020](https://docs.google.com/document/d/1xdx-A_suzs5PG9FkaE4_w0-k_6pSUb6Wge6VVINpkmA/edit#heading=h.6mc7g4r1euo),
+adapted by Michael Graupner Jan 2021)
 
-DeepLabCut website ([DeepLabCut — adaptive motor control lab](https://www.mousemotorlab.org/deeplabcut)) is very resourceful. 
-However, the features and tutorials may differ greatly from the installed version 
-at the time (2.0.2). The tutorial can be customized with the help of the website 
-depending on your preferences and the version you’re using.
-
------
-#### Calcium imaging experiments
-
-`getRawCalciumActivityStack.py` - The script reads the image stack recorded using the 2p scanning microscope. The raw stack is saved as tif file for subsequenct image registration using ImageJ.
-
-`MocoMarco.ijm` - ImageJ macro which performs automatic image registration using the Moco plugin.
-
-`getCalciumTracesDetermineRois.py` - The script reads the motion corrected image stack (previously generated with `getRawCalciumActivityStack.py`). The motion
-corrected image stack is saved to the hdf5 file. Furthermore, roibuddy is used to extract fluorescent traces of individual rois. The fluorescent traces
-are plotted in a figure.
+DeepLabCut website ([DeepLabCut — adaptive motor control lab](https://www.mousemotorlab.org/deeplabcut)) is very resourceful. In short 
+tutorial on how to use Deeplabcut can be found [here](https://github.com/DeepLabCut/DeepLabCut/blob/master/docs/UseOverviewGuide.md). A 
+more in-depth guide with details on all the function parameters is [here](https://github.com/DeepLabCut/DeepLabCut/blob/master/docs/functionDetails.md#c-data-selection).  
+However, the features and tutorials may differ greatly from the installed version. Our current **DeepLabCut version is 2.1.10**. 
 
 
-**Typical work-flow to analyze calcium imaging data**
-
-1. run `getRawCalciumActivityStack.py` to extract raw calcium images and save as tif file.
-1. run `MocoMarco.ijm` macro in ImageJ to perform image registration.
-1. run `getCalciumTracesDetermineRois.py` to determine rois with roibuddy and extract calcium traces of rois.
-
------
-#### Experiments with walking behavior recordings
-
-The analysis below concerns experiments during which animal behavior has been recorded through the rotary recording on 
-the treadmill and/or the animal was filmed with the high-speed camera (GigE). Global movement parameter is the overall 
-walking progress of the animal during the recording. 
-
-File | What it does
------ | ------
-`getWalkingActivity.py` | The script extracts the Rotary encoder data and saves it to hdf5 file.
-`plotRecordingOverviewPerAnimal.py` | The script uses the extracted Rotary encoder data and generates an overview figures.
-`extractBehaviorCameraTiming.py` | Sets the ROI location for the LED used for synchronization and determines the exact timing of individual frames.  
-`getRawBehaviorImagesSaveVideo.py` | The script extracts images recorded with the high-speed camera. The extracted images are saved as avi video for the tracking procedures.
-`analyzePawMovement.py` | The script uses openCV to analyze the behavioral videos. Paw and rung locations are extracted.
-
-
-**Typical work-flow to analyze global movement parameters during walking experiments**
-
-1. run `getWalkingActivity.py` to read and save rotary encoder data. 
-1. run `plotRecordingOverviewPerAnimal.py` to generate an overview figure. 
-
-**Typical work-flow to analyze detailed paw movement during walking experiments**
-
-1. run `extractBehaviorCameraTiming.py` sets the ROI location on the LED, extracts the luminosity trace and determines frame times. 
-1. run `getRawBehaviorImagesSaveVideo.py` turn behavior camera recordings into movie.
-1. run `analyzePawMovement.py` to track paw and rungs.
-
------
-#### Experiments to access motion artefacts
-
-`getPixelflyImageStack.py` - The script extracts images recorded with the Pixelfly camera and saves them to a stacked tif file.
-
-`plotMotionArtefacts.py` - The script uses the motion correction coordinates from the ImageJ Moco plugin. A figure is generated with comprises several recordings.
-
-
-**Typical work-flow to analyze experiments with walking behavior**
-1. run `getPixelflyImageStack.py` extract Pixelfly images and save them as tif
-1. run `ImageJ` with the `MocoMacro.ijm` macro : generates x, y coordinates for motion correction
-1. run `plotMotionArtefacts.py` generate summary figure over several recordings
 
 
 -----
-#### Work-flow to generate overview figure
+#### Workflow of paw extraction 
 
-The experiment overview figure contains information from the rotary enconder-, the video- and the calcium imaging recordings. It serves to have 
-quick overview of the recordings, their implementation and the number of days an animal has been recorded. 
-The overview figure can be generated with the `plotRecordingOverviewPerAnimal.py` script. Before this script can be run, data has to be extracted 
-and some pre-analysis is required. In particular, the following scripts need to be run before generating the overiew : 
+1. **Connect to our computing server otillo:** <br>
+   On your machine, open the terminal and connect to the computing unit through SSH with X11 forwarding. 
+   This method displays DeepLabCut’s GUI faster and lighter than TeamViewer but changing window size can mess with its disposition. 
+   Use -C flag for data compression if using a low bandwidth connection (not necessary at the lab): <br>
+   `$ ssh -X mgraupe@otillo`    
 
-* `getWalkingActivity.py` : extract data from the rotary encoder recording and calculates speed of the wheel. 
-* `getRawBehaviorImagesSaveVideo.py` : extract data from the high-speed video recordings, generates videos and saves timing information of the video recording.
-* `getCalciumTracesDetermineRois.py` : runs Suite2p on the calcium-imaging recordings obtained with ScanImage. 
+1. **Activate Deeplabcut enviornment and move to folder :** Open a terminal and start the DeepLabCut conda 
+   environment called **DLC-GPU** : <br>
+   `$ conda activate DLC-GPU` <br>
+   Move to the folder `analysis/DLC2_Projects/` where currently all DeepLabCut projects are stored : <br>
+   `cd /home/mgraupe/analysis/DLC2_Projects/` <br>
+   This folder contains a file called `dlc_project.py` which contains all typically used function calls. 
+   
+1. **Start Python and load DeepLabCut :** Start in **ipython** session and load the requires python libraries : <br>
+   `$ ipython ` <br>
+   `: import deeplabcut` <br>
+   `: import glob` <br>
+   `: import pdb` <br>
+   
+1. **Assemble videos to be analyzed :** If you analyze different animals, their extracted video files are usually 
+   placed in seperate folders on the analysis drive (`/media/paris_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData`) server. 
+   Create list of string paths that contains all videos of the animals you want to analyze. DeepLabCut only accepts 
+   paths under the format [‘path’]. [Glob](https://docs.python.org/3/library/glob.html) is a convenient tool to get all paths using wildcards. 
+   ```
+   videoBase = '/media/paris_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/'
+   animals = ['201017_m99']
+   videos = []
 
-To complete the initial analysis, some more scripts need to be run on the data. 
-* `extractRungLocation.py` : extracts the location of the rungs from the video generated with `getRawBehaviorImagesSaveVideo.py`
-* `extractPawTrackingOutliers.py` : Uses the paw tracking data generated with DeepLabCut and remove mis-tacked paw positions based on the paw displacement 
-between frames. Large, unrealistic displacements are removed. 
-* `extractSwingStancePhase.py` : uses information from the wheel speed, paw position and rung position to separate paw trajectoris into swing and stance 
-phases
+   for n in range(len(animals)):
+       vids = glob.glob(videBase+animals[n]+'/*.avi')
+       videos.extend(vids)
+   ```
+
+1. **Start the DeepLabCut project :** 
+   1. Start a **new** project with : <br>
+    `: config_path = deeplabcut.create_new_project('2021-Jan_PawExtractionTestMG','MichaelG', videos, copy_videos=False)` <br>
+      The `config_path` variable contains the absolute path to the configure file  `config.yaml` which is located in the project folder.
+   2. Work on an existing project with by creating the variable `config_path` pointing ot the existing config file : <br>
+    `: config_path = /home/mgraupe/analysis/DLC2_projects/[project]/config.yaml`
+      
+1. **Configure the Project :** Open the `config.yaml` file in a text editior and edit the project parameters.  
+   1. In  particular you must add the list of bodyparts (or poins of interests) that you want to track. We use **Front left**, 
+   **Front right**, **Hind right** and **Hind left** for the four paws. The location of the paws in the video image is 
+   as shown below.
+   1. Set the numframes2pick (number of frames extracted per individual video) variable. The total a number of images should 
+   be of the order 100-200 frames (i.e., numframes2pick=20 for 10 videos). Too much is not that more effective
+   1.  Also set the cropping parameters per video `[video_file_path] : crop: 21, 795, 175, 525` in the `config.yaml` file. 
+       The cropping window can be determined with <br> 
+   `: deeplabcut.extract_frames(config_path, mode='manual', algo='uniform', crop=True)` <br>
+   This command launches the manual frame extraction and allows to draw the cropping window. The routine can then be 
+       aborted but the cropping parameters are still preserved. <br>
+       
+
+1. **Extract frames for labelling :** A good training dataset should consist of a sufficient number of frames that capture
+   the breadth of the behavior. This ideally implies to select the frames from different (behavioral) sessions, different 
+   lighting and different animals, if those vary substantially (to train an invariant, robust feature detector).
+   The function ``extract_frames`` extracts frames from all the videos in the project configuration file in order 
+   to create a training dataset.  Launch the frame extraction with : <br>
+   `: deeplabcut.extract_frames(config_path, mode='automatic', algo='kmeans', crop=True)` <br>
+   The extracted frames can be inspected in the `labeled-data` subfolder which contains a folder for each video.
+   
+1. **Label Frames:** The toolbox provides a function label_frames which helps the user to easily label all the 
+   extracted frames using an interactive graphical user interface (GUI). Launch with : <br>
+   `: deeplabcut.label_frames(config_path)` <br>
+   A window appears, click on Load frames, where you and chose one after another the directories (per vidoe) of the 
+   previously extracted frames. Right click to place and left click to move the label positions on the paws. Note
+   to keep the same order of labelling for each frame (i.e., FL, FR, HR, HL). Check that the labels are correctly 
+   saved by going to the next frame and back. <br>
+   **Important :** <br>
+   In general, invisible or occluded points should not be labeled by the user. They can simply be skipped by not applying the label anywhere on the frame. <br>
+   The user needs to save the labels after all the frames from one of the videos are labeled by clicking the save button at the bottom right.<br>
+   It is advisable to consistently label similar spots (e.g., on a wrist that is very large, try to label the same location).
+   
+1. **Create Training Dataset :** Run this step on the machine where you are going to train the network. If you labelled the project on your computer, move the  
+   project folder to otillo, then run the step below on that platform. This function combines the labeled datasets from all 
+   the videos and splits them to create train and test datasets. The training data will be used to train the network, 
+   while the test data set will be used for evaluating the network. <br>
+   `:  deeplabcut.create_training_dataset(config_path)` <br>
+    At this step, for create_training_dataset you select the network you want to use, and any additional data augmentation 
+    (beyond the defaults). You can set net_type and augmenter_type when you call the function.
+    In the `pose_config.yaml` (in the `dlc-models/.../train` subdirectory), you can modify some parameters :
+    save_iters saves every n iteration the network state. If the training is stopped between 2 saved iterations, the last one 
+      is saved (or none if before the first saved one). Bigger number means less space occupied but less snapshots.
+    You can change the cropping variables if needed.
+   
+1. **Train the Network :** The function ‘train_network’ helps the user in training the network. It is used as follows: <br>
+   `: deeplabcut.train_network(config_path)` <br>
+   Check the GPU usage by running `$ nvidia-smi` in another terminal, the vram should be almost full (10 GB out of 11). 
+   Otherwise the CPU is used, the training will be much slower. After some time, the 1000th iterations should be displayed. 
+   If it’s not the case, the training is stuck so cancel it and run it again. The training can be stopped anytime, 
+   just make sure that it’s stopped after a snapshot. In any case, the training runs until the 1’300’000th iteration 
+   (in case of training overnight) and saves a snapshot.
+   
+1. **Evaluate the Network:** It is important to evaluate the performance of the trained network. 
+   This performance is measured by computing the mean average Euclidean error (MAE; which is proportional to the 
+   average root mean square error) between the manual labels and the ones predicted by DeepLabCut. Evaluation is run with :<br>
+   `: deeplabcut.evaluate_network(config_path,Shuffles=[1], plotting=True)`
+   
+1. **Video Analysis:** The trained network can be used to analyze new videos. The user needs to first choose a checkpoint 
+   with the best evaluation results for analyzing the videos. <br>
+   `: deeplabcut.analyze_videos(config_path, videos ,save_as_csv=True)` <br>
+   The analyzed videos do not have to be the one extracted and you can use any other video with the trained network. 
+   Ubuntu accepts only files under 144 characters long, the pickle file generated from the videos might be a problem so 
+   be sure the videos don’t have a too long name (remove useless parts of the names but not the dates). 
+   DeepLabCut is creating files in the same path for every iteration, thinking that the video has already been analyzed, 
+   so you have to delete them for new video analysis. You can change the iteration number in config.yaml for a previous 
+   one if the results are getting worse (in case of overtraining).
+   Create labelled videos (for figures, presentations or checking for instance) with : <br>
+   `: deeplabcut.create_labeled_video(config_path, videos, save_frames = False)`
+
+1. **Refine Network:** A single training is usually not enough to have satisfying results. 
+   Refining the dataset if a crucial part and can be done with : <br>
+   `: deeplabcut.extract_outlier_frames(config_path, videos)` <br>
+   The number of frames extracted is based on the `numframes2pick` variable, so you might want to adjust it. 
+   The frames extracted are based on the jump of a label between 2 frames but other methods exist. <br>
+   Refining the labels can then be done in the GUI : <br>
+   `: deeplabcut.refine_labels(config_path)` <br>
+   The same way as during the labelling, a window opens, Load the frames. You can then move the labels to the desired location. 
+   Even more than before, DeepLabCut sometimes doesn’t save the position correctly so go a frame forward then 
+   backward again to be sure. <br>
+   Merge the datasets with : <br>
+   `: deeplabcut.merge_datasets(config_path)` <br>
+   Now you can run `create_training_dataset`, then `train_network`, etc.
+
+
+
+   
+
 
 
