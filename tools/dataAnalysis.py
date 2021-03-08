@@ -14,6 +14,7 @@ from sklearn.decomposition import PCA
 import cv2
 from scipy import signal
 from scipy.signal import find_peaks
+import pickle
 
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
@@ -267,7 +268,7 @@ def determineFrameTimes(exposureArray,arrayTimes,frames,rec=None):
     return (expStartTime,expEndTime,recordedFrames)
 
 #################################################################################
-def generatePlotWithSTD(data,std=[2,3],names = None):
+def generatePlotWithSTD(data,std=[2,3,4],names = None):
     nData = len(data)
     fig = plt.figure()
     for i in range(nData):
@@ -277,8 +278,8 @@ def generatePlotWithSTD(data,std=[2,3],names = None):
         STD = np.std(data[i])
         MM  = np.mean(data[i])
         for n in range(len(std)):
-            ax0.axhline(y=MM+std[n]*STD,ls='--',c='C2',label='%s STD' % std[n])
-            ax0.axhline(y=MM-std[n]*STD, ls='--', c='C2')
+            ax0.axhline(y=MM+std[n]*STD,ls='--',c=plt.cm.RdYlBu(n/len(std)),label='%s STD' % std[n])
+            ax0.axhline(y=MM-std[n]*STD, ls='--', c=plt.cm.RdYlBu(n/len(std)))
         ax0.axhline(y=MM,c='C1',label='mean')
         ax0.plot(data[i],c='C0')
         if i==2:
@@ -356,8 +357,12 @@ def determineErroneousFrames(frames):
     lineDiff = np.asarray(lineDiff)
     lineDiffSum = np.sum(lineDiff,axis=1)
     frameDiffDiff = np.diff(frameDiff)
-    generatePlotWithSTD([lineDiffSum,frameDiff,frameDiffDiff],std=[3,4],names=['lineDiffSum','frameDiff','diff of FrameDiff'])
-    #cv2.imshow()
+    generatePlotWithSTD([lineDiffSum,frameDiff,frameDiffDiff],std=[3,3.5,4],names=['lineDiffSum','frameDiff','diff of FrameDiff'])
+    # trick to display the above image
+    frame8bit = np.array(np.transpose(frames[0]), dtype=np.uint8)
+    img = cv2.cvtColor(frame8bit, cv2.COLOR_GRAY2BGR)
+    cv2.imshow('HoldImage',img)
+    cv2.waitKey(0) #cv2.imshow()
     thresholdingInput = input("Specify which trace to use (lineDiffSum - 0, frameDiff - 1, diff of frameDiff - 2; and which multiple of the STD (e.g. 1 3.5) : ")
     threshold = [float(i) for i in thresholdingInput.split()]
     print('choice :', threshold)
@@ -369,13 +374,20 @@ def determineErroneousFrames(frames):
         thresholded = frameDiff > np.mean(frameDiff) + np.std(frameDiff) * threshold[1]
         outlierIdx = np.arange(len(frameDiff))[thresholded]  # use indices taking into account missed frames
         outlierIdx += 1 # this is since the difference trace does not start at at the first frame but at the difference between first and second frame
-    elif threshold[1] == 2.:
-        thresholded = frameDiffDiff > np.std(frameDiffDiff) + np.std(frameDiffDiff) * threshold[1]
+    elif threshold[0] == 2.:
+        thresholded = np.abs(frameDiffDiff) > np.mean(frameDiffDiff) + np.std(frameDiffDiff)*threshold[1]
         outlierIdx = np.arange(len(frameDiffDiff))[thresholded]  # use indices taking into account missed frames
         outlierIdx += 2  # this is since the difference trace does not start at at the first frame but at the difference between first and second frame
     print('length and identity of possible erronous frames :' , len(outlierIdx), outlierIdx)
-    idxToExclude = determineFramesToExclude(frames,outlierIdx)
+    idxExclude = determineFramesToExclude(frames,outlierIdx)
     #excludeMask = np.ones(len(ledVideoRoi[2]),dtype=bool)
+    # add indicies for equivalent frames
+    sameFrames = (frameDiff == 0)
+    sameFrameIdx = np.arange(len(frameDiff))[sameFrames]
+    sameFrameIdx += 1
+    print('same frames were recorded here :', sameFrameIdx)
+    idxToExclude = np.sort(np.concatenate((sameFrameIdx, idxExclude)))
+    #pdb.set_trace()
     #excludeMask[idxToExclude] = False
     plt.close('all')
     return idxToExclude
@@ -403,8 +415,20 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     # convert LED roi traces from video to boolean arrays
     ledVideoRoiBins = []
     ledVideoRoiRescaled = []
+    allLEDVideoRoiValues = []
+    # determine threshold
     for i in range(ledVideoRoi[1][0]):
-        ledVideoRoiBins.append(traceToBinary(ledVideoRoi[0][i],threshold=0.6)[1])  # 0.6 before 0.4
+        allLEDVideoRoiValues.extend(traceToBinary(ledVideoRoi[0][i])[0]) # rescale all values to [0,1] and stack them
+    allLEDVideoRoiValues = np.sort(np.asarray(allLEDVideoRoiValues)) # convert to array and sort
+    luminocityDifferences = np.diff(allLEDVideoRoiValues)
+    idxMaxDiff = np.argmax(luminocityDifferences)
+    LEDVideoThreshold = allLEDVideoRoiValues[idxMaxDiff] + (allLEDVideoRoiValues[idxMaxDiff+1] - allLEDVideoRoiValues[idxMaxDiff])/2.
+    illumLEDcontrolThreshold = LEDVideoThreshold**4.49185827 # mapping, i.e. exponent, from tools/fitOfIlluminationValues
+    print('thresholds : ',LEDVideoThreshold, illumLEDcontrolThreshold)
+    #pdb.set_trace()
+    # threshold and convert to binary
+    for i in range(ledVideoRoi[1][0]):
+        ledVideoRoiBins.append(traceToBinary(ledVideoRoi[0][i],threshold=LEDVideoThreshold)[1])  # 0.6 before 0.4
         ledVideoRoiRescaled.append(traceToBinary(ledVideoRoi[0][i])[0])
 
     # find start and end of camera exposure period ################################################################
@@ -432,9 +456,9 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     ## based on exposure start-stop, how bright should the DAQ LED signal be ##########################################
     startEndExposureTime = np.column_stack((expStartTime, expEndTime))
     startEndExposurepIdx = np.column_stack((expStart,expEnd)) # create a 2-column array with 1st column containing start and 2nd column containing end index
-    illumLEDcontrol = [np.mean(ledDAQcontrolBin[b[0]:b[1]]) for b in startEndExposurepIdx]  # extract maximal illumination value - from LED control trace - during exposure period
+    illumLEDcontrol = [np.mean(ledDAQcontrolBin[b[0]:b[1]]) for b in startEndExposurepIdx]  # extract MEAN illumination value - from LED control trace - during exposure period
     illumLEDcontrol = np.asarray(illumLEDcontrol)
-    (illumLEDcontrolrescaled,illumLEDcontrolBin) = traceToBinary(illumLEDcontrol,threshold=0.2) # 0.15 before
+    (illumLEDcontrolrescaled,illumLEDcontrolBin) = traceToBinary(illumLEDcontrol,threshold=illumLEDcontrolThreshold) # 0.2 and 0.15 before
 
     ## loop over frame numbers and extract binary number shown by leds ################################################
     nFrames = len(ledVideoRoiBins[0])
@@ -460,6 +484,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
                 if (i>20) and (i<11920):
                     print(i,oldI,matchFrameN,frameNBefore,frameDiff,binNumberInFrame[i],binNumberInFrame[i-1])
                     print('strange, zero frame in the middle of recording')
+                    pdb.set_trace()
                 #frameDiff = 0
             frameCount.append([i,matchFrameN,frameDiff,int(ledVideoRoiBins[3][i]),oldI])
             frameNBefore = matchFrameN
@@ -468,7 +493,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     idxRecordedFrames = np.cumsum(frameCount[:,2]) # use the frame differences to generate new index corresponding to video recording
     idxCounting = np.argwhere(idxRecordedFrames>0) # start and end index with first and last frame recording the counter
     idxFramesDuringRecording = idxRecordedFrames[idxCounting[0,0]:(idxCounting[-1,0]+1)] - 1  # remove leading and trailing zeros, and remove one to have the new index start with zero
-    if exposureAtStart:
+    if exposureAtStart:   # remove first frame if exposure was active during start of recording, i.e., at t = 0 s
         idxFramesDuringRecording = idxFramesDuringRecording[1:] - 1
     idxMissingFrames = np.delete(np.arange(idxFramesDuringRecording[-1]),idxFramesDuringRecording)
 
@@ -495,6 +520,10 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     if idxFirstFrameRec == missedFramesBegin:
         print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin)
         videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
+    elif idxFirstFrameRec == (missedFramesBegin+1):
+        missedFramesBegin+=1
+        print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin)
+        videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
     else:
         print('Problem with determining index of first recorded frame.')
         pdb.set_trace()
@@ -519,8 +548,11 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
             totLength = len1
         shiftDifference.append([i,versch,totLength,compareIdx])
         print(i,versch,totLength,compareIdx,idxMissing,idxMissingFrames)
+        #pdb.set_trace()
         #compare = np.equal()
     shiftDifference = np.asarray(shiftDifference)
+    if len(idxToExclude)==0:
+        shiftDifference = shiftDifference[shiftDifference[:,0]>=0]
     shiftToZero = shiftDifference[:,0][(shiftDifference[:,1]==0) & (shiftDifference[:,3]==0)]
     finalLength = shiftDifference[:,2][(shiftDifference[:,1]==0) & (shiftDifference[:,3]==0)]
     if len(shiftToZero)>1 or len(shiftToZero)==0:
@@ -530,16 +562,31 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
         idxTemp = idxFramesDuringRecording + 0
         idx = idxTemp[idxTemp>=0]
         idxIllum = idx[idx<len(illumLEDcontrolBin)]
-        pdb.set_trace()
+        #pdb.set_trace()
         shortest = [len(ledVideoRoiRescaled[3][mask][missedFramesBegin:]) if len(ledVideoRoiRescaled[3][mask][missedFramesBegin:])<len(illumLEDcontrolrescaled[idxIllum]) else len(illumLEDcontrolrescaled[idxIllum])]
-
-        plt.plot(ledVideoRoiRescaled[3][mask][missedFramesBegin:][:shortest[0]],illumLEDcontrolrescaled[idxIllum][:shortest[0]])
+        plt.plot(ledVideoRoiRescaled[3][mask][missedFramesBegin:][:shortest[0]],illumLEDcontrolrescaled[idxIllum][:shortest[0]],'o',ms=1)
+        plt.show()
+        pdb.set_trace()
+        plt.plot(ledVideoRoiRescaled[3][mask][missedFramesBegin:][:shortest[0]],'o-')
+        plt.plot(illumLEDcontrolrescaled[idxIllum][:shortest[0]],'o-')
+        plt.show()
         pdb.set_trace()
     #else:
     idxTemp = idxFramesDuringRecording + shiftToZero[0]
     idx = idxTemp[idxTemp>=0]
     idxIllumFinal = idx[idx<len(illumLEDcontrolBin)][:finalLength[0]]
-    #illum = illumLEDcontrolBin[idxIllumFinal]
+    compareIllumination = False
+    if compareIllumination:
+        illum = illumLEDcontrolrescaled[idxIllumFinal]
+        videoROI = ledVideoRoiRescaled[3][mask][missedFramesBegin:]
+        shortest = [len(videoROI) if len(videoROI) < len(illum) else len(illum)]
+        bothCombined = np.column_stack((videoROI[:shortest[0]],illum[:shortest[0]]))
+        plt.plot(videoROI[:shortest[0]], illum[:shortest[0]], 'o')
+        plt.show()
+        pdb.set_trace()
+        illumValues = pickle.load( open('illuminatoinValues.p', 'rb' ) )
+        illumValues.append(bothCombined)
+        pickle.dump(illumValues, open('illuminatoinValues.p', 'wb'))
     frameTimes = startEndExposureTime[idxIllumFinal]
     frameStartStopIdx = startEndExposurepIdx[idxIllumFinal]
     #
@@ -548,7 +595,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, verbose=
     ddd = np.diff(idxIllumFinal)
     print('Total number of dropped and excluded frames : ', np.sum(ddd-1), 'out of',len(ledVideoRoi[2]),'frame in total.')
     print('Excluded frames :', len(idxToExclude))
-    print('Dropped framess :', np.sum(ddd-1)-len(idxToExclude))
+    print('Dropped frames :', np.sum(ddd-1)-len(idxToExclude))
     frameSummary = np.array([len(ledVideoRoi[2]),np.sum(ddd-1),len(idxToExclude), np.sum(ddd-1)-len(idxToExclude)])
     #pdb.set_trace()
     return (idxIllumFinal,frameTimes,frameStartStopIdx,videoIdx,frameSummary)
@@ -2074,17 +2121,22 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
             for n in range(len(cleanedSwingIndicies)):
                 startI = int(cleanedSwingIndicies[n][0])
                 endI   = int(cleanedSwingIndicies[n][1]) + 1
+                ax.fill_between(forFit[i][2][range(startI,endI)], 0, 1, color='0.5', alpha=0.5, transform=ax.get_xaxis_transform())
                 #print(n,startI,endI,endI-startI,len(cleanedSwingIndicies))
                 if stepCharacter[n][3]:
-                    plt.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
+                    ax.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
                 else:
-                    plt.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
+                    ax.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
+                #plt.fill_between()
                 #plt.plot(range(startI,endI),forFit[i][1][startI:endI] * p1,c='C2')
+                plt.xlim(15,20)
                 plt.xlabel('time (s)')
                 plt.ylabel('speed (cm)')
 
             #plt.xlim(4610, 4720)
+            #plt.savefig('')
             plt.show()
+
 
         swingPhases.append([i,cleanedSwingIndicies,stanceRungIdentity,stepCharacter])
     return (swingPhases,forFit)

@@ -113,7 +113,7 @@ class caImagingSuite2p:
             'nchannels' : nChan, # each tiff has these many channels per plane
             'functional_chan' : 1, # this channel is used to extract functional ROIs (1-based)
             'diameter':12, # this is the main parameter for cell detection, 2-dimensional if Y and X are different (e.g. [6 12])
-            'tau':  0.7, # this is the main parameter for deconvolution
+            'tau':  0.7, # this is the main parameter for deconvolution : 0.7 is the value for GCaMP6f
             'fs': 30.,  # sampling rate (total across planes)
             # output settings
             'save_mat': False, # whether to save output as matlab files
@@ -135,6 +135,7 @@ class caImagingSuite2p:
             'nsvd_for_roi': 1000, # max number of SVD components to keep for ROI detection
             'max_iterations': 20, # maximum number of iterations to do cell detection
             'ratio_neuropil': 6., # ratio between neuropil basis size and cell radius
+            'anatomical_only': 2.0, #
             'ratio_neuropil_to_cell': 3, # minimum ratio between neuropil radius and cell radius
             'tile_factor': 1., # use finer (>1) or coarser (<1) tiles for neuropil estimation during cell detection
             'threshold_scaling': 1., # adjust the automatically determined threshold by this scalar multiplier

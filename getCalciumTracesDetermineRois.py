@@ -9,7 +9,7 @@ import tools.caImagingSuite2p as caImaging
 import pdb
 import sys
 
-mouseD = '201014_f86' # id of the mouse to analyze
+mouseD = '201211_m45' # id of the mouse to analyze
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='some'     # 'all or 'some'
 

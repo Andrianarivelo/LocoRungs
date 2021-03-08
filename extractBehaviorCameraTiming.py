@@ -9,8 +9,8 @@ import tools.openCVImageProcessingTools as openCVImageProcessingTools
 import pdb
 import sys
 
-
-mouseD = '201017_m99' #'200801_m58' # id of the mouse to analyze
+mouseD = '201211_m45'
+#mouseD = '201017_m99' #'200801_m58' # id of the mouse to analyze
 #mouseD = '190108_m24'
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='some'     # 'all or 'some'
@@ -51,7 +51,7 @@ for f in range(len(foldersRecordings)):
         (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
         (existenceLEDControl, fileHandleLED) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput')
         (currentCoodinatesExist,SavedLEDcoordinates) = eSD.checkForLEDPositionCoordinates(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r)
-        (erroneousFramesExist,idxToExclude) = eSD.checkForErroneousFramesIdx(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r,determineAgain=False)
+        (erroneousFramesExist,idxToExclude) = eSD.checkForErroneousFramesIdx(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r,determineAgain=True)
         # if camera was recorded
         if existenceFrames:
             #print('exists',foldersRecordings[f][0],foldersRecordings[f][2][r])

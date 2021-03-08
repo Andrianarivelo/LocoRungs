@@ -468,6 +468,7 @@ class extractSaveData:
     ############################################################
     def saveLEDPositionCoordinates(self,groupNames,coordinates):
         (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+        #pdb.set_trace()
         self.h5pyTools.createOverwriteDS(grpHandle, 'LEDcoordinates', np.column_stack((coordinates[1],coordinates[2])),[['nLED',coordinates[0]],['circleRadius',coordinates[3]]])
 
     ############################################################
@@ -526,6 +527,8 @@ class extractSaveData:
         else:
             print('idx of erroneous frames exist')
             excludeIdxExist = True
+            if np.array_equal(idxExc,np.array([-1])):
+                idxExc = np.array([],dtype=int)
             if determineAgain:
                 return (False, idxExc)
             else:
@@ -534,10 +537,14 @@ class extractSaveData:
     ############################################################
     def saveErroneousFramesIdx(self, groupNames, idxToExclude):
         # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
-        print(groupNames)
+        #print(groupNames)
         (grpName,grpHandle) = self.h5pyTools.getH5GroupName(self.f,groupNames)
-        print(grpName,grpHandle)
+        #print(grpName,grpHandle)
+        if len(idxToExclude) == 0:
+            idxToExclude = np.array([-1])
+            #pdb.set_trace()
         self.h5pyTools.createOverwriteDS(grpHandle,'idxToExclude',idxToExclude)
+        self.f.flush()
         print('saved successfully', idxToExclude)
 
     ############################################################

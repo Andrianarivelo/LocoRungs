@@ -16,10 +16,10 @@ import scipy.stats as stats
 
 
 mouseD = '190101_f15' # id of the mouse to analyze
-expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='all'     # 'all or 'some'
 
-readDataAgain = False
+readDataAgain = True
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -36,7 +36,7 @@ else:
     expDate = args.date
 
 eSD         = extractSaveData.extractSaveData(mouse)
-(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings)  # get recordings for specific mouse and date
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(expDate=expDate,recordings=recordings)  # get recordings for specific mouse and date
 cV = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
 #########################################################
@@ -45,13 +45,13 @@ if os.path.isfile(eSD.analysisLocation + '/allSingStanceDataPerSession.p') and n
     recordingsM = pickle.load( open( eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'rb' ) )
 else:
     recordingsM = []
-    for f in range(1,len(foldersRecordings)):
+    for f in range(len(foldersRecordings)):
         # loop over all recordings in that folder
         tracks = []
         pawTracks = []
         rungMotion = []
         swingPhases = []
-        for r in range(len(foldersRecordings[f][2])):
+        for r in range(1,len(foldersRecordings[f][2])):
             # read rotary encoder data for wheel speed
             (rotaryExistence, rotFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'RotaryEncoder')
             if rotaryExistence:
@@ -66,7 +66,7 @@ else:
                 rungMotion.append([mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],rungPositions])
 
             if rotaryExistence and camExistence:
-                (swingP,forFit) = dataAnalysis.findStancePhases(tracks[-1],pawTracks[-1],rungMotion[-1],showFigFit=False,showFigPaw=False)
+                (swingP,forFit) = dataAnalysis.findStancePhases(tracks[-1],pawTracks[-1],rungMotion[-1],showFigFit=False,showFigPaw=True)
                 #pdb.set_trace()
                 print(len(swingP[0][1]),len(swingP[1][1]),len(swingP[2][1]),len(swingP[3][1]))
                 swingPhases.append([mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],swingP,forFit])
