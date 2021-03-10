@@ -116,6 +116,7 @@ class caImagingSuite2p:
         #}
         #print(self.ops)
 
+
     ############################################################
 
     def runSuite2pPipeline(self):
