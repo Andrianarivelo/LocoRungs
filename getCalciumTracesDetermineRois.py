@@ -6,6 +6,7 @@ args = tools.argparser.parse_args()
 import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import tools.caImagingSuite2p as caImaging
+import os
 import pdb
 import sys
 
@@ -56,9 +57,16 @@ for f in range(len(foldersRecordings)):
         if not onAllData:
             for i in range(len(specificTiffLists)): # loop over the the lists of tiff files to analyze
                 print('analysis on :',specificTiffLists[i])
-                caI.setSuite2pParameters(recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
+                #inputList = []
+                #inputList.append(recLocation)
+                #inputList.append(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1])
+                #saveLocation = eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1]
+                #inputList.extend(specificTiffLists[i][0])
+                #pdb.set_trace()
+                #os.system(eSD.suite2pPath+' tools/runSuite2p.py %s %s ' % (recLocation,saveLocation) + ' '.join(specificTiffLists[i][0]) )
+                caI.runSuite2pPipeline(eSD.suite2pPath,recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
                 #
-                caI.runSuite2pPipeline()
+                #caI.runSuite2pPipeline()
                 #
                 eSD.extractAndSaveCaTimeStamps(recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
                 #
@@ -66,9 +74,9 @@ for f in range(len(foldersRecordings)):
                 #pdb.set_trace()
 
 # pdb.set_trace()
-if onAllData:
-    caI.setSuite2pParameters(dataDirs,eSD.analysisLocation+'suite2p/')
-    caI.runSuite2pPipeline()
+#if onAllData:
+#    caI.setSuite2pParameters(dataDirs,eSD.analysisLocation+'suite2p/')
+#    caI.runSuite2pPipeline()
 
 
 

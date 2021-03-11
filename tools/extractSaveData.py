@@ -29,12 +29,15 @@ class extractSaveData:
         if platform.node() == 'thinkpadX1' or platform.node() == 'thinkpadX1B':
             laptop = True
             self.analysisBase = '/media/HDnyc_data/'
+            self.suite2pPath = '/home/mgraupe/.miniconda2/envs/suite2p/bin/python'
         elif platform.node() == 'otillo':
             laptop = False
             self.analysisBase = '/media/paris_data/'
+            self.suite2pPath = '/home/mgraupe/anaconda3/envs/suite2p/bin/python'
         elif platform.node() == 'yamal' or platform.node() == 'cerebellum-HP' or  platform.node() == 'andry-ThinkPad-X1-Carbon-2nd' or platform.node() == 'OptiPlex-7070':
             laptop = False
             self.analysisBase = '/media/HDnyc_data/'
+            self.suite2pPath = '/home/andry/anaconda3/envs/suite2p/bin/python'
         elif platform.node() == 'bs-analysis':   # andry-ThinkPad-X1-Carbon-2nd
             laptop = False
             self.analysisBase = '/home/mgraupe/nyc_data/'
