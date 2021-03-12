@@ -1,0 +1,2924 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1927.8927"
+   height="1042.123"
+   id="svg32299"
+   version="1.1"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="analysisOverview.svg"
+   inkscape:export-filename="/home/mgraupe/daten/creative_works/talks/talk_progress_report_MLIwalking_18-01-09/misc/experiment_sketch.png"
+   inkscape:export-xdpi="600"
+   inkscape:export-ydpi="600">
+  <defs
+     id="defs32301">
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1646"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path1644"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <rect
+       x="89.45837"
+       y="400.32427"
+       width="533.98166"
+       height="192.11707"
+       id="rect1551" />
+    <rect
+       x="90.93263"
+       y="402.24269"
+       width="476.71168"
+       height="195.52621"
+       id="rect1545" />
+    <marker
+       inkscape:stockid="Arrow1Mstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="marker5389"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path5387"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.4) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="marker5079"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path5077"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.4) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="marker4775"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path4518"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.4) translate(10,0)" />
+    </marker>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient1591">
+      <stop
+         style="stop-color:#00ccff;stop-opacity:1"
+         offset="0"
+         id="stop1587" />
+      <stop
+         style="stop-color:#00ccff;stop-opacity:0"
+         offset="1"
+         id="stop1589" />
+    </linearGradient>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1654"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#999999;fill-opacity:1;fill-rule:evenodd;stroke:#999999;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1652"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <linearGradient
+       id="linearGradient1554"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#4d4d4d;stop-opacity:0;"
+         offset="0"
+         id="stop1552" />
+      <stop
+         style="stop-color:#4d4d4d;stop-opacity:1;"
+         offset="1"
+         id="stop1550" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient1433">
+      <stop
+         style="stop-color:#4d4d4d;stop-opacity:1;"
+         offset="0"
+         id="stop1429" />
+      <stop
+         style="stop-color:#4d4d4d;stop-opacity:0;"
+         offset="1"
+         id="stop1431" />
+    </linearGradient>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker5021"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path5019" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker11253"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#800080;fill-opacity:1;fill-rule:evenodd;stroke:#800080;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path11251"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend"
+       style="overflow:visible"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         id="path4919"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="-301.24979 : 629.31268 : 1"
+       inkscape:vp_y="972.80461 : 231.62727 : 0"
+       inkscape:vp_z="148.76761 : -543.18562 : 1"
+       inkscape:persp3d-origin="-16.059491 : -102.9642 : 1"
+       id="perspective4751" />
+    <linearGradient
+       id="linearGradient5407">
+      <stop
+         style="stop-color:#ff0000;stop-opacity:0.66153848;"
+         offset="0"
+         id="stop5409" />
+      <stop
+         style="stop-color:#ff0000;stop-opacity:0;"
+         offset="1"
+         id="stop5411" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient5383"
+       osb:paint="solid">
+      <stop
+         style="stop-color:#ff0000;stop-opacity:1;"
+         offset="0"
+         id="stop5385" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3937">
+      <stop
+         id="stop3939"
+         offset="0"
+         style="stop-color:#ff0000;stop-opacity:0.7153846;" />
+      <stop
+         id="stop3941"
+         offset="1"
+         style="stop-color:#ff0000;stop-opacity:0;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3929">
+      <stop
+         id="stop3943"
+         offset="0"
+         style="stop-color:#ff0000;stop-opacity:0.49803922;" />
+      <stop
+         style="stop-color:#ff0000;stop-opacity:0;"
+         offset="1"
+         id="stop3933" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient33368">
+      <stop
+         style="stop-color:#f2d7c6;stop-opacity:1;"
+         offset="0"
+         id="stop33370" />
+      <stop
+         style="stop-color:#f2d7c6;stop-opacity:0;"
+         offset="1"
+         id="stop33372" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient33358">
+      <stop
+         id="stop33360"
+         offset="0"
+         style="stop-color:#e2b597;stop-opacity:1;" />
+      <stop
+         id="stop33362"
+         offset="1"
+         style="stop-color:#e2b597;stop-opacity:0;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient33348">
+      <stop
+         style="stop-color:#e2b597;stop-opacity:0.03076923;"
+         offset="0"
+         id="stop33384" />
+      <stop
+         style="stop-color:#e2b597;stop-opacity:1;"
+         offset="1"
+         id="stop33352" />
+    </linearGradient>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient33368"
+       id="radialGradient33374"
+       cx="193.28308"
+       cy="267.75259"
+       fx="193.28308"
+       fy="267.75259"
+       r="24.722569"
+       gradientTransform="matrix(2.4134282,-0.74021754,0.57353358,1.8699667,-1429.585,-553.17388)"
+       gradientUnits="userSpaceOnUse" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient33348"
+       id="radialGradient33386"
+       cx="134.44186"
+       cy="284.99792"
+       fx="134.44186"
+       fy="284.99792"
+       r="87.870285"
+       gradientTransform="matrix(-0.74588328,0.86894146,-0.76571098,-0.65727209,-590.52053,-74.921166)"
+       gradientUnits="userSpaceOnUse" />
+    <marker
+       style="overflow:visible"
+       id="Arrow2Mstart-0-5N"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mstart-0-5N">
+      <path
+         transform="scale(0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#4d4d4d;fill-rule:evenodd;stroke:#4d4d4d;stroke-width:0.625;stroke-linejoin:round"
+         id="path61709-5"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="marker3390-72-6s"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker3390-72-6s"
+       style="overflow:visible">
+      <path
+         id="path61712"
+         style="font-size:12px;fill:#4d4d4d;fill-rule:evenodd;stroke:#4d4d4d;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker53785"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mstart-0-5N">
+      <path
+         transform="scale(0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#4d4d4d;fill-rule:evenodd;stroke:#4d4d4d;stroke-width:0.625;stroke-linejoin:round"
+         id="path53787"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="marker3390-72-6s"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker53789"
+       style="overflow:visible">
+      <path
+         id="path53791"
+         style="font-size:12px;fill:#4d4d4d;fill-rule:evenodd;stroke:#4d4d4d;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3937"
+       id="linearGradient5395"
+       x1="855.09412"
+       y1="207.74838"
+       x2="910.14746"
+       y2="207.74838"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="rotate(-90,882.6208,207.74841)" />
+    <marker
+       style="overflow:visible"
+       id="DotMg"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path5189" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker3124"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path3126" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker3128"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path3130" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker3132"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path3134" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker3136"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path3138" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker3140"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path3142" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker3144"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path3146" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker3148"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path3150" />
+    </marker>
+    <linearGradient
+       id="linearGradient3997">
+      <stop
+         id="stop4001"
+         offset="0"
+         style="stop-color:#ff0000;stop-opacity:0;" />
+      <stop
+         id="stop3999"
+         offset="1"
+         style="stop-color:#ff0000;stop-opacity:0.68461537;" />
+    </linearGradient>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Mend-2"
+       style="overflow:visible"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4925-9"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker11253-2"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#800080;fill-opacity:1;fill-rule:evenodd;stroke:#800080;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path11251-7" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="DotMg-9"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path5189-3" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker4597"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path4595" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker4601"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path4599" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker4605"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path4603" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker4609"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path4607" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker4613"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path4611" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker5021-5"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#ff0000;fill-opacity:1;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path5019-3" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker5021-6"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path5019-2" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker5021-6-9"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path5019-2-3" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker5021-6-9-9"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path5019-2-3-4" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker5021-6-9-9-8"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path5019-2-3-4-4" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker5021-6-9-9-8-0"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path5019-2-3-4-4-3" />
+    </marker>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1433"
+       id="linearGradient1435"
+       x1="493.37683"
+       y1="-39.834862"
+       x2="493.26511"
+       y2="-46.758114"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1433"
+       id="linearGradient1489"
+       gradientUnits="userSpaceOnUse"
+       x1="136.27658"
+       y1="493.98184"
+       x2="146.63548"
+       y2="489.68869"
+       gradientTransform="translate(-1.1304454,5.8925457)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1433"
+       id="linearGradient1489-3"
+       gradientUnits="userSpaceOnUse"
+       x1="136.27658"
+       y1="493.98184"
+       x2="146.63548"
+       y2="489.68869"
+       gradientTransform="translate(-1.1304454,5.8925457)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1433"
+       id="linearGradient1489-3-6"
+       gradientUnits="userSpaceOnUse"
+       x1="136.27658"
+       y1="493.98184"
+       x2="146.63548"
+       y2="489.68869"
+       gradientTransform="translate(-1.1304454,5.8925457)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1433"
+       id="linearGradient1489-3-6-0"
+       gradientUnits="userSpaceOnUse"
+       x1="136.27658"
+       y1="493.98184"
+       x2="146.63548"
+       y2="489.68869"
+       gradientTransform="translate(-1.1304454,5.8925457)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1433"
+       id="linearGradient1489-3-6-0-2"
+       gradientUnits="userSpaceOnUse"
+       x1="136.27658"
+       y1="493.98184"
+       x2="146.63548"
+       y2="489.68869"
+       gradientTransform="translate(-1.1304454,5.8925457)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1433"
+       id="linearGradient1489-3-6-0-2-2"
+       gradientUnits="userSpaceOnUse"
+       x1="136.27658"
+       y1="493.98184"
+       x2="146.63548"
+       y2="489.68869"
+       gradientTransform="translate(-1.1304454,5.8925457)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1433"
+       id="linearGradient1489-3-6-0-2-2-9"
+       gradientUnits="userSpaceOnUse"
+       x1="136.27658"
+       y1="493.98184"
+       x2="146.63548"
+       y2="489.68869"
+       gradientTransform="translate(-1.1304454,5.8925457)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1433"
+       id="linearGradient1489-3-6-0-2-2-3"
+       gradientUnits="userSpaceOnUse"
+       x1="136.27658"
+       y1="493.98184"
+       x2="146.63548"
+       y2="489.68869"
+       gradientTransform="translate(-1.1304454,5.8925457)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5407"
+       id="linearGradient5413-3"
+       x1="1035.2314"
+       y1="532.46649"
+       x2="930.49506"
+       y2="529.5816"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0,1.227571,-1.4855801,0,2056.9938,-914.01466)" />
+    <marker
+       style="overflow:visible"
+       id="DotMg-0"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path5189-6" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker182"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path180" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker186"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path184" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker190"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path188" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker194"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path192" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker198"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotMg">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:#0000ff;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.00000003pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path196" />
+    </marker>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1554"
+       id="radialGradient2141"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-0.77704835,0.02447184,-0.02891919,-0.91912044,797.21483,447.60529)"
+       cx="244.88202"
+       cy="218.04025"
+       fx="244.88202"
+       fy="218.04025"
+       r="28.665339" />
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1654-7"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#999999;fill-opacity:1;fill-rule:evenodd;stroke:#999999;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1652-0"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1654-7-3"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#999999;fill-opacity:1;fill-rule:evenodd;stroke:#999999;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1652-0-6"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1654-6"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#999999;fill-opacity:1;fill-rule:evenodd;stroke:#999999;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1652-2"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1654-7-3-0"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#999999;fill-opacity:1;fill-rule:evenodd;stroke:#999999;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1652-0-6-8"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker5021-5-5"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#ff0000;fill-opacity:1;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path5019-3-4" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker9395"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path9393"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mstart"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path9090"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath2478">
+      <path
+         d="m 63,909.18201 h 177.54545 v 74.75598 H 63 Z"
+         id="path2476"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath2984">
+      <path
+         d="m 63,314.88 h 390.6 v 134.4 H 63 Z"
+         id="path2982"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath2974">
+      <path
+         d="m 63,314.88 h 390.6 v 134.4 H 63 Z"
+         id="path2972"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath2726">
+      <path
+         d="M 63,691.2 H 453.6 V 825.6 H 63 Z"
+         id="path2724"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       id="clipPath1268"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         inkscape:connector-curvature="0"
+         id="path1266"
+         d="M -665,-325 H 2029 V 1038 H -665 Z" />
+    </clipPath>
+    <clipPath
+       id="clipPath1022"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         inkscape:connector-curvature="0"
+         id="path1020"
+         d="M -665,-325 H 2029 V 1038 H -665 Z" />
+    </clipPath>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1654-7-3-5"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#999999;fill-opacity:1;fill-rule:evenodd;stroke:#999999;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1652-0-6-6"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1654-7-3-5-7"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#999999;fill-opacity:1;fill-rule:evenodd;stroke:#999999;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1652-0-6-6-0"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1591"
+       id="linearGradient1593"
+       x1="539.06592"
+       y1="602.85101"
+       x2="493.84213"
+       y2="419.27963"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(357.41212,34.670934)" />
+    <marker
+       inkscape:stockid="Arrow2Mstart-0-5N9"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Mstart-0-5N9"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path6065"
+         style="stroke-linejoin:round;stroke-opacity:1;fill-rule:evenodd;fill-opacity:1;stroke:#000000;stroke-width:0.625;fill:#000000"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(0.6)" />
+    </marker>
+    <marker
+       inkscape:collect="always"
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="Arrow2Mend-2-3Z"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend-2-3Z">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="stroke-linejoin:round;stroke-opacity:1;fill-rule:evenodd;fill-opacity:1;stroke:#000000;stroke-width:0.625;fill:#000000"
+         id="path6068"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <rect
+       x="89.458366"
+       y="400.32428"
+       width="544.17195"
+       height="189.76268"
+       id="rect1551-3" />
+    <rect
+       x="89.458366"
+       y="400.32428"
+       width="533.98169"
+       height="192.11707"
+       id="rect1489" />
+    <rect
+       x="89.458366"
+       y="400.32428"
+       width="544.17194"
+       height="189.76268"
+       id="rect1551-3-2" />
+    <rect
+       x="89.458366"
+       y="400.32428"
+       width="544.17194"
+       height="189.76268"
+       id="rect2107" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1646-9"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path1644-0"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <rect
+       x="89.458366"
+       y="400.32428"
+       width="544.17194"
+       height="189.76268"
+       id="rect1551-3-2-9" />
+    <rect
+       x="89.458366"
+       y="400.32428"
+       width="544.17194"
+       height="189.76268"
+       id="rect2678" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1646-9-4"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path1644-0-8"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend-6"
+       style="overflow:visible"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         id="path4919-7"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <rect
+       x="89.458366"
+       y="400.32428"
+       width="547.04635"
+       height="248.01087"
+       id="rect1551-37" />
+    <rect
+       x="89.458366"
+       y="400.32428"
+       width="533.98169"
+       height="192.11707"
+       id="rect3718" />
+    <rect
+       x="89.458366"
+       y="400.32428"
+       width="544.17194"
+       height="189.76268"
+       id="rect1551-3-2-9-1" />
+    <rect
+       x="89.458366"
+       y="400.32428"
+       width="544.17194"
+       height="189.76268"
+       id="rect3825" />
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1646-9-4-9"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path1644-0-8-0"
+         style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#666666;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="1"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="1153.0813"
+     inkscape:cy="412.23057"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="2139"
+     inkscape:window-height="1235"
+     inkscape:window-x="274"
+     inkscape:window-y="58"
+     inkscape:window-maximized="0"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:snap-grids="false"
+     inkscape:snap-to-guides="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-others="false"
+     inkscape:snap-nodes="false"
+     inkscape:document-rotation="0">
+    <sodipodi:guide
+       inkscape:locked="false"
+       id="guide3120"
+       position="832.86838,741.55813"
+       orientation="0,1" />
+    <sodipodi:guide
+       inkscape:locked="false"
+       id="guide6026"
+       orientation="0,1"
+       position="816.16012,649.5282" />
+    <sodipodi:guide
+       inkscape:locked="false"
+       id="guide13355"
+       orientation="1,0"
+       position="661.41075,686.88976" />
+    <sodipodi:guide
+       inkscape:locked="false"
+       id="guide4826"
+       orientation="0,1"
+       position="526.79455,442.95189" />
+    <sodipodi:guide
+       inkscape:locked="false"
+       id="guide2904"
+       orientation="1,0"
+       position="245.37345,938.46388" />
+    <sodipodi:guide
+       inkscape:locked="false"
+       id="guide2906"
+       orientation="1,0"
+       position="1928.674,431.59347" />
+    <sodipodi:guide
+       inkscape:locked="false"
+       id="guide2926"
+       orientation="1,0"
+       position="3.7059478,960.29588" />
+    <sodipodi:guide
+       inkscape:locked="false"
+       id="guide2612"
+       orientation="1,0"
+       position="790.44437,77.27667" />
+    <sodipodi:guide
+       inkscape:locked="false"
+       id="guide2472"
+       orientation="0,1"
+       position="2040.5081,-416.18285" />
+    <sodipodi:guide
+       position="1602.1428,410.69448"
+       orientation="1,0"
+       id="guide4364" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata32304">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-65.703051,-72.868651)">
+    <rect
+       style="fill:#f4eed7;stroke:#a0892c;stroke-width:1.78534;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1533"
+       width="1827.9846"
+       height="938.99225"
+       x="24.731398"
+       y="114.63232"
+       ry="29.069832"
+       rx="29.069832" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.14418;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 581.85161,274.06161 c 8.00244,16.8562 52.95228,79.17307 54.99543,82.57835"
+       id="path33250"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#e6e6e6;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 682.35967,407.29593 46.22794,74.48265 80.36512,138.2773 h 107.21974 l 79.8574,-175.74998 -45.99229,-74.71128 c 0,0 -128.85556,3.58267 -193.87377,14.75839 -42.93336,7.37964 -73.80414,22.94292 -73.80414,22.94292 z"
+       id="path1481"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccsc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:type="star"
+       style="opacity:1;fill:#ac939d;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.99937;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1892"
+       sodipodi:sides="24"
+       sodipodi:cx="505.31061"
+       sodipodi:cy="582.32983"
+       sodipodi:r1="73.292404"
+       sodipodi:r2="89.380966"
+       sodipodi:arg1="0.86153934"
+       sodipodi:arg2="0.99243903"
+       inkscape:flatsided="false"
+       inkscape:rounded="0.23"
+       inkscape:randomized="0"
+       d="m 553.04376,637.94748 c -3.36146,2.88493 4.83613,16.80507 1.12688,19.22656 -3.70926,2.42149 -13.15466,-10.68405 -17.14825,-8.76744 -3.9936,1.91662 0.32187,17.48414 -3.88772,18.86309 -4.2096,1.37895 -9.94119,-13.72468 -14.29476,-12.90698 -4.35357,0.81769 -4.21432,16.97168 -8.63738,17.21412 -4.42306,0.24244 -6.05024,-15.82999 -10.4671,-16.16694 -4.41686,-0.33696 -8.46331,15.30263 -12.79841,14.39204 -4.33509,-0.91059 -1.74698,-16.85651 -5.92613,-18.32515 -4.17915,-1.46864 -12.13555,12.59075 -16.08725,10.58918 -3.9517,-2.00157 2.67533,-16.73429 -0.9813,-19.23453 -3.65664,-2.50025 -14.98077,9.02081 -18.27978,6.06467 -3.299,-2.95614 6.91533,-15.47166 4.0304,-18.83311 -2.88493,-3.36146 -16.80507,4.83613 -19.22656,1.12687 -2.42149,-3.70926 10.68406,-13.15465 8.76744,-17.14825 -1.91662,-3.99359 -17.48413,0.32188 -18.86309,-3.88772 -1.37895,-4.20959 13.72468,-9.94118 12.90699,-14.29476 -0.8177,-4.35357 -16.97169,-4.21431 -17.21413,-8.63737 -0.24244,-4.42306 15.82999,-6.05024 16.16695,-10.46711 0.33695,-4.41686 -15.30264,-8.46331 -14.39205,-12.7984 0.91059,-4.3351 16.85651,-1.74698 18.32515,-5.92613 1.46864,-4.17916 -12.59075,-12.13555 -10.58918,-16.08725 2.00157,-3.9517 16.73429,2.67533 19.23454,-0.98131 2.50024,-3.65664 -9.02082,-14.98076 -6.06468,-18.27977 2.95614,-3.29901 15.47166,6.91533 18.83312,4.0304 3.36145,-2.88493 -4.83614,-16.80507 -1.12688,-19.22656 3.70926,-2.42149 13.15466,10.68405 17.14825,8.76743 3.99359,-1.91661 -0.32188,-17.48413 3.88772,-18.86308 4.2096,-1.37895 9.94119,13.72468 14.29476,12.90698 4.35357,-0.81769 4.21432,-16.97168 8.63737,-17.21412 4.42306,-0.24244 6.05024,15.82999 10.46711,16.16694 4.41686,0.33696 8.46331,-15.30264 12.7984,-14.39205 4.3351,0.91059 1.74699,16.85651 5.92614,18.32516 4.17915,1.46864 12.13554,-12.59075 16.08725,-10.58918 3.9517,2.00156 -2.67534,16.73429 0.9813,19.23453 3.65664,2.50025 14.98076,-9.02082 18.27977,-6.06467 3.29901,2.95614 -6.91532,15.47165 -4.0304,18.83311 2.88493,3.36146 16.80507,-4.83613 19.22656,-1.12687 2.42149,3.70925 -10.68405,13.15465 -8.76743,17.14825 1.91662,3.99359 17.48413,-0.32188 18.86308,3.88772 1.37896,4.20959 -13.72467,9.94118 -12.90698,14.29475 0.81769,4.35358 16.97168,4.21432 17.21412,8.63738 0.24245,4.42306 -15.82998,6.05024 -16.16694,10.4671 -0.33696,4.41687 15.30264,8.46332 14.39205,12.79841 -0.91059,4.33509 -16.85651,1.74698 -18.32516,5.92613 -1.46864,4.17915 12.59075,12.13555 10.58919,16.08725 -2.00157,3.9517 -16.7343,-2.67533 -19.23454,0.98131 -2.50024,3.65663 9.02082,14.98076 6.06468,18.27977 -2.95614,3.299 -15.47166,-6.91533 -18.83312,-4.0304 z"
+       transform="rotate(3.1114467,45.725144,7179.6182)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:url(#linearGradient1593);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 767.82945,529.37692 217.85715,-42.14286 -66.42857,-69.28572 -210,40.7143 z"
+       id="path1585"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#999999;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 727.7554,477.95173 C 853.92474,429.63836 937.02733,433.76012 995.77737,441.52798"
+       id="path1657"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <g
+       id="g207"
+       transform="rotate(-10.859866,99.399264,-2913.4701)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600">
+      <path
+         sodipodi:nodetypes="cccccc"
+         inkscape:connector-curvature="0"
+         id="path1462"
+         d="m 119.49932,449.61984 30.17853,77.85577 9.55361,-1.69506 -32.23213,-76.25 c -0.74089,-2.71337 -7.02395,-3.53585 -7.50001,0.0893 z"
+         style="fill:url(#linearGradient1489);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         d="m 158.94238,526.56042 a 4.498332,3.6302257 0 0 1 -4.47225,3.63017 4.498332,3.6302257 0 0 1 -4.52411,-3.58806 4.498332,3.6302257 0 0 1 4.41977,-3.67178 4.498332,3.6302257 0 0 1 4.57538,3.54548 l -4.49712,0.0842 z"
+         sodipodi:end="6.2599899"
+         sodipodi:start="0"
+         sodipodi:ry="3.6302257"
+         sodipodi:rx="4.498332"
+         sodipodi:cy="526.56042"
+         sodipodi:cx="154.44405"
+         sodipodi:type="arc"
+         id="path1437"
+         style="opacity:1;fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:#4d4d4d;stroke-width:1.00157;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         sodipodi:arc-type="slice" />
+    </g>
+    <g
+       id="g207-5"
+       transform="rotate(-10.859866,123.4733,-3939.5899)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600">
+      <path
+         sodipodi:nodetypes="cccccc"
+         inkscape:connector-curvature="0"
+         id="path1462-3"
+         d="m 119.49932,449.61984 30.17853,77.85577 9.55361,-1.69506 -32.23213,-76.25 c -0.74089,-2.71337 -7.02395,-3.53585 -7.50001,0.0893 z"
+         style="fill:url(#linearGradient1489-3);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         d="m 158.94238,526.56042 a 4.498332,3.6302257 0 0 1 -4.47225,3.63017 4.498332,3.6302257 0 0 1 -4.52411,-3.58806 4.498332,3.6302257 0 0 1 4.41977,-3.67178 4.498332,3.6302257 0 0 1 4.57538,3.54548 l -4.49712,0.0842 z"
+         sodipodi:end="6.2599899"
+         sodipodi:start="0"
+         sodipodi:ry="3.6302257"
+         sodipodi:rx="4.498332"
+         sodipodi:cy="526.56042"
+         sodipodi:cx="154.44405"
+         sodipodi:type="arc"
+         id="path1437-5"
+         style="opacity:1;fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:#4d4d4d;stroke-width:1.00157;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         sodipodi:arc-type="slice" />
+    </g>
+    <g
+       id="g207-5-1"
+       transform="rotate(-10.859866,131.19051,-2723.284)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600">
+      <path
+         sodipodi:nodetypes="cccccc"
+         inkscape:connector-curvature="0"
+         id="path1462-3-2"
+         d="m 119.49932,449.61984 30.17853,77.85577 9.55361,-1.69506 -32.23213,-76.25 c -0.74089,-2.71337 -7.02395,-3.53585 -7.50001,0.0893 z"
+         style="fill:url(#linearGradient1489-3-6);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         d="m 158.94238,526.56042 a 4.498332,3.6302257 0 0 1 -4.47225,3.63017 4.498332,3.6302257 0 0 1 -4.52411,-3.58806 4.498332,3.6302257 0 0 1 4.41977,-3.67178 4.498332,3.6302257 0 0 1 4.57538,3.54548 l -4.49712,0.0842 z"
+         sodipodi:end="6.2599899"
+         sodipodi:start="0"
+         sodipodi:ry="3.6302257"
+         sodipodi:rx="4.498332"
+         sodipodi:cy="526.56042"
+         sodipodi:cx="154.44405"
+         sodipodi:type="arc"
+         id="path1437-5-7"
+         style="opacity:1;fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:#4d4d4d;stroke-width:1.00157;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         sodipodi:arc-type="slice" />
+    </g>
+    <g
+       id="g207-5-1-6"
+       transform="rotate(-10.859866,186.86277,-2514.0765)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600">
+      <path
+         sodipodi:nodetypes="cccccc"
+         inkscape:connector-curvature="0"
+         id="path1462-3-2-0"
+         d="m 119.49932,449.61984 30.17853,77.85577 9.55361,-1.69506 -32.23213,-76.25 c -0.74089,-2.71337 -7.02395,-3.53585 -7.50001,0.0893 z"
+         style="fill:url(#linearGradient1489-3-6-0);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         d="m 158.94238,526.56042 a 4.498332,3.6302257 0 0 1 -4.47225,3.63017 4.498332,3.6302257 0 0 1 -4.52411,-3.58806 4.498332,3.6302257 0 0 1 4.41977,-3.67178 4.498332,3.6302257 0 0 1 4.57538,3.54548 l -4.49712,0.0842 z"
+         sodipodi:end="6.2599899"
+         sodipodi:start="0"
+         sodipodi:ry="3.6302257"
+         sodipodi:rx="4.498332"
+         sodipodi:cy="526.56042"
+         sodipodi:cx="154.44405"
+         sodipodi:type="arc"
+         id="path1437-5-7-6"
+         style="opacity:1;fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:#4d4d4d;stroke-width:1.00157;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         sodipodi:arc-type="slice" />
+    </g>
+    <g
+       id="g207-5-1-6-8-3"
+       transform="rotate(-10.859866,71.383514,-3527.0375)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600">
+      <path
+         sodipodi:nodetypes="cccccc"
+         inkscape:connector-curvature="0"
+         id="path1462-3-2-0-7-7"
+         d="m 119.49932,449.61984 30.17853,77.85577 9.55361,-1.69506 -32.23213,-76.25 c -0.74089,-2.71337 -7.02395,-3.53585 -7.50001,0.0893 z"
+         style="fill:url(#linearGradient1489-3-6-0-2-2);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         d="m 158.94238,526.56042 a 4.498332,3.6302257 0 0 1 -4.47225,3.63017 4.498332,3.6302257 0 0 1 -4.52411,-3.58806 4.498332,3.6302257 0 0 1 4.41977,-3.67178 4.498332,3.6302257 0 0 1 4.57538,3.54548 l -4.49712,0.0842 z"
+         sodipodi:end="6.2599899"
+         sodipodi:start="0"
+         sodipodi:ry="3.6302257"
+         sodipodi:rx="4.498332"
+         sodipodi:cy="526.56042"
+         sodipodi:cx="154.44405"
+         sodipodi:type="arc"
+         id="path1437-5-7-6-9-5"
+         style="opacity:1;fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:#4d4d4d;stroke-width:1.00157;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         sodipodi:arc-type="slice" />
+    </g>
+    <g
+       id="g207-5-1-6-8-3-8"
+       transform="rotate(-10.859866,63.773634,-3316.332)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600">
+      <path
+         sodipodi:nodetypes="cccccc"
+         inkscape:connector-curvature="0"
+         id="path1462-3-2-0-7-7-9"
+         d="m 119.49932,449.61984 30.17853,77.85577 9.55361,-1.69506 -32.23213,-76.25 c -0.74089,-2.71337 -7.02395,-3.53585 -7.50001,0.0893 z"
+         style="fill:url(#linearGradient1489-3-6-0-2-2-9);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         d="m 158.94238,526.56042 a 4.498332,3.6302257 0 0 1 -4.47225,3.63017 4.498332,3.6302257 0 0 1 -4.52411,-3.58806 4.498332,3.6302257 0 0 1 4.41977,-3.67178 4.498332,3.6302257 0 0 1 4.57538,3.54548 l -4.49712,0.0842 z"
+         sodipodi:end="6.2599899"
+         sodipodi:start="0"
+         sodipodi:ry="3.6302257"
+         sodipodi:rx="4.498332"
+         sodipodi:cy="526.56042"
+         sodipodi:cx="154.44405"
+         sodipodi:type="arc"
+         id="path1437-5-7-6-9-5-7"
+         style="opacity:1;fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:#4d4d4d;stroke-width:1.00157;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         sodipodi:arc-type="slice" />
+    </g>
+    <g
+       id="g207-5-1-6-8"
+       transform="rotate(-10.859866,73.013714,-3125.368)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600">
+      <path
+         sodipodi:nodetypes="cccccc"
+         inkscape:connector-curvature="0"
+         id="path1462-3-2-0-7"
+         d="m 119.49932,449.61984 30.17853,77.85577 9.55361,-1.69506 -32.23213,-76.25 c -0.74089,-2.71337 -7.02395,-3.53585 -7.50001,0.0893 z"
+         style="fill:url(#linearGradient1489-3-6-0-2);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         d="m 158.94238,526.56042 a 4.498332,3.6302257 0 0 1 -4.47225,3.63017 4.498332,3.6302257 0 0 1 -4.52411,-3.58806 4.498332,3.6302257 0 0 1 4.41977,-3.67178 4.498332,3.6302257 0 0 1 4.57538,3.54548 l -4.49712,0.0842 z"
+         sodipodi:end="6.2599899"
+         sodipodi:start="0"
+         sodipodi:ry="3.6302257"
+         sodipodi:rx="4.498332"
+         sodipodi:cy="526.56042"
+         sodipodi:cx="154.44405"
+         sodipodi:type="arc"
+         id="path1437-5-7-6-9"
+         style="opacity:1;fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:#4d4d4d;stroke-width:1.00157;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         sodipodi:arc-type="slice" />
+    </g>
+    <g
+       id="g207-5-1-6-8-3-2"
+       transform="rotate(-10.859866,85.341754,-3730.1936)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600">
+      <path
+         sodipodi:nodetypes="cccccc"
+         inkscape:connector-curvature="0"
+         id="path1462-3-2-0-7-7-93"
+         d="m 119.49932,449.61984 30.17853,77.85577 9.55361,-1.69506 -32.23213,-76.25 c -0.74089,-2.71337 -7.02395,-3.53585 -7.50001,0.0893 z"
+         style="fill:url(#linearGradient1489-3-6-0-2-2-3);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         d="m 158.94238,526.56042 a 4.498332,3.6302257 0 0 1 -4.47225,3.63017 4.498332,3.6302257 0 0 1 -4.52411,-3.58806 4.498332,3.6302257 0 0 1 4.41977,-3.67178 4.498332,3.6302257 0 0 1 4.57538,3.54548 l -4.49712,0.0842 z"
+         sodipodi:end="6.2599899"
+         sodipodi:start="0"
+         sodipodi:ry="3.6302257"
+         sodipodi:rx="4.498332"
+         sodipodi:cy="526.56042"
+         sodipodi:cx="154.44405"
+         sodipodi:type="arc"
+         id="path1437-5-7-6-9-5-1"
+         style="opacity:1;fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:#4d4d4d;stroke-width:1.00157;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         sodipodi:arc-type="slice" />
+    </g>
+    <path
+       style="fill:#e6b494;fill-opacity:1;stroke:#333333;stroke-width:1.90696;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 752.5118,237.77292 c -3.85267,-13.48428 -16.62817,-5.92098 -20.46728,-14.20663 -5.93505,-12.80971 -0.62379,-44.64796 -10.1132,-46.47257 -5.71381,-1.09866 -12.91817,2.71094 -14.20648,9.39082 -2.52768,13.10459 -7.14354,23.70066 -9.15023,34.91463 -2.59517,14.50406 8.18698,42.86071 8.18698,42.86071"
+       id="path33314"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cssssc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:url(#radialGradient33386);fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:1.90696;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 954.22026,187.73747 c -10.89698,-1.0216 -85.09805,27.5427 -99.77499,30.64761 -19.13273,4.04757 -73.94598,14.6867 -105.56418,21.45336 -28.3176,6.06036 -54.36582,35.44071 -68.78679,56.52784 -5.26045,7.69214 -24.67271,12.51258 -24.51815,17.70753 0.71664,24.07703 -13.40226,36.45946 -24.17752,47.67409 -7.28642,7.58346 -12.98449,27.363 -9.19431,31.32868 11.56396,12.09961 29.3193,13.19096 43.24718,14.64276 5.20891,0.54295 40.78685,-13.3973 47.77895,-15.98669 18.05719,-6.6873 40.49796,-8.33448 60.50943,-12.61777 32.94529,-7.05168 81.98913,-3.65752 105.47893,-9.27942 0.92201,-3.32036 4.1667,-8.42836 7.57674,-12.85497 -3.71073,4.24141 -12.13355,17.635 -6.66309,25.72561 4.21786,6.23806 22.08345,8.35215 24.06225,11.64746 0.9406,1.56639 -12.38195,0.43609 -18.36788,2.75949 -4.83971,1.87846 -12.29742,6.19742 -13.81212,11.62789 5.66081,0.41254 9.32479,-4.12795 13.19558,-7.40652 -0.77253,1.57511 -6.39311,5.86736 -7.48142,10.17634 6.96804,0.99416 12.87511,-6.39338 16.48479,-8.39461 -2.35835,2.59555 -7.19878,6.08503 -7.32999,10.197 13.63097,-0.79347 17.49488,-7.92507 23.10002,-10.3612 -2.89732,3.5479 -2.49927,3.90288 -2.80939,6.47004 9.68355,0.61738 21.57407,-11.64621 20.77241,-14.64277 -1.35172,-5.05264 -19.65635,-9.73257 -25.87618,-15.28357 -4.06082,-3.62415 1.81102,-8.34406 4.39057,-11.27769 8.87447,-1.39382 47.41859,2.04318 47.41859,2.04318"
+       id="path33226"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="csssssssssccssscccccccsscc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.907;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 906.39607,368.32771 c 27.24236,-29.79631 50.72223,-31.50648 34.29159,-62.32436"
+       id="path33228"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#e2b597;fill-opacity:1;stroke:#000000;stroke-width:1.90696;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 784.0554,377.19062 c 0,0 -5.17911,2.87578 -6.74223,7.22372 3.63426,-0.0194 4.92054,-1.07981 6.26053,-2.40791 -1.46852,1.91225 -1.85504,2.14501 -1.92623,5.29739 7.22647,-1.12312 11.45704,-5.09077 13.28468,-6.77134 -2.77306,3.26108 -4.88943,6.32873 -4.05209,8.7853 7.03596,-0.52184 13.84873,-6.84407 16.85797,-9.63161 -2.2773,3.40618 -2.66426,4.52845 -1.53,7.61765 8.02569,-1.68657 17.54142,-12.94925 17.54142,-12.94925"
+       id="path33230"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.14418;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 668.85683,391.71446 c 0,0 31.49888,41.54457 33.8826,54.31442"
+       id="path33232"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.14418;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 668.85683,384.90389 c 5.6187,1.70265 73.7246,52.61176 79.68385,59.25206"
+       id="path33234"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.14418;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 674.30532,384.22281 c 14.98314,10.04562 75.42725,39.67166 83.77023,45.80119"
+       id="path33236"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.14418;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 681.28612,384.39309 c 9.70508,2.3837 53.63331,20.09121 72.53269,32.00974"
+       id="path33238"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.14418;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 677.71058,378.77436 c 20.26149,4.93768 90.41046,22.98571 106.75599,24.34784"
+       id="path33240"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.14418;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 553.41741,374.688 c 0,0 48.6957,-4.42688 71.17063,-1.36211"
+       id="path33242"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.14418;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 543.8826,334.16502 c 29.45578,4.59714 67.08426,25.5397 83.42964,32.69082"
+       id="path33244"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.14418;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 560.56852,318.50069 c 0,0 53.12255,32.52054 69.46793,44.94984"
+       id="path33246"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:1.14418;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 560.228,290.57729 c 9.53482,13.11037 70.31929,66.06265 72.19217,69.80848"
+       id="path33248"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#bec8b7;stroke:#333333;stroke-width:0.953482;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 677.14435,359.13133 c -4.24637,-1.18239 -4.93307,-4.99797 -5.29741,-9.39082 -0.69512,-8.38168 4.46674,-13.8874 8.1869,-21.43036 -1.49331,-15.61765 24.06276,-66.59275 55.14098,-72.47795 17.15256,-6.7104 31.17599,-6.28972 37.8042,-6.26056 15.98895,0.0704 34.58713,2.79149 34.1922,13.48427 -0.14302,3.8938 -13.98965,5.76121 -19.74485,5.2974 0.16782,7.21427 -4.22774,11.52202 -8.90912,14.68821 -1.64671,4.10204 0.94622,8.80243 -10.85276,10.67387 1.24641,5.44455 3.56887,11.62954 0.57783,16.57678 -12.56883,20.78786 -47.07165,37.79213 -63.16629,36.07727 -7.48309,5.98142 -17.97187,15.53517 -27.93168,12.76189 z"
+       id="path33316"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ssccsscccscs"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#1a1a1a;stroke:#1a1a1a;stroke-width:0.953482;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 692.64399,345.36117 c -2.23765,-5.86287 -2.99547,-23.3711 20.2409,-18.3145 2.04671,12.76189 -0.35397,22.60465 -20.2409,18.3145 z"
+       id="path33254"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#cccccc;stroke:#cccccc;stroke-width:0.953482;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 694.89287,339.42811 c -0.45785,-1.18338 -0.61269,-4.71743 4.14017,-3.69674 0.41864,2.57596 -0.0725,4.5627 -4.14017,3.69674 z"
+       id="path33254-2"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#333333;stroke:#333333;stroke-width:0.953482;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 636.10401,401.42817 c -0.35165,-0.90438 -0.47068,-3.60525 3.18032,-2.8252 0.32157,1.96867 -0.0558,3.48701 -3.18032,2.8252 z"
+       id="path33254-2-3"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:url(#radialGradient33374);fill-opacity:1;stroke:#333333;stroke-width:1.90696;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 755.64203,290.02446 c 3.26491,-11.91097 -1.17508,-26.70045 5.29734,-37.56333 8.98945,-15.08702 28.58446,-27.36987 46.12507,-28.23799 17.54272,-0.86824 36.47929,7.56359 39.13913,24.92535 7.14578,46.6445 -15.21779,52.3852 -38.06909,60.1392 -9.91016,3.36272 -22.58054,14.11906 -33.69361,7.64689 -4.11212,-2.3948 -5.56223,-14.26176 -9.5319,-14.53007 -9.86992,-0.6671 -10.50414,-7.86642 -9.26694,-12.38005 z"
+       id="path33312"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ssssssss"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#666666;stroke-width:0.572089;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 680.03384,327.82856 c 3.73226,-0.72237 5.55867,0.27258 7.70527,1.80594 5.81391,4.15279 14.56784,12.15992 16.97577,16.73494"
+       id="path33324"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="csc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#6c6753;fill-opacity:1;stroke:none"
+       d="m 735.19671,255.7197 c 17.15256,-6.7104 31.17599,-6.28972 37.8042,-6.26056 15.98895,0.0704 34.58713,2.79149 34.1922,13.48427 -0.14302,3.8938 -13.98965,5.76121 -19.74485,5.2974 0.16782,7.21427 -4.22774,11.52202 -8.90912,14.68821 -1.64671,4.10204 0.94622,8.80243 -10.85276,10.67387 -2.57033,-13.53765 -18.2379,-27.57626 -30.63378,-26.12321 2.71738,-2.92579 5.27436,-8.95294 -1.85589,-11.75998 z"
+       id="path33316-1"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cssccccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#333333;stroke-width:0.953482;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 677.12961,359.05572 c -4.24637,-1.18239 -4.93307,-4.99797 -5.29741,-9.39082 -0.69512,-8.38167 4.46674,-13.88739 8.1869,-21.43035 -1.49331,-15.61765 24.06276,-66.59275 55.14098,-72.47795 17.15256,-6.7104 31.17599,-6.28972 37.8042,-6.26056 15.98895,0.0704 34.58713,2.79149 34.1922,13.48427 -0.14302,3.8938 -13.98965,5.76121 -19.74485,5.2974 0.16782,7.21427 -4.22774,11.52202 -8.90912,14.68821 -1.64671,4.10204 0.94622,8.80243 -10.85276,10.67387 1.24641,5.44455 3.56887,11.62954 0.57783,16.57678 -12.56883,20.78786 -47.07165,37.79213 -63.16629,36.07727 -7.48309,5.98141 -17.97187,15.53516 -27.93168,12.76188 z"
+       id="path33316-9"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ssccsscccscs"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#666666;stroke-width:0.572089;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 737.10119,267.39016 c 4.81586,-6.14016 2.07337,-9.73281 -1.57369,-11.29389"
+       id="path33322"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#666666;stroke-width:0.572089;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 675.82002,358.40895 c -5.0566,-6.62173 11.79868,-28.77444 11.79868,-28.77444 13.36384,-26.24616 36.84777,-55.60051 49.48249,-62.00356 13.54767,-1.1763 28.86788,13.16227 30.31262,25.44258"
+       id="path33320"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#808080;stroke-width:1.17947px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 760.62155,267.18696 1061.5073,485.16553"
+       id="path33937"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#808080;stroke-width:1.17167px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 762.3907,254.89063 298.6798,-109.7859"
+       id="path33935"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:125%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="739.84937"
+       y="264.40094"
+       id="text4747"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         sodipodi:role="line"
+         id="tspan4745"
+         x="739.84937"
+         y="264.40094"
+         style="font-size:13.3333px;fill:#ffffff">cerebellum</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Mend-2)"
+       d="m 803.40836,592.74626 c 14.76557,-42.69332 83.64667,-54.10585 112.60679,-12.36348"
+       id="path4896-1"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:3;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path10109"
+       sodipodi:type="arc"
+       sodipodi:cx="862.56256"
+       sodipodi:cy="620.05585"
+       sodipodi:rx="53.609871"
+       sodipodi:ry="53.609871"
+       sodipodi:start="0"
+       sodipodi:end="6.28303"
+       d="m 916.17243,620.05585 a 53.609871,53.609871 0 0 1 -53.60779,53.60987 53.609871,53.609871 0 0 1 -53.61195,-53.60571 53.609871,53.609871 0 0 1 53.60363,-53.61403 53.609871,53.609871 0 0 1 53.61611,53.60154 l -53.60987,0.008 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:125%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="862.60559"
+       y="610.4162"
+       id="text10113"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         sodipodi:role="line"
+         id="tspan10111"
+         x="862.60559"
+         y="610.4162"
+         style="font-size:26.6667px;text-align:center;text-anchor:middle">rotary </tspan><tspan
+         sodipodi:role="line"
+         x="862.60559"
+         y="636.94287"
+         id="tspan10115"
+         style="font-size:26.6667px;text-align:center;text-anchor:middle">encoder</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:125%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="577.84814"
+       y="153.26285"
+       id="text10078"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         sodipodi:role="line"
+         id="tspan10076"
+         x="577.84814"
+         y="153.26285"
+         style="font-size:26.6667px;text-align:center;text-anchor:middle">high-speed</tspan><tspan
+         sodipodi:role="line"
+         x="577.84814"
+         y="179.78952"
+         style="font-size:26.6667px;text-align:center;text-anchor:middle"
+         id="tspan1504">camera</tspan><tspan
+         sodipodi:role="line"
+         x="577.84814"
+         y="204.78952"
+         id="tspan10080"
+         style="font-size:26.6667px;text-align:center;text-anchor:middle" /></text>
+    <path
+       style="fill:#ffffff;fill-rule:evenodd;stroke:#4d4d4d;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 567.45064,284.69676 540.902,263.82969 v -75.62512 l 27.6472,21.73053"
+       id="path1697"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <rect
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect1659"
+       width="68.303223"
+       height="75.252373"
+       x="567.45062"
+       y="209.48946"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="opacity:1;fill:url(#radialGradient2141);fill-opacity:1;fill-rule:nonzero;stroke:#4d4d4d;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path201"
+       sodipodi:type="arc"
+       sodipodi:cx="601.45306"
+       sodipodi:cy="247.19279"
+       sodipodi:rx="23.114531"
+       sodipodi:ry="26.346834"
+       sodipodi:start="0"
+       sodipodi:end="6.2599899"
+       d="m 624.56759,247.19279 a 23.114531,26.346834 0 0 1 -22.98049,26.3464 23.114531,26.346834 0 0 1 -23.24701,-26.04084 23.114531,26.346834 0 0 1 22.71088,-26.6484 23.114531,26.346834 0 0 1 23.51041,25.73177 l -23.10832,0.61107 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#4d4d4d;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 635.75388,209.51505 -27.8447,-22.13672 h -66.95684"
+       id="path1699"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <rect
+       ry="0"
+       y="460.87982"
+       x="1070.0787"
+       height="55.632484"
+       width="431.77097"
+       id="rect4144-1-3"
+       style="fill:#e6e6e6;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <rect
+       ry="0"
+       y="297.71802"
+       x="1070.2351"
+       height="160.51247"
+       width="432.03717"
+       id="rect4144"
+       style="fill:#e6e6e6;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path3956-8-4"
+       d="M 1343.5218,300.86481 V 452.98426"
+       style="fill:none;stroke:#0000ff;stroke-width:6.69254;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:end="6.2599848"
+       sodipodi:start="0"
+       d="m 1217.8166,376.81793 a 22.672844,22.672844 0 0 1 -22.5413,22.67246 22.672844,22.672844 0 0 1 -22.8028,-22.40945 22.672844,22.672844 0 0 1 22.2768,-22.93242 22.672844,22.672844 0 0 1 23.0612,22.14344 l -22.6667,0.52597 z"
+       sodipodi:ry="22.672844"
+       sodipodi:rx="22.672844"
+       sodipodi:cy="376.81793"
+       sodipodi:cx="1195.1438"
+       id="path2985"
+       style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.598532"
+       sodipodi:type="arc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       sodipodi:end="6.2599848"
+       sodipodi:start="0"
+       d="m 1292.6385,376.81793 a 22.672844,22.672844 0 0 1 -22.5413,22.67246 22.672844,22.672844 0 0 1 -22.8028,-22.40945 22.672844,22.672844 0 0 1 22.2768,-22.93242 22.672844,22.672844 0 0 1 23.0612,22.14344 l -22.6667,0.52597 z"
+       sodipodi:ry="22.672844"
+       sodipodi:rx="22.672844"
+       sodipodi:cy="376.81793"
+       sodipodi:cx="1269.9657"
+       id="path2985-8"
+       style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.598532"
+       sodipodi:type="arc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path3956-8"
+       d="M 1270.1836,301.68145 V 453.65132"
+       style="fill:none;stroke:#0000ff;stroke-width:6.69254;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:end="6.2599848"
+       sodipodi:start="0"
+       d="m 1366.1926,376.81793 a 22.672844,22.672844 0 0 1 -22.5413,22.67246 22.672844,22.672844 0 0 1 -22.8028,-22.40945 22.672844,22.672844 0 0 1 22.2768,-22.93242 22.672844,22.672844 0 0 1 23.0612,22.14344 l -22.6667,0.52597 z"
+       sodipodi:ry="22.672844"
+       sodipodi:rx="22.672844"
+       sodipodi:cy="376.81793"
+       sodipodi:cx="1343.5198"
+       id="path2985-3"
+       style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.598532"
+       sodipodi:type="arc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       sodipodi:end="6.2599848"
+       sodipodi:start="0"
+       d="m 1152.5356,489.02045 a 28.410889,28.410889 0 0 1 -28.2461,28.41041 28.410889,28.410889 0 0 1 -28.5737,-28.08085 28.410889,28.410889 0 0 1 27.9146,-28.73615 28.410889,28.410889 0 0 1 28.8976,27.7475 l -28.4032,0.65909 z"
+       sodipodi:ry="28.410889"
+       sodipodi:rx="28.410889"
+       sodipodi:cy="489.02045"
+       sodipodi:cx="1124.1248"
+       id="path2985-5-2"
+       style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.750009"
+       sodipodi:type="arc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <text
+       id="text2987-7-0"
+       y="494.99075"
+       x="1123.0684"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none"
+       xml:space="preserve"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:17.3333px;line-height:1.25;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff"
+         id="tspan2991-9-6"
+         y="494.99075"
+         x="1123.0684"
+         sodipodi:role="line">PC</tspan></text>
+    <path
+       sodipodi:end="6.2599848"
+       sodipodi:start="0"
+       d="m 1440.2787,489.44299 a 28.410889,28.410889 0 0 1 -28.2461,28.41041 28.410889,28.410889 0 0 1 -28.5738,-28.08084 28.410889,28.410889 0 0 1 27.9147,-28.73615 28.410889,28.410889 0 0 1 28.8975,27.7475 l -28.4032,0.65908 z"
+       sodipodi:ry="28.410889"
+       sodipodi:rx="28.410889"
+       sodipodi:cy="489.44299"
+       sodipodi:cx="1411.8678"
+       id="path2985-5-3-1"
+       style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.750009"
+       sodipodi:type="arc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <text
+       id="text2987-7-9-5"
+       y="495.41333"
+       x="1412.2041"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none"
+       xml:space="preserve"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:17.3333px;line-height:1.25;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff"
+         id="tspan2991-9-7-5"
+         y="495.41333"
+         x="1412.2041"
+         sodipodi:role="line">PC</tspan></text>
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path3956"
+       d="M 1194.9718,301.17373 V 451.82794"
+       style="fill:none;stroke:#0000ff;stroke-width:6.69254;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path3956-5"
+       d="M 1124.7577,298.57616 V 461.01969"
+       style="fill:none;stroke:#0000ff;stroke-width:6.69254;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path3956-5-6-4"
+       d="M 1412.7758,299.76659 V 461.6219"
+       style="fill:none;stroke:#0000ff;stroke-width:6.69254;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path4182"
+       d="m 1256.906,360.09747 c -13.4683,-15.12616 -28.1749,-12.86591 -39.5284,-3.30515"
+       style="fill:none;stroke:#0000ff;stroke-width:2.5097;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#DotMg-0)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path4182-4"
+       d="m 1332.8153,360.24486 c -13.4683,-15.12616 -28.1749,-12.86591 -39.5284,-3.30515"
+       style="fill:none;stroke:#0000ff;stroke-width:2.5097;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#DotMg-0)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path4182-4-0"
+       d="m 1207.7059,394.27184 c 13.4682,15.12615 28.175,12.86591 39.5283,3.30515"
+       style="fill:none;stroke:#0000ff;stroke-width:2.5097;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#DotMg-0)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path4182-4-0-0"
+       d="m 1282.3993,394.57062 c 13.4682,15.12615 28.175,12.86591 39.5284,3.30515"
+       style="fill:none;stroke:#0000ff;stroke-width:2.5097;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#DotMg-0)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#0000ff;stroke-width:2.5097;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 1217.0789,376.5861 h 8.0668 l 3.2865,-11.20402 2.3646,21.95989 4.3578,-21.95989 2.8384,21.95989 2.5396,-10.75587 h 9.1126"
+       id="path5357"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:none;stroke:#0000ff;stroke-width:2.5097;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 1291.2026,377.27401 h 8.0669 l 3.2865,-11.20402 2.3646,21.95989 4.3578,-21.95989 2.8384,21.95989 2.5396,-10.75587 h 9.1126"
+       id="path5357-1"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path4182-4-0-0-0"
+       d="m 1365,377.45326 36.9932,0.21127"
+       style="fill:none;stroke:#0000ff;stroke-width:2.5097;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#DotMg-0)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path4182-4-0-8"
+       d="m 1179.5606,392.03496 c -25.3724,27.37589 -5.1324,60.66383 -24.2012,78.29149"
+       style="fill:none;stroke:#0000ff;stroke-width:2.5097;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#DotMg-0)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="ccc"
+       inkscape:connector-curvature="0"
+       id="path4138-7"
+       d="M 1478.9445,515.20124 V 323.89518 h -400.8862"
+       style="fill:none;stroke:#ff0000;stroke-width:2.45889;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.986301"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.1519"
+       id="path3127-65"
+       sodipodi:cx="1124.8473"
+       sodipodi:cy="323.70551"
+       sodipodi:rx="12.570278"
+       sodipodi:ry="5.3872609"
+       d="m 1137.4176,323.70551 a 12.570278,5.3872609 0 0 1 -12.4974,5.38717 12.570278,5.3872609 0 0 1 -12.6423,-5.32468 12.570278,5.3872609 0 0 1 12.3507,-5.44894 12.570278,5.3872609 0 0 1 12.7856,5.26147 l -12.5669,0.12498 z"
+       sodipodi:start="0"
+       sodipodi:end="6.2599848"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.1519"
+       id="path3127-3"
+       sodipodi:cx="1194.8816"
+       sodipodi:cy="323.81113"
+       sodipodi:rx="12.570278"
+       sodipodi:ry="5.3872609"
+       d="m 1207.4519,323.81113 a 12.570278,5.3872609 0 0 1 -12.4974,5.38717 12.570278,5.3872609 0 0 1 -12.6423,-5.32468 12.570278,5.3872609 0 0 1 12.3507,-5.44894 12.570278,5.3872609 0 0 1 12.7856,5.26147 l -12.5669,0.12498 z"
+       sodipodi:start="0"
+       sodipodi:end="6.2599848"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.1519"
+       id="path3127-8-6"
+       sodipodi:cx="1270.0919"
+       sodipodi:cy="323.81113"
+       sodipodi:rx="12.570278"
+       sodipodi:ry="5.3872609"
+       d="m 1282.6622,323.81113 a 12.570278,5.3872609 0 0 1 -12.4974,5.38717 12.570278,5.3872609 0 0 1 -12.6423,-5.32468 12.570278,5.3872609 0 0 1 12.3507,-5.44894 12.570278,5.3872609 0 0 1 12.7856,5.26147 l -12.5669,0.12498 z"
+       sodipodi:start="0"
+       sodipodi:end="6.2599848"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.1519"
+       id="path3127-5-9"
+       sodipodi:cx="1343.401"
+       sodipodi:cy="323.81113"
+       sodipodi:rx="12.570278"
+       sodipodi:ry="5.3872609"
+       d="m 1355.9713,323.81113 a 12.570278,5.3872609 0 0 1 -12.4974,5.38717 12.570278,5.3872609 0 0 1 -12.6423,-5.32468 12.570278,5.3872609 0 0 1 12.3507,-5.44894 12.570278,5.3872609 0 0 1 12.7856,5.26147 l -12.5669,0.12498 z"
+       sodipodi:start="0"
+       sodipodi:end="6.2599848"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.1519"
+       id="path3127-6-3"
+       sodipodi:cx="1412.6958"
+       sodipodi:cy="324.0224"
+       sodipodi:rx="12.570278"
+       sodipodi:ry="5.3872609"
+       d="m 1425.2661,324.0224 a 12.570278,5.3872609 0 0 1 -12.4974,5.38717 12.570278,5.3872609 0 0 1 -12.6423,-5.32468 12.570278,5.3872609 0 0 1 12.3507,-5.44894 12.570278,5.3872609 0 0 1 12.7856,5.26147 l -12.5669,0.12498 z"
+       sodipodi:start="0"
+       sodipodi:end="6.2599848"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       style="fill:#00ffff;fill-opacity:0.237443;stroke:none;stroke-width:1"
+       d="m 1225.5164,230.72678 c -7.7072,48.73744 -29.3606,61.57843 -29.3606,61.57843 l 147.1705,0.22186 c 0,0 -26.0577,-18.89968 -37.4349,-60.92477"
+       id="path3917-7"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <g
+       id="g19196-7-0"
+       transform="matrix(1.8328019,0,0,-1.8330425,704.91169,1048.4524)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600">
+      <path
+         inkscape:connector-curvature="0"
+         d="M 273.6,451.9 Z"
+         style="fill:none;stroke:#000000;stroke-width:2.64939;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+         id="path19198-9-8" />
+    </g>
+    <g
+       style="fill:#ccaaff;fill-opacity:1"
+       id="g19136-8-5"
+       transform="matrix(0.90141582,0.17294155,0.19357437,-1.0092243,936.17976,715.808)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600">
+      <path
+         inkscape:connector-curvature="0"
+         d="M 312,418.8 Z"
+         style="fill:#ccaaff;fill-opacity:1;stroke:#000000;stroke-width:3.36072;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+         id="path19138-0-3" />
+    </g>
+    <rect
+       style="fill:#999999;stroke:none;stroke-width:1"
+       id="rect3097"
+       width="148.42378"
+       height="76.924141"
+       x="1192.2722"
+       y="128.0799"
+       rx="0"
+       ry="0"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       x="1194.9569"
+       y="175.23528"
+       id="text3121"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         sodipodi:role="line"
+         x="1194.9569"
+         y="175.23528"
+         style="font-size:36.8271px;line-height:1.25"
+         id="tspan2650">2-photon</tspan></text>
+    <path
+       style="fill:#b3b3b3;stroke:#999999;stroke-width:1.22757px;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 1192.873,204.78009 32.124,26.25671 h 81.5144 l 32.6654,-26.22232"
+       id="path3119-4"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:url(#linearGradient5413-3);fill-opacity:1;stroke:none;stroke-width:1"
+       d="m 1307.0626,231.50181 -40.8839,127.90793 -41.3712,-127.75292 z"
+       id="path5405-5"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <text
+       id="text2987-9"
+       y="382.12149"
+       x="1195.9393"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:0%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none"
+       xml:space="preserve"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:16px;line-height:1.25;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff"
+         id="tspan2991-0"
+         y="382.12149"
+         x="1195.9393"
+         sodipodi:role="line">MLI</tspan></text>
+    <text
+       id="text2987-9-3"
+       y="382.43604"
+       x="1269.9449"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none"
+       xml:space="preserve"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:17.3333px;line-height:1.25;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff"
+         id="tspan2991-0-8"
+         y="382.43604"
+         x="1269.9449"
+         sodipodi:role="line">MLI</tspan></text>
+    <text
+       id="text2987-9-0"
+       y="382.22174"
+       x="1344.1577"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none"
+       xml:space="preserve"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:16px;line-height:1.25;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff"
+         id="tspan2991-0-5"
+         y="382.22174"
+         x="1344.1577"
+         sodipodi:role="line">MLI</tspan><tspan
+         y="391.30576"
+         x="1344.1577"
+         sodipodi:role="line"
+         id="tspan1573"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:16px;line-height:1.25;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff" /></text>
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1282"
+       sodipodi:type="arc"
+       sodipodi:cx="601.59808"
+       sodipodi:cy="247.00902"
+       sodipodi:rx="28.769573"
+       sodipodi:ry="32.534073"
+       sodipodi:start="0"
+       sodipodi:end="6.2599899"
+       d="m 630.36766,247.00902 a 28.769573,32.534073 0 0 1 -28.60275,32.53352 28.769573,32.534073 0 0 1 -28.93446,-32.15621 28.769573,32.534073 0 0 1 28.26717,-32.90646 28.769573,32.534073 0 0 1 29.2623,31.77457 l -28.76184,0.75458 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1497"
+       sodipodi:type="arc"
+       sodipodi:cx="601.71051"
+       sodipodi:cy="214.45952"
+       sodipodi:rx="3.4999974"
+       sodipodi:ry="3.4999943"
+       sodipodi:start="0"
+       sodipodi:end="6.2599899"
+       d="m 605.21051,214.45952 a 3.4999974,3.4999943 0 0 1 -3.4797,3.49993 3.4999974,3.4999943 0 0 1 -3.52006,-3.45934 3.4999974,3.4999943 0 0 1 3.43888,-3.54006 3.4999974,3.4999943 0 0 1 3.55994,3.41829 l -3.49906,0.0812 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1497-3"
+       sodipodi:type="arc"
+       sodipodi:cx="630.39355"
+       sodipodi:cy="246.05864"
+       sodipodi:rx="3.4999974"
+       sodipodi:ry="3.4999943"
+       sodipodi:start="0"
+       sodipodi:end="6.2599899"
+       d="m 633.89355,246.05864 a 3.4999974,3.4999943 0 0 1 -3.4797,3.49993 3.4999974,3.4999943 0 0 1 -3.52006,-3.45934 3.4999974,3.4999943 0 0 1 3.43888,-3.54006 3.4999974,3.4999943 0 0 1 3.55994,3.41829 l -3.49906,0.0812 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1497-3-6"
+       sodipodi:type="arc"
+       sodipodi:cx="572.71497"
+       sodipodi:cy="246.59436"
+       sodipodi:rx="3.4999974"
+       sodipodi:ry="3.4999943"
+       sodipodi:start="0"
+       sodipodi:end="6.2599899"
+       d="m 576.21496,246.59436 a 3.4999974,3.4999943 0 0 1 -3.4797,3.49994 3.4999974,3.4999943 0 0 1 -3.52006,-3.45935 3.4999974,3.4999943 0 0 1 3.43888,-3.54005 3.4999974,3.4999943 0 0 1 3.55994,3.41828 l -3.49905,0.0812 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1497-3-6-7"
+       sodipodi:type="arc"
+       sodipodi:cx="602.26855"
+       sodipodi:cy="279.54077"
+       sodipodi:rx="3.4999974"
+       sodipodi:ry="3.4999943"
+       sodipodi:start="0"
+       sodipodi:end="6.2599899"
+       d="m 605.76855,279.54077 a 3.4999974,3.4999943 0 0 1 -3.4797,3.49994 3.4999974,3.4999943 0 0 1 -3.52006,-3.45935 3.4999974,3.4999943 0 0 1 3.43888,-3.54005 3.4999974,3.4999943 0 0 1 3.55994,3.41828 l -3.49906,0.0812 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1497-3-6-7-5"
+       sodipodi:type="arc"
+       sodipodi:cx="580.39355"
+       sodipodi:cy="269.18365"
+       sodipodi:rx="3.4999974"
+       sodipodi:ry="3.4999943"
+       sodipodi:start="0"
+       sodipodi:end="6.2599899"
+       d="m 583.89355,269.18365 a 3.4999974,3.4999943 0 0 1 -3.4797,3.49994 3.4999974,3.4999943 0 0 1 -3.52006,-3.45934 3.4999974,3.4999943 0 0 1 3.43888,-3.54006 3.4999974,3.4999943 0 0 1 3.55994,3.41829 l -3.49906,0.0812 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1497-3-6-7-5-3"
+       sodipodi:type="arc"
+       sodipodi:cx="622.71497"
+       sodipodi:cy="269.27292"
+       sodipodi:rx="3.4999974"
+       sodipodi:ry="3.4999943"
+       sodipodi:start="0"
+       sodipodi:end="6.2599899"
+       d="m 626.21496,269.27292 a 3.4999974,3.4999943 0 0 1 -3.4797,3.49993 3.4999974,3.4999943 0 0 1 -3.52006,-3.45934 3.4999974,3.4999943 0 0 1 3.43888,-3.54006 3.4999974,3.4999943 0 0 1 3.55994,3.41829 l -3.49905,0.0812 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1497-3-6-7-5-3-5"
+       sodipodi:type="arc"
+       sodipodi:cx="621.73285"
+       sodipodi:cy="223.82649"
+       sodipodi:rx="3.4999974"
+       sodipodi:ry="3.4999943"
+       sodipodi:start="0"
+       sodipodi:end="6.2599899"
+       d="m 625.23285,223.82649 a 3.4999974,3.4999943 0 0 1 -3.47971,3.49994 3.4999974,3.4999943 0 0 1 -3.52005,-3.45935 3.4999974,3.4999943 0 0 1 3.43887,-3.54005 3.4999974,3.4999943 0 0 1 3.55994,3.41829 l -3.49905,0.0812 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1497-3-6-7-5-3-5-6"
+       sodipodi:type="arc"
+       sodipodi:cx="581.01855"
+       sodipodi:cy="224.45149"
+       sodipodi:rx="3.4999974"
+       sodipodi:ry="3.4999943"
+       sodipodi:start="0"
+       sodipodi:end="6.2599899"
+       d="m 584.51855,224.45149 a 3.4999974,3.4999943 0 0 1 -3.4797,3.49994 3.4999974,3.4999943 0 0 1 -3.52006,-3.45935 3.4999974,3.4999943 0 0 1 3.43888,-3.54005 3.4999974,3.4999943 0 0 1 3.55994,3.41829 l -3.49906,0.0812 z"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"
+       sodipodi:arc-type="slice" />
+    <rect
+       style="opacity:0.95;fill:#87aade;fill-opacity:1;fill-rule:nonzero;stroke:#800000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect1571"
+       width="183.3427"
+       height="8.586297"
+       x="1177.3929"
+       y="291.64957"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#b3b3b3;fill-rule:evenodd;stroke:#4d4d4d;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 1070.1424,296.14679 c 66.8438,-11.45253 115.9004,-6.56248 115.9004,-6.56248 3.0621,0.11157 6.3333,9.93777 0.1086,10.55095 -10.4219,1.02671 -64.4128,-3.02547 -115.5475,6.82958"
+       id="path13296"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cssc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#b3b3b3;fill-rule:evenodd;stroke:#4d4d4d;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 1502.301,295.5472 c -75.0786,-7.917 -146.7316,-5.55233 -146.7316,-5.55233 -5.2186,0.11157 -10.7933,9.93777 -0.1852,10.55095 17.7609,1.02671 59.9823,-3.78308 147.1265,6.07197"
+       id="path13296-6"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cssc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 1110.0188,275.43652 h 48.9924 l 29.7995,14.14213 h -84.8528 l -97.8819,-56.51219 8.3027,-14.38093 z"
+       id="path1829"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       style="fill:#1a1a1a;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 1351.2874,291.09388 h 87.511 v -15.15229 h -59.0934 z"
+       id="path1833"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:125%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="751.97491"
+       y="632.65497"
+       id="text10078-3-3"
+       transform="rotate(-10.738453)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         sodipodi:role="line"
+         x="751.97491"
+         y="632.65497"
+         style="font-size:26.6667px;text-align:center;text-anchor:middle"
+         id="tspan1504-5-6">mirror</tspan><tspan
+         sodipodi:role="line"
+         x="751.97491"
+         y="657.65497"
+         id="tspan10080-3-7"
+         style="font-size:26.6667px;text-align:center;text-anchor:middle" /></text>
+    <path
+       sodipodi:type="star"
+       style="opacity:1;fill:#ac939d;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.4948;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1892-5"
+       sodipodi:sides="12"
+       sodipodi:cx="349.14578"
+       sodipodi:cy="615.82422"
+       sodipodi:r1="25.656471"
+       sodipodi:r2="38.29324"
+       sodipodi:arg1="0.86153934"
+       sodipodi:arg2="1.1233387"
+       inkscape:flatsided="false"
+       inkscape:rounded="0.23"
+       inkscape:randomized="0"
+       d="m 365.85508,635.29353 c -2.62756,2.25506 2.9809,13.5558 -0.14078,15.05396 -3.12167,1.49816 -8.42944,-9.94687 -11.8325,-9.30771 -3.40306,0.63917 -4.19636,13.23012 -7.64889,12.96673 -3.45253,-0.26339 -2.32668,-12.82897 -5.5934,-13.97696 -3.26672,-1.148 -10.24921,9.35943 -13.1075,7.40507 -2.85828,-1.95437 4.39953,-12.27356 2.14446,-14.90111 -2.25506,-2.62755 -13.5558,2.9809 -15.05396,-0.14077 -1.49816,-3.12167 9.94688,-8.42945 9.30771,-11.8325 -0.63917,-3.40306 -13.23012,-4.19637 -12.96673,-7.6489 0.26339,-3.45253 12.82897,-2.32667 13.97697,-5.59339 1.14799,-3.26672 -9.35944,-10.24922 -7.40507,-13.1075 1.95436,-2.85829 12.27355,4.39952 14.9011,2.14446 2.62755,-2.25507 -2.9809,-13.5558 0.14077,-15.05396 3.12167,-1.49817 8.42945,9.94687 11.83251,9.3077 3.40305,-0.63916 4.19636,-13.23011 7.64889,-12.96672 3.45253,0.26339 2.32667,12.82897 5.59339,13.97696 3.26672,1.148 10.24922,-9.35943 13.1075,-7.40507 2.85829,1.95437 -4.39952,12.27355 -2.14446,14.90111 2.25507,2.62755 13.5558,-2.98091 15.05396,0.14077 1.49817,3.12167 -9.94687,8.42944 -9.3077,11.8325 0.63916,3.40306 13.23011,4.19636 12.96672,7.64889 -0.26339,3.45253 -12.82897,2.32668 -13.97696,5.5934 -1.14799,3.26672 9.35944,10.24921 7.40507,13.1075 -1.95437,2.85828 -12.27355,-4.39952 -14.9011,-2.14446 z"
+       transform="matrix(1.2885016,0.3589066,-0.3589066,1.2885016,470.88288,-264.00524)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path4896-1-6"
+       d="m 726.02947,617.50977 c 18.23984,-22.67537 33.0339,-19.27173 48.52721,-14.67222"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Arrow2Mstart-0-5N9);marker-end:url(#Arrow2Mend-2-3Z)"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:125%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="700.08246"
+       y="659.48505"
+       id="text10113-2"
+       inkscape:export-filename="/home/mgraupe/daten/teaching/NeuroImagingCourse2019/misc/wheel_mouse_laser_electrodes.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600"><tspan
+         sodipodi:role="line"
+         x="700.08246"
+         y="659.48505"
+         id="tspan10115-1"
+         style="font-size:26.6667px;text-align:center;text-anchor:middle">motor</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.6667px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#504416;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+       x="51.464493"
+       y="151.53198"
+       id="text1537"><tspan
+         sodipodi:role="line"
+         id="tspan1535"
+         x="51.464493"
+         y="151.53198"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:26.6667px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#504416;">Data preprocessing</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#666666;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;marker-end:url(#Arrow2Lend)"
+       d="m 523.8428,223.01538 c -212.63129,0 -213.31706,0 -213.31706,0 v 156.37514"
+       id="path1539" />
+    <rect
+       style="fill:#ffffff;stroke:#a0892c;stroke-width:1.78755;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1541"
+       width="555.41486"
+       height="200.60182"
+       x="46.480446"
+       y="391.02115"
+       ry="0" />
+    <text
+       xml:space="preserve"
+       id="text1543"
+       style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:sans-serif;font-style:normal;font-weight:normal;font-size:20px;line-height:125%;letter-spacing:0px;word-spacing:0px;-inkscape-font-specification:sans-serif;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;white-space:pre;shape-inside:url(#rect1545);" />
+    <text
+       xml:space="preserve"
+       id="text1549"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:0;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;shape-inside:url(#rect1551);"
+       transform="translate(-34)"><tspan
+         x="89.458984"
+         y="419.11953"><tspan
+           style="font-weight:bold;line-height:136%">Determine dropped- and flash-back frames</tspan><tspan
+           style="line-height:136%;shape-inside:url(#rect1551)">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="446.31954"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:136%;font-family:monospace;-inkscape-font-specification:monospace">(locorungs37)extractBehaviorCameraTiming.py</tspan><tspan
+           style="line-height:136%">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="473.51956"><tspan
+           style="line-height:136%">- script detects flashback and dropped frames and </tspan></tspan><tspan
+         x="89.458984"
+         y="500.71957"><tspan
+           style="line-height:136%">determines exact time point of each frame
+</tspan></tspan><tspan
+         x="89.458984"
+         y="527.91958"><tspan
+           style="line-height:136%">- script requires manual intervention 
+</tspan></tspan><tspan
+         x="89.458984"
+         y="555.11959"><tspan
+           style="line-height:136%">- flashback frames need to be manually marked</tspan><tspan
+           style="font-size:18.6667px">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="568.7196"><tspan
+           style="font-size:18.6667px"> 
+</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="517.51404"
+       y="422.18985"
+       id="text1557"><tspan
+         sodipodi:role="line"
+         id="tspan1555"
+         x="517.51404"
+         y="422.18985" /><tspan
+         sodipodi:role="line"
+         x="517.51404"
+         y="447.18985"
+         id="tspan1559" /></text>
+    <rect
+       style="fill:#ffffff;stroke:#a0892c;stroke-width:1.48054;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1541-6"
+       width="556.59656"
+       height="137.32109"
+       x="48.308964"
+       y="665.27295"
+       ry="0" />
+    <text
+       xml:space="preserve"
+       id="text1549-7"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:0;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;letter-spacing:0px;word-spacing:0.06px;writing-mode:lr-tb;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;shape-inside:url(#rect1551-3);"
+       transform="translate(-32.017971,274.40526)"><tspan
+         x="89.458984"
+         y="419.11953"><tspan
+           dx="0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 0 -0.059999999 0.059997559"
+           style="font-weight:bold;line-height:136%">Convert single frames into behavior video</tspan><tspan
+           dx="-0.059999999"
+           style="line-height:136%">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="446.31954"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:136%;font-family:monospace;-inkscape-font-specification:monospace">(locorungs37)getRawBehaviorImagesSaveVideo.py</tspan><tspan
+           dx="-0.059999999"
+           style="line-height:136%">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="473.51956"><tspan
+           dx="0 -0.059999999 0.06000042 0 0 0 0 0 -0.060003813 0.060005188 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 -0.059999999 0.060012817 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 -0.059999999 0.059997559 0 -0.059999999 0.060028076 0 0 -0.059999999 0.059997559 0 0 0 0 -0.059999999"
+           style="line-height:136%">- script converts the frames into an avi movie  
+</tspan></tspan><tspan
+         x="89.458984"
+         y="500.71957"><tspan
+           dx="0 -0.059999999 0.06000042 0 0 0 0 0 -0.060003813 0.060005188 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 -0.059999999 0.060012817 0 0 0 -0.059999999 0.0599823"
+           style="line-height:136%">- script runs without user interaction</tspan><tspan
+           dx="-0.059999999"
+           style="font-size:18.6667px">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="514.31958"><tspan
+           style="font-size:18.6667px"> 
+</tspan></tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#666666;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1646)"
+       d="m 310.65753,597.85059 c 0,60.38343 0,60.38343 0,60.38343"
+       id="path1642" />
+    <rect
+       style="fill:#ffffff;stroke:#a0892c;stroke-width:1.56312;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1541-6-1"
+       width="556.51398"
+       height="153.0896"
+       x="51.834301"
+       y="869.29059"
+       ry="0" />
+    <text
+       xml:space="preserve"
+       id="text1549-7-9"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:0;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;letter-spacing:0px;word-spacing:0.06px;writing-mode:lr-tb;white-space:pre;shape-inside:url(#rect1551-3-2);fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+       transform="translate(-28.533915,478.3816)"><tspan
+         x="89.458984"
+         y="419.11953"><tspan
+           dx="0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 0 -0.059999999 0.059997559"
+           style="font-weight:bold;line-height:136%">Extract paw positions from behavior video</tspan><tspan
+           dx="-0.059999999"
+           style="line-height:136%">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="446.31954"><tspan
+           style="line-height:136%">@otillo:</tspan><tspan
+           dx="0 0 0 0 0 0 0 0 0 -0.059999999"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:136%;font-family:monospace;-inkscape-font-specification:monospace">(DLC-GPU)
+</tspan></tspan><tspan
+         x="89.458984"
+         y="473.51956"><tspan
+           dx="0 -0.059999999 0.06000042 0 0 0 0 0 -0.060003813 0.060005188 0 0 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 -0.059999999 0.059997559 0 -0.059999999 0.059997559 0 0 0 0 0 0 -0.059999999 0.060028076 0 0 0 0 0 -0.059999999"
+           style="line-height:136%">- follow DeepLabCut analysis pipline to extract single </tspan></tspan><tspan
+         x="89.458984"
+         y="500.71957"><tspan
+           dx="0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 -0.059999999 0.059997559 0 0 0 0 -0.059999999 0.059997559 0 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 -0.059999999"
+           style="line-height:136%">frames, mark paws, train network and extract </tspan></tspan><tspan
+         x="89.458984"
+         y="527.91958"><tspan
+           dx="0 0 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 -0.059999999 0.059997559 0 0 0 0 -0.059999999 0.059997559 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 -0.059999999 0.059997559"
+           style="line-height:136%">positions from video with trained network</tspan></tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#666666;stroke-width:1.8763;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1646-9)"
+       d="m 310.6898,805.6149 c 0,53.14512 0,53.14512 0,53.14512"
+       id="path1642-8" />
+    <rect
+       style="fill:#ffffff;stroke:#a0892c;stroke-width:1.56312;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1541-6-1-3"
+       width="556.51398"
+       height="153.0896"
+       x="660.66962"
+       y="871.64355"
+       ry="0" />
+    <text
+       xml:space="preserve"
+       id="text1549-7-9-1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:0;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;letter-spacing:0px;word-spacing:0.06px;writing-mode:lr-tb;white-space:pre;shape-inside:url(#rect1551-3-2-9);fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+       transform="translate(580.30136,480.73461)"><tspan
+         x="89.458984"
+         y="419.11953"><tspan
+           dx="0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 0 -0.059999999 0.059997559"
+           style="font-weight:bold;line-height:136%">Extract paw positions from behavior video</tspan><tspan
+           dx="-0.059999999"
+           style="line-height:136%">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="446.31954"><tspan
+           dx="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.059999999"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:136%;font-family:monospace;-inkscape-font-specification:monospace">(locorungs37)getWalkingActivity.py
+</tspan></tspan><tspan
+         x="89.458984"
+         y="473.51956"><tspan
+           dx="0 -0.059999999 0.06000042 0 0 0 0 -0.060003813 0.060005188 0 0 -0.059999999 0.059997559 0 0 0 0 0 -0.059999999 0.060012817 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 -0.059999999 0.059997559 0 0 -0.059999999 0.060028076 0 0 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 0 -0.059999999"
+           style="line-height:136%">- reads raw rotray encoder data and calculates wheel </tspan></tspan><tspan
+         x="89.458984"
+         y="500.71957"><tspan
+           dx="0 0 0 0 0 -0.059999999"
+           style="line-height:136%">speed
+</tspan></tspan><tspan
+         x="89.458984"
+         y="527.91958"><tspan
+           dx="0 -0.059999999 0.06000042 0 0 0 0 0 -0.060003813 0.060005188 0 0 0 -0.059999999 0.059997559"
+           style="line-height:136%">- script runs autonomously</tspan></tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#666666;stroke-width:1.8763;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1646-9-4)"
+       d="m 859.82514,710.07024 c 0,145.79724 0,145.79724 0,145.79724"
+       id="path1642-8-9" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#666666;stroke-width:1.99999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-6)"
+       d="m 1365.4946,162.29559 c 181.4871,0 182.0725,0 182.0725,0 v 375.35753"
+       id="path1539-7" />
+    <rect
+       style="fill:#ffffff;stroke:#a0892c;stroke-width:1.78755;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1541-1"
+       width="558.8573"
+       height="235.00792"
+       x="1269.7793"
+       y="551.37616"
+       ry="0" />
+    <text
+       xml:space="preserve"
+       id="text1549-2"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:0;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;white-space:pre;shape-inside:url(#rect1551-37);fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+       transform="translate(1189.2988,160.355)"><tspan
+         x="89.458984"
+         y="419.11953"><tspan
+           style="font-weight:bold;line-height:136%">Run Suite2p pipeline on Ca-imaging data</tspan><tspan
+           style="line-height:136%;shape-inside:url(#rect1551-37)">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="446.31954"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:136%;font-family:monospace;-inkscape-font-specification:monospace">(locorungs37)getCalciumTracesDetermineRois.py</tspan><tspan
+           style="line-height:136%">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="473.51956"><tspan
+           style="line-height:136%">- script uses ScanImage tif files and feeds them into </tspan></tspan><tspan
+         x="89.458984"
+         y="500.71957"><tspan
+           style="line-height:136%">the Suite2p analysis : registration, ROI detection, </tspan></tspan><tspan
+         x="89.458984"
+         y="527.91958"><tspan
+           style="line-height:136%">signal extraction 
+</tspan></tspan><tspan
+         x="89.458984"
+         y="555.11959"><tspan
+           style="line-height:136%">- script requires manual interaction if more than the </tspan></tspan><tspan
+         x="89.458984"
+         y="582.3196"><tspan
+           style="line-height:136%">standard 5 tif files where recorded; runs </tspan></tspan><tspan
+         x="89.458984"
+         y="609.51962"><tspan
+           style="line-height:136%">autonomously otherwis</tspan><tspan
+           style="font-size:18.6667px">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="623.11963"><tspan
+           style="font-size:18.6667px"> 
+</tspan></tspan></text>
+    <rect
+       style="fill:#ffffff;stroke:#a0892c;stroke-width:1.56312;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1541-6-1-3-5"
+       width="556.51398"
+       height="153.0896"
+       x="1268.8058"
+       y="874.08807"
+       ry="0" />
+    <text
+       xml:space="preserve"
+       id="text1549-7-9-1-0"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:0;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;letter-spacing:0px;word-spacing:0.06px;writing-mode:lr-tb;white-space:pre;shape-inside:url(#rect1551-3-2-9-1);fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+       transform="translate(1188.4376,483.17914)"><tspan
+         x="89.458984"
+         y="419.11953"><tspan
+           dx="0 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 -0.059999999 0.059997559 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 0 -0.059999999 0.059997559"
+           style="font-weight:bold;line-height:136%">Visually inspect and sort detected ROIs</tspan><tspan
+           dx="-0.059999999"
+           style="line-height:136%">
+</tspan></tspan><tspan
+         x="89.458984"
+         y="446.31954"><tspan
+           dx="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 -0.059999999 0.059997559 0 0 0 0 0 0 -0.059999999"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:136%;font-family:monospace;-inkscape-font-specification:monospace">(suite2p)$python -m suite2p
+</tspan></tspan><tspan
+         x="89.458984"
+         y="473.51956"><tspan
+           dx="0 -0.059999999 0.06000042 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 -0.059999999 0.060012817 0 -0.059999999 0.059997559 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 -0.059999999 0.060028076 0 0 -0.059999999 0.059997559 0 0 -0.059999999 0.059997559 0 0 0 0 0 -0.060030516"
+           style="line-height:136%">- load processed data in the suite2p GUI and triage </tspan></tspan><tspan
+         x="89.458984"
+         y="500.71957"><tspan
+           dx="0 0 0 0 -0.059999999 0.060001373 0 -0.059999999 0.060001373 0 0 0 0 0 0 0 -0.059999999 0.059997559 0 0 0 0 0 0 0 -0.059999999"
+           style="line-height:136%">cell vs no-cells manually 
+</tspan></tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#666666;stroke-width:1.8763;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1646-9-4-9)"
+       d="m 1549.706,788.05674 c 0,78.39195 0,78.39195 0,78.39195"
+       id="path1642-8-9-4" />
+  </g>
+</svg>
