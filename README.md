@@ -20,7 +20,7 @@ This google spreadsheet is read by the analysis scripts and used to access data 
 
 * [**Work-flow to generate overview figure**](#work-flow-to-generate-overview-figure)
 
-* [**Extract paw positions with DeepLabCut**](deepLabCut.md)
+* [**Extract paw positions with DeepLabCut**](DeepLabCutTutorial.md)
 
 -----
 
@@ -28,22 +28,21 @@ This google spreadsheet is read by the analysis scripts and used to access data 
 
 ![Analysis pipline](tools/analysisOverview.png)
 
+-----
+
 #### Calcium imaging experiments
 
-`getRawCalciumActivityStack.py` - The script reads the image stack recorded using the 2p scanning microscope. The raw stack is saved as tif file for subsequenct image registration using ImageJ.
+The analysis below is applied to experiments involving caliucm imaging with ScanImage. ScanImage saves acquires frame stacks as tif files with are not directly linked to the associated recording in ACQ4. However, the time stamp of the ScanImage file and the ACQ4 recording are identical (up to a second precision). 
 
-`MocoMarco.ijm` - ImageJ macro which performs automatic image registration using the Moco plugin.
-
-`getCalciumTracesDetermineRois.py` - The script reads the motion corrected image stack (previously generated with `getRawCalciumActivityStack.py`). The motion
-corrected image stack is saved to the hdf5 file. Furthermore, roibuddy is used to extract fluorescent traces of individual rois. The fluorescent traces
-are plotted in a figure.
-
+File | What it does
+----- | ------
+`(locorungs) getCalciumTracesDetermineRois.py` | The script read the ScanImage tif files and feeds them into the Suite2p analysis pipeline. Suite2p parameters are adapted to our recordings. However, the script requires interaction if more than the standard 5 tif files exist in the raw data folder. The average image is generated and saved in the suite2p analysis folder. 
 
 **Typical work-flow to analyze calcium imaging data**
 
-1. run `getRawCalciumActivityStack.py` to extract raw calcium images and save as tif file.
-1. run `MocoMarco.ijm` macro in ImageJ to perform image registration.
-1. run `getCalciumTracesDetermineRois.py` to determine rois with roibuddy and extract calcium traces of rois.
+1. run `(locorungs) getCalciumTracesDetermineRois.py` to run Suite2p analysis in recorded tif files. 
+1. run `(suite2p)$ python -m suite2p` launch suite2p and visually sort cells vs. no-cells.
+
 
 -----
 #### Experiments with walking behavior recordings
@@ -71,6 +70,7 @@ File | What it does
 1. run `extractBehaviorCameraTiming.py` sets the ROI location on the LED, extracts the luminosity trace and determines frame times. 
 1. run `getRawBehaviorImagesSaveVideo.py` turn behavior camera recordings into movie.
 1. run `analyzePawMovement.py` to track paw and rungs.
+
 
 -----
 #### Experiments to access motion artefacts
