@@ -23,6 +23,11 @@ This google spreadsheet is read by the analysis scripts and used to access data 
 * [**Extract paw positions with DeepLabCut**](deepLabCut.md)
 
 -----
+
+#### Overview of the data pre-processing pipline 
+
+![Analysis pipline](tools/analysisOverview.png)
+
 #### Calcium imaging experiments
 
 `getRawCalciumActivityStack.py` - The script reads the image stack recorded using the 2p scanning microscope. The raw stack is saved as tif file for subsequenct image registration using ImageJ.
