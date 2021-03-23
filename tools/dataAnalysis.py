@@ -430,8 +430,8 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     else:
         illumLEDcontrolThreshold = LEDVideoThreshold**2.61290794 # 2pinvivo
     print('thresholds : ',LEDVideoThreshold, illumLEDcontrolThreshold)
-    LEDVideoThreshold = 0.84
-    illumLEDcontrolThreshold = 0.66
+    #LEDVideoThreshold = 0.84
+    #illumLEDcontrolThreshold = 0.66
     #pdb.set_trace()
     # threshold and convert to binary
     for i in range(ledVideoRoi[1][0]):
