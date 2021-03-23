@@ -425,7 +425,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     luminocityDifferences = np.diff(allLEDVideoRoiValues)
     idxMaxDiff = np.argmax(luminocityDifferences)
     LEDVideoThreshold =  allLEDVideoRoiValues[idxMaxDiff] + (allLEDVideoRoiValues[idxMaxDiff+1] - allLEDVideoRoiValues[idxMaxDiff])/2.
-    if not (pc==photonPC):
+    if not (pc=='2photonPC'):
         illumLEDcontrolThreshold = LEDVideoThreshold**4.49185827 # mapping, i.e. exponent, from tools/fitOfIlluminationValues
     else:
         illumLEDcontrolThreshold = LEDVideoThreshold**2.61290794 # 2pinvivo
