@@ -7,9 +7,10 @@ import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import tools.openCVImageProcessingTools as openCVImageProcessingTools
 import pdb
+import numpy as np
 import sys
 
-mouseD = '201017_m99'
+mouseD = '210322_t00'
 #mouseD = '201017_m99' #'200801_m58' # id of the mouse to analyze
 #mouseD = '190108_m24'
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
@@ -64,13 +65,14 @@ for f in range(len(foldersRecordings)):
         if existenceLEDControl:
             (ledDAQControlArray, ledDAQControlArrayTimes) = eSD.readRawData(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput', fileHandleLED)
         # save data
-        if not erroneousFramesExist:
-            idxToExclude = dataAnalysis.determineErroneousFrames(frames)
-            eSD.saveErroneousFramesIdx([foldersRecordings[f][0], foldersRecordings[f][2][r], 'erroneousFrames'],idxToExclude)
+        idxToExclude = np.array([], dtype=np.int64)
+        #if not erroneousFramesExist:
+        #    idxToExclude = dataAnalysis.determineErroneousFrames(frames)
+        #    eSD.saveErroneousFramesIdx([foldersRecordings[f][0], foldersRecordings[f][2][r], 'erroneousFrames'],idxToExclude)
         #pdb.set_trace()
         if existenceFrames and existenceFTimes and existenceLEDControl:
             #(idxIllumFinal, frameTimes, frameStartStopIdx, videoIdx, frameSummary)
-            (idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary) = dataAnalysis.determineFrameTimesBasedOnLED([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],verbose=True)
+            (idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary) = dataAnalysis.determineFrameTimesBasedOnLED([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],'2photonPC',verbose=True)
             #framesDuringRecording = frames[recordedFramesIdx]
             eSD.saveBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo'],idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary, imageMetaInfo)
             #eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)

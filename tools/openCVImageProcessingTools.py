@@ -337,9 +337,9 @@ class openCVImageProcessingTools:
                 nLED = coordinates[0]
             ## sets the location of the ROIs for all LEDs
             if nLED > 0:
-                movePixels = 3
+                movePixels = 1.
                 spacing = 40
-                rotAngle = 3
+                rotAngle = 2.
                 continueLoop = True
                 # optimize with keyboard
                 if coordinates is None:
@@ -384,10 +384,10 @@ class openCVImageProcessingTools:
                         theta = -rotAngle
                         (posX, posY) = rotatePoints(theta, posX, posY)
                     elif PressedKey == 119 : # w button
-                        spacing +=5
+                        spacing +=movePixels
                         (posX,posY) = changeSpacing(nLED,spacing,posX,posY)
                     elif PressedKey == 99 : # c button
-                        spacing -= 5
+                        spacing -=movePixels
                         (posX, posY) = changeSpacing(nLED,spacing, posX, posY)
                     elif PressedKey == 13 or PressedKey == 32: # Enter or Space
                         continueLoop = False
