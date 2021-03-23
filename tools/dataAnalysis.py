@@ -504,7 +504,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     if exposureAtStart:   # remove first frame if exposure was active during start of recording, i.e., at t = 0 s
         idxFramesDuringRecording = idxFramesDuringRecording[1:] - 1
     #pdb.set_trace()
-    idxMissingFrames = np.delete(np.arange(idxFramesDuringRecording[-1]+1),idxFramesDuringRecording)
+    idxMissingFrames = np.delete(np.arange(idxFramesDuringRecording[-1]),idxFramesDuringRecording)
 
     #idxTestMask = idxFramesDuringRecording < len(illumLEDcontrolBin) # index should not exceed length of array
     #illum = illumLEDcontrolBin[idxFramesDuringRecording[idxTestMask]]
