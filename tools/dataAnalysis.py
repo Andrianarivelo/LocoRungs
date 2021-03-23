@@ -578,7 +578,8 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     finalLength = shiftDifference[:,2][(shiftDifference[:,1]==0) & (shiftDifference[:,3]==0)]
     if len(shiftToZero)>1 or len(shiftToZero)==0:
         if shiftToZero[1] == (shiftToZero[0]+5):
-            print('Multiple shifts to zero, so multiple perfect overlays exist. First overlay will be used.')
+            print('Multiple shifts to zero, so multiple perfect overlays exist. First overlay with shift %s will be used.' % shiftToZero[0])
+            pass
         else:
             print('Problem! More than one shift led to perfect overlay!')
             #np.arange(np.diff(idxRecordedFrames)>1)
@@ -599,7 +600,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     idxTemp = idxFramesDuringRecording + shiftToZero[0]
     idx = idxTemp[idxTemp>=0]
     idxIllumFinal = idx[idx<len(illumLEDcontrolBin)][:finalLength[0]]
-    compareIllumination = True
+    compareIllumination = False
     if compareIllumination:
         illum = illumLEDcontrolrescaled[idxIllumFinal]
         videoROI = ledVideoRoiRescaled[3][mask][missedFramesBegin:]
