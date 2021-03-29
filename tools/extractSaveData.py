@@ -524,22 +524,27 @@ class extractSaveData:
         else:
             print('idx of erroneous frames exist')
             excludeIdxExist = True
+            try:
+                canBeUsed = self.f[grpName + '/canBeUsed'][()][0]
+            except KeyError:
+                canBeUsed = True
             if np.array_equal(idxExc, np.array([-1])):
                 idxExc = np.array([], dtype=int)
             if determineAgain:
-                return (False, idxExc)
+                return (False, idxExc,canBeUsed)
             else:
-                return (excludeIdxExist, idxExc)
+                return (excludeIdxExist, idxExc,canBeUsed)
 
     ############################################################
-    def saveErroneousFramesIdx(self, groupNames, idxToExclude):
+    def saveErroneousFramesIdx(self, groupNames, idxToExclude,canBeUsed=True):
         # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
         # print(groupNames)
         (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
         # print(grpName,grpHandle)
         if len(idxToExclude) == 0:
-            idxToExclude = np.array([-1])  # pdb.set_trace()
+            idxToExclude = np.array([-1])  # pdb.set_trace(
         self.h5pyTools.createOverwriteDS(grpHandle, 'idxToExclude', idxToExclude)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'canBeUsed', np.array([canBeUsed]))
         self.f.flush()
         print('saved successfully', idxToExclude)
 

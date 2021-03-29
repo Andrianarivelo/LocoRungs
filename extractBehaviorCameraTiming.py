@@ -52,7 +52,7 @@ for f in range(len(foldersRecordings)):
         (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
         (existenceLEDControl, fileHandleLED) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput')
         (currentCoodinatesExist,SavedLEDcoordinates) = eSD.checkForLEDPositionCoordinates(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r)
-        (erroneousFramesExist,idxToExclude) = eSD.checkForErroneousFramesIdx(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r,determineAgain=False)
+        (erroneousFramesExist,idxToExclude,canBeUsed) = eSD.checkForErroneousFramesIdx(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r,determineAgain=False)
         # if camera was recorded
         if existenceFrames:
             #print('exists',foldersRecordings[f][0],foldersRecordings[f][2][r])
@@ -66,11 +66,11 @@ for f in range(len(foldersRecordings)):
             (ledDAQControlArray, ledDAQControlArrayTimes) = eSD.readRawData(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput', fileHandleLED)
         # save data
         #idxToExclude = np.array([], dtype=np.int64)
-        if not erroneousFramesExist:
-            idxToExclude = dataAnalysis.determineErroneousFrames(frames)
-            eSD.saveErroneousFramesIdx([foldersRecordings[f][0], foldersRecordings[f][2][r], 'erroneousFrames'],idxToExclude)
+        if (not erroneousFramesExist) and canBeUsed:
+            (idxToExclude,canBeUsed) = dataAnalysis.determineErroneousFrames(frames)
+            eSD.saveErroneousFramesIdx([foldersRecordings[f][0], foldersRecordings[f][2][r], 'erroneousFrames'],idxToExclude,canBeUsed=canBeUsed)
         #pdb.set_trace()
-        if existenceFrames and existenceFTimes and existenceLEDControl:
+        if existenceFrames and existenceFTimes and existenceLEDControl and canBeUsed:
             #(idxIllumFinal, frameTimes, frameStartStopIdx, videoIdx, frameSummary)
             (idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary) = dataAnalysis.determineFrameTimesBasedOnLED([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],eSD.recordingMachine,verbose=True)
             #framesDuringRecording = frames[recordedFramesIdx]

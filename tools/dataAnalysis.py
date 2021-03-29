@@ -364,7 +364,7 @@ def determineErroneousFrames(frames):
     cv2.imshow('HoldImage',img)
     cv2.waitKey(0) #cv2.imshow()
     cv2.destroyWindow('HoldImage')
-    thresholdingInput = input("Specify which trace to use (lineDiffSum - 1, frameDiff - 2, diff of frameDiff - 3; and which multiple of the STD (e.g. 1 3.5) : ")
+    thresholdingInput = input("Specify which trace to use (lineDiffSum - 1, frameDiff - 2, diff of frameDiff - 3; and which multiple of the STD (e.g. 1 3.5), type '4 0' if recording cannote be used (due too many erronous frames) : ")
     threshold = [float(i) for i in thresholdingInput.split()]
     print('choice :', threshold)
     #pdb.set_trace()
@@ -379,6 +379,11 @@ def determineErroneousFrames(frames):
         thresholded = np.abs(frameDiffDiff) > np.mean(frameDiffDiff) + np.std(frameDiffDiff)*threshold[1]
         outlierIdx = np.arange(len(frameDiffDiff))[thresholded]  # use indices taking into account missed frames
         outlierIdx += 2  # this is since the difference trace does not start at at the first frame but at the difference between first and second frame
+    elif threshold[0] == 4.:
+        canBeUsed = False
+        idxToExclude = np.arange([])
+        return (idxToExclude, canBeUsed)
+    canBeUsed = True
     print('length and identity of possible erronous frames :' , len(outlierIdx), outlierIdx)
     idxExclude = determineFramesToExclude(frames,outlierIdx)
     #excludeMask = np.ones(len(ledVideoRoi[2]),dtype=bool)
@@ -391,7 +396,7 @@ def determineErroneousFrames(frames):
     #pdb.set_trace()
     #excludeMask[idxToExclude] = False
     plt.close('all')
-    return idxToExclude
+    return (idxToExclude,canBeUsed)
 
 #################################################################################
 # maps an abritray input array to the entire range of X-bit encoding
