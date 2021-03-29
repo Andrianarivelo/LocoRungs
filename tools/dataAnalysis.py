@@ -539,11 +539,11 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
                 missedFramesBegin = j
                 break
     if idxFirstFrameRec == missedFramesBegin:
-        print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin, illumLEDcontrolBin[:20],videoRoi[:20] )
+        print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin, idxFirstFrameRec, illumLEDcontrolBin[:20],videoRoi[:20] )
         videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
     elif idxFirstFrameRec == (missedFramesBegin+1):
         missedFramesBegin+=1
-        print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin)
+        print('Number of frames recorded before first full exposed frame during recording (increased by one):', missedFramesBegin, idxFirstFrameRec, illumLEDcontrolBin[:20],videoRoi[:20])
         videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
     else:
         print('Problem with determining index of first recorded frame.')
@@ -553,7 +553,8 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     shiftDifference = []
     lengthOfIllumLEDcontrol = len(illumLEDcontrolBin)
     lengthOfROIinVideo = len(videoRoiWOEX)
-    print('length of illumLEDcontrolBin and videoRoiWOEX and idxFramesDuringRecording[-1] : ', lengthOfIllumLEDcontrol, lengthOfROIinVideo, idxFramesDuringRecording[-1])
+    lengthOfIdxCount = idxFramesDuringRecording[-1] + 1
+    print('length of illumLEDcontrolBin and videoRoiWOEX and idxFramesDuringRecording[-1] : ', lengthOfIllumLEDcontrol, lengthOfROIinVideo, lengthOfIdxCount)
     for i in range(-10,11,1): # loop to shift the mask over
         idxTemp = idxFramesDuringRecording + i # shift the array by increasing the indicies by a certain number
         idxIllum = idxTemp[(idxTemp>=0)&(idxTemp<lengthOfIllumLEDcontrol)] # indicies have to be larger than zero and should not be larger than the length of the illumLEDcontrolBin array
@@ -564,7 +565,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         # idxMissing = np.delete(np.arange(idxFramesDuringRecording[-1]), idxIllum)  # [i:]
         idxMissing = np.delete(np.arange(lengthOfIllumLEDcontrol), idxIllum)
         if i<0:
-            frameOverlap = [0 if (lengthOfIllumLEDcontrol+np.abs(i)<(lengthOfROIinVideo+len(idxMissingFrames))) else ((lengthOfROIinVideo+len(idxMissingFrames)) - (lengthOfIllumLEDcontrol+np.abs(i)))]
+            frameOverlap = [0 if ((lengthOfIllumLEDcontrol+np.abs(i)+1)<(lengthOfROIinVideo+len(idxMissingFrames))) else ((lengthOfROIinVideo+len(idxMissingFrames)) - (lengthOfIllumLEDcontrol+np.abs(i)+1))]
         elif i>=0:
             frameOverlap = [i if (lengthOfIllumLEDcontrol<(lengthOfROIinVideo+len(idxMissingFrames))) else (lengthOfIllumLEDcontrol-(lengthOfROIinVideo+len(idxMissingFrames)+i))]
         #print('overlap :',frameOverlap[0])
