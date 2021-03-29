@@ -10,7 +10,7 @@ import pdb
 import numpy as np
 import sys
 
-mouseD = '210322_t00'
+mouseD = '201017_m99' #210322_t00'
 #mouseD = '201017_m99' #'200801_m58' # id of the mouse to analyze
 #mouseD = '190108_m24'
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
@@ -46,13 +46,13 @@ openCVtools  = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysi
 # loop over all folders, mostly days but sometimes there were two recording sessions per day
 for f in range(len(foldersRecordings)):
     # loop over all recordings in that folder
-    for r in range(len(foldersRecordings[f][2])):
+    for r in range(3,len(foldersRecordings[f][2])):
         #pdb.set_trace()
         (existenceFrames,fileHandleFrames) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
         (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
         (existenceLEDControl, fileHandleLED) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput')
         (currentCoodinatesExist,SavedLEDcoordinates) = eSD.checkForLEDPositionCoordinates(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r)
-        (erroneousFramesExist,idxToExclude) = eSD.checkForErroneousFramesIdx(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r,determineAgain=True)
+        (erroneousFramesExist,idxToExclude) = eSD.checkForErroneousFramesIdx(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r,determineAgain=False)
         # if camera was recorded
         if existenceFrames:
             #print('exists',foldersRecordings[f][0],foldersRecordings[f][2][r])
@@ -65,14 +65,14 @@ for f in range(len(foldersRecordings)):
         if existenceLEDControl:
             (ledDAQControlArray, ledDAQControlArrayTimes) = eSD.readRawData(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput', fileHandleLED)
         # save data
-        idxToExclude = np.array([], dtype=np.int64)
-        #if not erroneousFramesExist:
-        #    idxToExclude = dataAnalysis.determineErroneousFrames(frames)
-        #    eSD.saveErroneousFramesIdx([foldersRecordings[f][0], foldersRecordings[f][2][r], 'erroneousFrames'],idxToExclude)
+        #idxToExclude = np.array([], dtype=np.int64)
+        if not erroneousFramesExist:
+            idxToExclude = dataAnalysis.determineErroneousFrames(frames)
+            eSD.saveErroneousFramesIdx([foldersRecordings[f][0], foldersRecordings[f][2][r], 'erroneousFrames'],idxToExclude)
         #pdb.set_trace()
         if existenceFrames and existenceFTimes and existenceLEDControl:
             #(idxIllumFinal, frameTimes, frameStartStopIdx, videoIdx, frameSummary)
-            (idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary) = dataAnalysis.determineFrameTimesBasedOnLED([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],'2photonPC',verbose=True)
+            (idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary) = dataAnalysis.determineFrameTimesBasedOnLED([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],eSD.recordingMachine,verbose=True)
             #framesDuringRecording = frames[recordedFramesIdx]
             eSD.saveBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo'],idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary, imageMetaInfo)
             #eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)

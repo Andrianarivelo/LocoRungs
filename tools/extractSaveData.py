@@ -68,6 +68,9 @@ class extractSaveData:
             [('behaviorPC', 'behaviorPC_data/dataMichael/'), ('2photonPC', ('altair_data/dataMichael/' if int(self.mouse[:6]) >= 170829 else 'altair_data/experiments/data_Michael/acq4/')),
                 ('', ('altair_data/dataMichael/' if int(self.mouse[:6]) >= 170829 else 'altair_data/experiments/data_Michael/acq4/')), ])
 
+        self.computerDict = OrderedDict(
+            [('behaviorPC', 'behaviorPC'), ('2photonPC', '2photonPC'),('', '2photonPC')])
+
         self.analysisLocation = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsData/%s/' % mouse
         self.figureLocation = self.analysisBase + 'data_analysis/in_vivo_cerebellum_walking/LocoRungsFigures/%s/' % mouse
 
@@ -215,6 +218,7 @@ class extractSaveData:
                         print(' ', fold)
                         # self.dataLocation = (self.dataBase2 + fold + '/') if eD >= '181018' else (self.dataBase + fold + '/')
                         self.dataLocation = self.dataBase + self.dataPCLocation[dataFolders[fold]['recComputer']] + fold + '/'
+                        self.recordingMachine = self.computerDict[dataFolders[fold]['recComputer']]
                         print(self.dataLocation)
                         if not os.path.exists(self.dataLocation):
                             #    print('experiment %s exists' % fold)
@@ -279,6 +283,7 @@ class extractSaveData:
                             else:
                                 tempRecList.append(r)
                         folderRec.append([fold, eD, tempRecList])  # folderRec.append([fold,eD,recList])
+        print('Data was recorded on %s' % self.recordingMachine)
         return (folderRec, dataFolders)
 
     ############################################################

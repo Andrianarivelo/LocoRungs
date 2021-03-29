@@ -337,7 +337,7 @@ class openCVImageProcessingTools:
                 nLED = coordinates[0]
             ## sets the location of the ROIs for all LEDs
             if nLED > 0:
-                movePixels = 1.
+                movePixels = 1
                 spacing = 40
                 rotAngle = 2.
                 continueLoop = True

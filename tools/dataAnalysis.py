@@ -412,7 +412,12 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
 
     # maps LED daq control trace to boolean array ################################################################
     # TODO this number is zero on the behavior setup and 4 here
-    LEDcontrolIdx = 4 # which trace of the DAQ recording is linked to the  !!!
+    if pc == 'behaviorPC':
+        LEDcontrolIdx = 0 # which trace of the DAQ recording is linked to the  !!!
+    elif pc == '2pinvivoPC':
+        LEDcontrolIdx = 4
+    else:
+        print('Make sure the computer of the recording is specified.')
     ledDAQcontrolBin = traceToBinary(ledDAQc[0][LEDcontrolIdx])[1]  # here the threshold is not important as the trace is binary to start out with
     # convert LED roi traces from video to boolean arrays
     ledVideoRoiBins = []
@@ -425,10 +430,11 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     luminocityDifferences = np.diff(allLEDVideoRoiValues)
     idxMaxDiff = np.argmax(luminocityDifferences)
     LEDVideoThreshold =  allLEDVideoRoiValues[idxMaxDiff] + (allLEDVideoRoiValues[idxMaxDiff+1] - allLEDVideoRoiValues[idxMaxDiff])/2.
-    if not (pc=='2photonPC'):
+    if pc == 'behaviorPC':
         illumLEDcontrolThreshold = LEDVideoThreshold**4.49185827 # mapping, i.e. exponent, from tools/fitOfIlluminationValues
-    else:
+    elif pc == '2pinvivoPC':
         illumLEDcontrolThreshold = LEDVideoThreshold**2.61290794 # 2pinvivo
+
     print('thresholds : ',LEDVideoThreshold, illumLEDcontrolThreshold)
     #LEDVideoThreshold = 0.84
     #illumLEDcontrolThreshold = 0.66
@@ -452,7 +458,10 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         exposureAtStart = False
     if (expEnd[-1] - expStart[-1]) < 0.:  # if trace ends above threshold
         print('exposure during end of recording')
+        exposureAtEnd = True
         expStart = expStart[:-1]
+    else:
+        exposureAtEnd = False
     expStart = expStart.astype(int)
     expEnd   = expEnd.astype(int)
     expStartTime = cameraExposure[1][expStart] # everything was based on indicies up to this point : here indicies -> time
@@ -488,7 +497,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
                 print(i,oldI,i-oldI,matchFrameN,frameNBefore,frameDiff,binNumberInFrame[i],binNumberInFrame[i-1])
                 exceptionsInFrameCount.append([i,oldI,i-oldI,matchFrameN,frameNBefore,frameDiff,binNumberInFrame[i],binNumberInFrame[i-1]])
             if matchFrameN == 0: # counter will start at 0 and possibly go back to zero after end of recording
-                if (i>20) and (i<11920):
+                if (i>10) and (i<(nFrames-10)):
                     print(i,oldI,matchFrameN,frameNBefore,frameDiff,binNumberInFrame[i],binNumberInFrame[i-1])
                     print('strange, zero frame in the middle of recording')
                     pdb.set_trace()
@@ -499,10 +508,12 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     frameCount = np.asarray(frameCount,dtype=int) # convert list to integer array
     idxRecordedFrames = np.cumsum(frameCount[:,2]) # use the frame differences to generate new index corresponding to video recording
     idxCounting = np.argwhere(idxRecordedFrames>0) # start and end index with first and last frame recording the counter
-    idxFramesDuringRecording = idxRecordedFrames[idxCounting[0,0]:(idxCounting[-1,0]+1)] - 1  # remove leading and trailing zeros, and remove one to have the new index start with zero
+    idxFramesDuringRecording = idxRecordedFrames[idxCounting[0,0]:(idxCounting[-1,0]+1)] - 1  # remove leading and trailing zeros, and remove one to have the new index start with zero, cumsum makes first index to be 1
     #pdb.set_trace()
     if exposureAtStart:   # remove first frame if exposure was active during start of recording, i.e., at t = 0 s
         idxFramesDuringRecording = idxFramesDuringRecording[1:] - 1
+    if exposureAtEnd:
+        idxFramesDuringRecording = idxFramesDuringRecording[:-1]
     #pdb.set_trace()
     idxMissingFrames = np.delete(np.arange(idxFramesDuringRecording[-1]),idxFramesDuringRecording)
 
@@ -518,17 +529,17 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         print('Early frames to exclude. Problem!')
         pdb.set_trace()
     else:
-        tmpIdx = np.where(videoRoi==True)
-        idxFirstFrameRec = tmpIdx[0][0]
+        tmpIdx = np.where(videoRoi==True) # Index of the first ON frame for the 4th LED
+        idxFirstFrameRec = tmpIdx[0][0] # extract index of first frame during recording
         if exposureAtStart:
-            idxFirstFrameRec+=1
+            idxFirstFrameRec+=1         # increase that
         for j in range(10):
             videoRoiWOEX = videoRoi[mask][j:]
-            if np.all(videoRoiWOEX[:20] == illumLEDcontrolBin[:20]):
+            if np.all(videoRoiWOEX[:20] == illumLEDcontrolBin[:20]): # note that illumLEDcontrolBin already accounts for a recording duing stat of rec, this frame is removed
                 missedFramesBegin = j
                 break
     if idxFirstFrameRec == missedFramesBegin:
-        print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin)
+        print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin, illumLEDcontrolBin[:20],videoRoi[:20] )
         videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
     elif idxFirstFrameRec == (missedFramesBegin+1):
         missedFramesBegin+=1
@@ -537,21 +548,30 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     else:
         print('Problem with determining index of first recorded frame.')
         pdb.set_trace()
+    #pdb.set_trace()
     ## second loop in order to align the
     shiftDifference = []
+    lengthOfIllumLEDcontrol = len(illumLEDcontrolBin)
+    lengthOfROIinVideo = len(videoRoiWOEX)
+    print('length of illumLEDcontrolBin and videoRoiWOEX and idxFramesDuringRecording[-1] : ', lengthOfIllumLEDcontrol, lengthOfROIinVideo, idxFramesDuringRecording[-1])
     for i in range(-10,11,1): # loop to shift the mask over
         idxTemp = idxFramesDuringRecording + i # shift the array by increasing the indicies by a certain number
-        idx = idxTemp[idxTemp>=0] # indicies have to be larger than zero
-        idxIllum = idx[idx<len(illumLEDcontrolBin)]  # indicies should not be larger than the length of the illumLEDcontrolBin array
+        idxIllum = idxTemp[(idxTemp>=0)&(idxTemp<lengthOfIllumLEDcontrol)] # indicies have to be larger than zero and should not be larger than the length of the illumLEDcontrolBin array
+        #idxIllum = idx[idx<lengthOfIllumLEDcontrol]  # indicies should not be larger than the length of the illumLEDcontrolBin array
         illum = illumLEDcontrolBin[idxIllum]  # illumination at these indicies
 
         # idxMissing = np.delete(np.arange(idxIllum[-1]), idxIllum) #[i:]
         # idxMissing = np.delete(np.arange(idxFramesDuringRecording[-1]), idxIllum)  # [i:]
-        idxMissing = np.delete(np.arange(len(illumLEDcontrolBin)), idxIllum)
-        compareIdx = np.sum(idxMissing == idxMissingFrames) - len(idxMissing) + abs(i)
+        idxMissing = np.delete(np.arange(lengthOfIllumLEDcontrol), idxIllum)
+        if i<0:
+            frameOverlap = [0 if (lengthOfIllumLEDcontrol+np.abs(i)< lengthOfROIinVideo) else (lengthOfROIinVideo - (lengthOfIllumLEDcontrol+np.abs(i)))]
+        elif i>=0:
+            frameOverlap = [i if (lengthOfIllumLEDcontrol<lengthOfROIinVideo) else (lengthOfIllumLEDcontrol-lengthOfROIinVideo-i)]
+        #print('overlap :',frameOverlap[0])
+        compareIdx = np.sum(idxMissing == idxMissingFrames) - len(idxMissing)  + np.abs(frameOverlap[0]) # abs(i)
 
         len0 = len(illum)
-        len1 = len(videoRoiWOEX)
+        len1 = lengthOfROIinVideo
         if len0 < len1:
             compare = np.sum(np.equal(illum,videoRoiWOEX[:len0]))
             versch = compare - len0
@@ -563,17 +583,15 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             totLength = len1
             largeLength = len0
 
-
-        shiftDifference.append([i, versch, totLength, compareIdx])
-        print(i, versch, totLength, compareIdx, idxMissing, idxMissingFrames)
+        #pdb.set_trace()
+        shiftDifference.append([i, versch, totLength, compareIdx,frameOverlap[0]])
+        print(i, versch, totLength, compareIdx, frameOverlap[0], idxMissing, idxMissingFrames)
         #if i >=0 :
-    #pdb.set_trace()
-
-    #pdb.set_trace()
+    pdb.set_trace()
     #compare = np.equal()
     shiftDifference = np.asarray(shiftDifference)
-    if len(idxToExclude)==0:
-        shiftDifference = shiftDifference[shiftDifference[:,0]>=0]
+    if len(idxToExclude)==0:   # without erronous frames ...
+        shiftDifference = shiftDifference[shiftDifference[:,0]>=0]   # ... use only the shifts which are larger than zero
     shiftToZero = shiftDifference[:,0][(shiftDifference[:,1]==0) & (shiftDifference[:,3]==0)]
     finalLength = shiftDifference[:,2][(shiftDifference[:,1]==0) & (shiftDifference[:,3]==0)]
     if len(shiftToZero)>1 or len(shiftToZero)==0:
@@ -596,8 +614,9 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             plt.plot(illumLEDcontrolrescaled[idxIllum][:shortest[0]],'o-')
             plt.show()
             pdb.set_trace()
-    #else:
-    idxTemp = idxFramesDuringRecording + shiftToZero[0]
+    finalShiftToZero = shiftToZero[0]
+    print('final shift to zero and final length : ', finalShiftToZero,finalLength[0])
+    idxTemp = idxFramesDuringRecording + finalShiftToZero
     idx = idxTemp[idxTemp>=0]
     idxIllumFinal = idx[idx<len(illumLEDcontrolBin)][:finalLength[0]]
     compareIllumination = False
@@ -614,7 +633,6 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         pickle.dump(illumValues, open('illuminatoinValues.p', 'wb'))
     frameTimes = startEndExposureTime[idxIllumFinal]
     frameStartStopIdx = startEndExposurepIdx[idxIllumFinal]
-    #
     videoIdx = np.arange(len(ledVideoRoiBins[3]))[mask][missedFramesBegin:][:finalLength[0]]
     #recFrames = ledVideoRoi[2][videoIdx]
     ddd = np.diff(idxIllumFinal)
