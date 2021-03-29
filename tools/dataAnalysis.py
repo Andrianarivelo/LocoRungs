@@ -566,7 +566,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         if i<0:
             frameOverlap = [0 if (lengthOfIllumLEDcontrol+np.abs(i)< lengthOfROIinVideo) else (lengthOfROIinVideo - (lengthOfIllumLEDcontrol+np.abs(i)))]
         elif i>=0:
-            frameOverlap = [i if (lengthOfIllumLEDcontrol<lengthOfROIinVideo) else (lengthOfIllumLEDcontrol-(lengthOfROIinVideo+len(idxMissingFrames)+i))]
+            frameOverlap = [i if (lengthOfIllumLEDcontrol<(lengthOfROIinVideo+len(idxMissingFrames))) else (lengthOfIllumLEDcontrol-(lengthOfROIinVideo+len(idxMissingFrames)+i))]
         #print('overlap :',frameOverlap[0])
         compareIdx = np.sum(idxMissing == idxMissingFrames) - len(idxMissing)  + np.abs(frameOverlap[0]) # abs(i)
 
