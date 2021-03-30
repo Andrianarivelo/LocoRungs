@@ -322,13 +322,14 @@ def determineFramesToExclude(frames,probIdx):
                 currIdx = int(nIdx)
             elif PressedKey == 102: # f key
                 continueDetectLoop = False
-            elif PressedKey == 104: # x key
+            elif PressedKey == 120: # x key
                 canBeUsed = False
                 break
             else:
                 print('Key not recognized, try again.')
             print('current exclude list :',listOfFramesToExclude)
-
+        if not canBeUsed:
+            break
     cv2.destroyWindow("PureImage") # only destroy window at the end of the exploration
     lofEx = list(dict.fromkeys(listOfFramesToExclude)) # removes duplicates
     lofEx.sort()
