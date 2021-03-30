@@ -69,7 +69,7 @@ for f in range(len(foldersRecordings)):
         # save data
         #idxToExclude = np.array([], dtype=np.int64)
         if assumePerfectRecording:
-            idxToExclude = np.array([])
+            idxToExclude = np.array([], dtype=np.int64)
             canBeUsed = True
         else:
             if (not erroneousFramesExist) and canBeUsed:
