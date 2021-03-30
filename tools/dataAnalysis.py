@@ -573,10 +573,10 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         # idxMissing = np.delete(np.arange(idxFramesDuringRecording[-1]), idxIllum)  # [i:]
         idxMissing = np.delete(np.arange(lengthOfIllumLEDcontrol), idxIllum)
         NidxRemovedAtExtremities = idxIllum[0] + ((lengthOfIllumLEDcontrol-1) - idxIllum[-1]) # counts number of frames missing in the beginning and end
-        if i<0:
-            frameOverlap = [0 if ((lengthOfIllumLEDcontrol+np.abs(i)+1)<(lengthOfROIinVideo+len(idxMissingFrames))) else ((lengthOfROIinVideo+len(idxMissingFrames)) - (lengthOfIllumLEDcontrol+np.abs(i)+1))]
-        elif i>=0:
-            frameOverlap = [i if (lengthOfIllumLEDcontrol<(lengthOfROIinVideo+len(idxMissingFrames))) else (lengthOfIllumLEDcontrol-(lengthOfROIinVideo+len(idxMissingFrames)+i+1))]
+        #if i<0:
+        #    frameOverlap = [0 if ((lengthOfIllumLEDcontrol+np.abs(i)+1)<(lengthOfROIinVideo+len(idxMissingFrames))) else ((lengthOfROIinVideo+len(idxMissingFrames)) - (lengthOfIllumLEDcontrol+np.abs(i)+1))]
+        #elif i>=0:
+        #    frameOverlap = [i if (lengthOfIllumLEDcontrol<(lengthOfROIinVideo+len(idxMissingFrames))) else (lengthOfIllumLEDcontrol-(lengthOfROIinVideo+len(idxMissingFrames)+i+1))]
         #print('overlap :',frameOverlap[0])
         compareIdx = np.sum(idxMissing == idxMissingFrames) - len(idxMissing)  + np.abs(NidxRemovedAtExtremities) # abs(i)
 
@@ -594,8 +594,8 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             largeLength = len0
 
         #pdb.set_trace()
-        shiftDifference.append([i, versch, totLength, compareIdx,frameOverlap[0]])
-        print(i, versch, totLength, compareIdx, frameOverlap[0], idxMissing, idxMissingFrames)
+        shiftDifference.append([i, versch, totLength, compareIdx,NidxRemovedAtExtremities])
+        print(i, versch, totLength, compareIdx, NidxRemovedAtExtremities, idxMissing, idxMissingFrames)
         #if i >=0 :
     pdb.set_trace()
     #compare = np.equal()
