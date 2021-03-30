@@ -572,12 +572,13 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         # idxMissing = np.delete(np.arange(idxIllum[-1]), idxIllum) #[i:]
         # idxMissing = np.delete(np.arange(idxFramesDuringRecording[-1]), idxIllum)  # [i:]
         idxMissing = np.delete(np.arange(lengthOfIllumLEDcontrol), idxIllum)
+        NidxRemovedAtExtremities = idxIllum[0] + ((lengthOfIllumLEDcontrol-1) - idxIllum[-1]) # counts number of frames missing in the beginning and end
         if i<0:
             frameOverlap = [0 if ((lengthOfIllumLEDcontrol+np.abs(i)+1)<(lengthOfROIinVideo+len(idxMissingFrames))) else ((lengthOfROIinVideo+len(idxMissingFrames)) - (lengthOfIllumLEDcontrol+np.abs(i)+1))]
         elif i>=0:
             frameOverlap = [i if (lengthOfIllumLEDcontrol<(lengthOfROIinVideo+len(idxMissingFrames))) else (lengthOfIllumLEDcontrol-(lengthOfROIinVideo+len(idxMissingFrames)+i+1))]
         #print('overlap :',frameOverlap[0])
-        compareIdx = np.sum(idxMissing == idxMissingFrames) - len(idxMissing)  + np.abs(frameOverlap[0]) # abs(i)
+        compareIdx = np.sum(idxMissing == idxMissingFrames) - len(idxMissing)  + np.abs(NidxRemovedAtExtremities) # abs(i)
 
         len0 = len(illum)
         len1 = lengthOfROIinVideo
