@@ -598,7 +598,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         shiftDifference.append([i, versch, totLength, compareIdx,NidxRemovedAtExtremities])
         print(i, versch, totLength, compareIdx, NidxRemovedAtExtremities, idxMissing, idxMissingFrames)
         #if i >=0 :
-    pdb.set_trace()
+    #pdb.set_trace()
     #compare = np.equal()
     shiftDifference = np.asarray(shiftDifference)
     if len(idxToExclude)==0:   # without erronous frames ...
