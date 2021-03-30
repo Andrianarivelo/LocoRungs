@@ -520,7 +520,8 @@ class extractSaveData:
             idxExc = np.array(idxExc, dtype=int)  # check if coordinates for current recording exist already
         except KeyError:
             excludeIdxExist = False
-            return (excludeIdxExist, None)
+            canBeUsed = True
+            return (excludeIdxExist, None, canBeUsed)
         else:
             print('idx of erroneous frames exist')
             excludeIdxExist = True
