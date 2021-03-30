@@ -10,7 +10,7 @@ import pdb
 import numpy as np
 import sys
 
-mouseD = '201017_m99' #210322_t00'
+mouseD = '210322_t00'
 #mouseD = '201017_m99' #'200801_m58' # id of the mouse to analyze
 #mouseD = '190108_m24'
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
@@ -46,7 +46,7 @@ openCVtools  = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysi
 # loop over all folders, mostly days but sometimes there were two recording sessions per day
 for f in range(len(foldersRecordings)):
     # loop over all recordings in that folder
-    for r in range(len(foldersRecordings[f][2])):
+    for r in range(2,len(foldersRecordings[f][2])):
         #pdb.set_trace()
         (existenceFrames,fileHandleFrames) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
         (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
