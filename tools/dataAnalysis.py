@@ -431,7 +431,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     ledVideoRoiBins = []
     ledVideoRoiRescaled = []
     allLEDVideoRoiValues = []
-    # determine threshold
+    # determine threshold   [ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude]
     for i in range(ledVideoRoi[1][0]):
         allLEDVideoRoiValues.extend(traceToBinary(ledVideoRoi[0][i])[0]) # rescale all values to [0,1] and stack them
     allLEDVideoRoiValues = np.sort(np.asarray(allLEDVideoRoiValues)) # convert to array and sort
@@ -573,6 +573,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         # idxMissing = np.delete(np.arange(idxFramesDuringRecording[-1]), idxIllum)  # [i:]
         idxMissing = np.delete(np.arange(lengthOfIllumLEDcontrol), idxIllum)
         NidxRemovedAtExtremities = idxIllum[0] + ((lengthOfIllumLEDcontrol-1) - idxIllum[-1]) # counts number of frames missing in the beginning and end
+        NidxRemovedAtExtremities -= np.sum((idxMissingFrames<idxIllum[0]) | (idxMissingFrames>idxIllum[-1])) # reduce if missing frames are in the extrimities
         #if i<0:
         #    frameOverlap = [0 if ((lengthOfIllumLEDcontrol+np.abs(i)+1)<(lengthOfROIinVideo+len(idxMissingFrames))) else ((lengthOfROIinVideo+len(idxMissingFrames)) - (lengthOfIllumLEDcontrol+np.abs(i)+1))]
         #elif i>=0:
