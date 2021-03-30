@@ -368,7 +368,7 @@ def determineErroneousFrames(frames):
     cv2.imshow('HoldImage',img)
     cv2.waitKey(0) #cv2.imshow()
     cv2.destroyWindow('HoldImage')
-    thresholdingInput = input("Specify which trace to use (lineDiffSum - 1, frameDiff - 2, diff of frameDiff - 3; and which multiple of the STD (e.g. 1 3.5), type '4 0' if recording cannote be used (due too many erronous frames) : ")
+    thresholdingInput = input("Specify which trace to use (lineDiffSum - 1, frameDiff - 2, diff of frameDiff - 3; and which multiple of the STD (e.g. 1 3.5); type '4 0' if recording cannote be used (too many errors) : ")
     threshold = [float(i) for i in thresholdingInput.split()]
     print('choice :', threshold)
     #pdb.set_trace()

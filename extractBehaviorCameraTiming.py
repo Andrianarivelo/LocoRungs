@@ -16,7 +16,9 @@ mouseD = '210322_t00'
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='some'     # 'all or 'some'
 
-# comment
+# further analaysis parameter
+assumePerfectRecording = True  # that means a recording without any flash-back - or double frames
+startRecording = 0  # each session/day per animal is composed of 5 recordings, this index allows chose with which recording to start, default is 0
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -46,7 +48,7 @@ openCVtools  = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysi
 # loop over all folders, mostly days but sometimes there were two recording sessions per day
 for f in range(len(foldersRecordings)):
     # loop over all recordings in that folder
-    for r in range(2,len(foldersRecordings[f][2])):
+    for r in range(startRecording,len(foldersRecordings[f][2])):
         #pdb.set_trace()
         (existenceFrames,fileHandleFrames) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
         (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
@@ -66,9 +68,13 @@ for f in range(len(foldersRecordings)):
             (ledDAQControlArray, ledDAQControlArrayTimes) = eSD.readRawData(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput', fileHandleLED)
         # save data
         #idxToExclude = np.array([], dtype=np.int64)
-        if (not erroneousFramesExist) and canBeUsed:
-            (idxToExclude,canBeUsed) = dataAnalysis.determineErroneousFrames(frames)
-            eSD.saveErroneousFramesIdx([foldersRecordings[f][0], foldersRecordings[f][2][r], 'erroneousFrames'],idxToExclude,canBeUsed=canBeUsed)
+        if assumePerfectRecording:
+            idxToExclude = np.array([], dtype=np.int64)
+            canBeUsed = True
+        else:
+            if (not erroneousFramesExist) and canBeUsed:
+                (idxToExclude,canBeUsed) = dataAnalysis.determineErroneousFrames(frames)
+                eSD.saveErroneousFramesIdx([foldersRecordings[f][0], foldersRecordings[f][2][r], 'erroneousFrames'],idxToExclude,canBeUsed=canBeUsed)
         #pdb.set_trace()
         if existenceFrames and existenceFTimes and existenceLEDControl and canBeUsed:
             #(idxIllumFinal, frameTimes, frameStartStopIdx, videoIdx, frameSummary)
