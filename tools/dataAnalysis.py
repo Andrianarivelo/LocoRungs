@@ -292,6 +292,7 @@ def generatePlotWithSTD(data,std=[2,3,4],names = None):
 #################################################################################
 def determineFramesToExclude(frames,probIdx):
     listOfFramesToExclude = []
+    canBeUsed = True
     # first let's decide on how many LED's (if any) are present in the FOV
     for i in range(len(probIdx)):
         currIdx = probIdx[i]
@@ -303,7 +304,7 @@ def determineFramesToExclude(frames,probIdx):
             # rungs = []
             #imgPure = img.copy()
             cv2.imshow("PureImage", img)
-            print('e if to exclude; r to remove from exclude; left right arrows to go back-forward one frame; o to specify another idx; f to move to next:')
+            print('e if to exclude; r to remove from exclude; left right arrows to go back-forward one frame; o to specify another idx; f to move to next; x if recording contains too many errors and cannot be used :')
             PressedKey = cv2.waitKey(0)
             print(PressedKey)
             if PressedKey == 81: # left arrow key
@@ -321,19 +322,21 @@ def determineFramesToExclude(frames,probIdx):
                 currIdx = int(nIdx)
             elif PressedKey == 102: # f key
                 continueDetectLoop = False
+            elif PressedKey == 104: # x key
+                canBeUsed = False
+                break
             else:
                 print('Key not recognized, try again.')
             print('current exclude list :',listOfFramesToExclude)
 
     cv2.destroyWindow("PureImage") # only destroy window at the end of the exploration
-
     lofEx = list(dict.fromkeys(listOfFramesToExclude)) # removes duplicates
     lofEx.sort()
     print('starting list of indexes :', probIdx)
     print('indexes to exclude :', lofEx)
     lofEx = np.asarray(lofEx,dtype=int)
     #pdb.set_trace()
-    return lofEx
+    return (lofEx, canBeUsed)
 
 
 #################################################################################
@@ -383,9 +386,8 @@ def determineErroneousFrames(frames):
         canBeUsed = False
         idxToExclude = np.arange([])
         return (idxToExclude, canBeUsed)
-    canBeUsed = True
     print('length and identity of possible erronous frames :' , len(outlierIdx), outlierIdx)
-    idxExclude = determineFramesToExclude(frames,outlierIdx)
+    (idxExclude,canBeUsed) = determineFramesToExclude(frames,outlierIdx)
     #excludeMask = np.ones(len(ledVideoRoi[2]),dtype=bool)
     # add indicies for equivalent frames
     sameFrames = (frameDiff == 0)

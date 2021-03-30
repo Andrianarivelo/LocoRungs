@@ -46,7 +46,7 @@ openCVtools  = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysi
 # loop over all folders, mostly days but sometimes there were two recording sessions per day
 for f in range(len(foldersRecordings)):
     # loop over all recordings in that folder
-    for r in range(3,len(foldersRecordings[f][2])):
+    for r in range(len(foldersRecordings[f][2])):
         #pdb.set_trace()
         (existenceFrames,fileHandleFrames) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
         (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
