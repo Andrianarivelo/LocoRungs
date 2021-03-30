@@ -422,7 +422,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     # TODO this number is zero on the behavior setup and 4 here
     if pc == 'behaviorPC':
         LEDcontrolIdx = 0 # which trace of the DAQ recording is linked to the  !!!
-    elif pc == '2pinvivoPC':
+    elif pc == '2photonPC':
         LEDcontrolIdx = 4
     else:
         print('Make sure the computer of the recording is specified.')
@@ -440,7 +440,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     LEDVideoThreshold =  allLEDVideoRoiValues[idxMaxDiff] + (allLEDVideoRoiValues[idxMaxDiff+1] - allLEDVideoRoiValues[idxMaxDiff])/2.
     if pc == 'behaviorPC':
         illumLEDcontrolThreshold = LEDVideoThreshold**4.49185827 # mapping, i.e. exponent, from tools/fitOfIlluminationValues
-    elif pc == '2pinvivoPC':
+    elif pc == '2photonPC':
         illumLEDcontrolThreshold = LEDVideoThreshold**2.61290794 # 2pinvivo
 
     print('thresholds : ',LEDVideoThreshold, illumLEDcontrolThreshold)
