@@ -64,7 +64,7 @@ for f in range(len(foldersRecordings)):
         # determine the
         if (SavedLEDcoordinates is None) or DetermineAgainLEDcoordinates :
             LEDcoordinates = openCVtools.findLEDNumberArea(frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist,determineAgain=True,verbose=False)
-            eSD.saveLEDPositionCoordinates([foldersRecordings[f][0], foldersRecordings[f][2][r], 'LEDinVideo'],ledCoordinates)
+            eSD.saveLEDPositionCoordinates([foldersRecordings[f][0], foldersRecordings[f][2][r], 'LEDinVideo'],LEDcoordinates)
         else:
             LEDcoordinates = SavedLEDcoordinates
         LEDtraces = openCVtools.extractLEDtraces(frames,LEDcoordinates,verbose=False)
