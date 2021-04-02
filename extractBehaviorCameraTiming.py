@@ -68,7 +68,7 @@ for f in range(len(foldersRecordings)):
         else:
             LEDcoordinates = SavedLEDcoordinates
         LEDtraces = openCVtools.extractLEDtraces(frames,LEDcoordinates,verbose=False)
-        pdb.set_trace()
+        #pdb.set_trace()
         if existenceFTimes:
             (exposureDAQArray,exposureDAQArrayTimes) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes',fileHandleFTimes)
         if existenceLEDControl:
