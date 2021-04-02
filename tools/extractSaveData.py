@@ -218,8 +218,8 @@ class extractSaveData:
                         print(' ', fold)
                         # self.dataLocation = (self.dataBase2 + fold + '/') if eD >= '181018' else (self.dataBase + fold + '/')
                         self.dataLocation = self.dataBase + self.dataPCLocation[dataFolders[fold]['recComputer']] + fold + '/'
-                        self.recordingMachine = self.computerDict[dataFolders[fold]['recComputer']]
-                        print(self.dataLocation)
+                        #self.recordingMachine = self.computerDict[dataFolders[fold]['recComputer']]
+                        #print(self.dataLocation)
                         if not os.path.exists(self.dataLocation):
                             #    print('experiment %s exists' % fold)
                             # else:
@@ -244,7 +244,8 @@ class extractSaveData:
                     # self.dataLocation = (self.dataBase2 + fold + '/') if eD >= '181018' else (self.dataBase + fold + '/')
                     # pdb.set_trace()
                     self.dataLocation = self.dataBase + self.dataPCLocation[dataFolders[fold]['recComputer']] + fold + '/'
-                    # print(self.dataLocation)
+                    self.recordingMachine = self.computerDict[dataFolders[fold]['recComputer']]
+                    print(self.dataLocation)
                     if not os.path.exists(self.dataLocation):
                         # print('experiment %s exists' % fold)
                         # else:
