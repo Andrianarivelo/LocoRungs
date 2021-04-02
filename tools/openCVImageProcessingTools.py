@@ -406,13 +406,19 @@ class openCVImageProcessingTools:
         else:
             (nLEDs,posX,posY,circleRadius) = (coordinates[0],coordinates[1],coordinates[2],coordinates[3])
         print('coordinates used for extraction :',nLED,posX,posY,circleRadius)
-        # extract temporal trace of LED area mask
+        coordinates = np.array([nLED, posX, posY, circleRadius], dtype=object)
+        return coordinates
+
+    ############################################################
+    # extract temporal trace of LED area mask
+    def extractLEDtraces(self, frames, coordinates, verbose=False):
+        (nLEDs, posX, posY, circleRadius) = (coordinates[0], coordinates[1], coordinates[2], coordinates[3])
         # get mask for circular area comprising the LED
         dims = np.shape(np.transpose(frames[0]))
         maskGrid = np.indices((dims[0],dims[1]))
         framesNew = np.transpose(frames, axes=(0, 2, 1))  # permutate last two axes as for the image depiction
         LEDtraces = []
-        for i in range(nLED):
+        for i in range(nLEDs):
             maskCircle = np.sqrt((maskGrid[1] - posX[i]) ** 2 + (maskGrid[0] - posY[i]) ** 2) < circleRadius
             # apply mask to the frame array and extract mean brigthness of the LED ROI
             LEDtr = np.mean(framesNew[:,maskCircle],axis=1)
@@ -424,9 +430,7 @@ class openCVImageProcessingTools:
             plt.show()
         #pdb.set_trace()
         #mask = np.zeros((self.Vheight, self.Vwidth))
-        coordinates = np.array([nLED,posX,posY,circleRadius],dtype=object)
-        return (coordinates,LEDtraces)
-
+        return (LEDtraces)
 
 
     ############################################################

@@ -19,6 +19,8 @@ recordings='some'     # 'all or 'some'
 # further analaysis parameter
 assumePerfectRecording = True  # that means a recording without any flash-back - or double frames
 startRecording = 0  # each session/day per animal is composed of 5 recordings, this index allows chose with which recording to start, default is 0
+DetermineAgainLEDcoordinates = False # whether or not to determine LED coordinates even though they exist already for current or previous recording
+DetermineAgainErronousFrames = False # whether or not to determine errnonous frames even though the are already exist for current recording
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -54,14 +56,19 @@ for f in range(len(foldersRecordings)):
         (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
         (existenceLEDControl, fileHandleLED) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'PreAmpInput')
         (currentCoodinatesExist,SavedLEDcoordinates) = eSD.checkForLEDPositionCoordinates(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r)
-        (erroneousFramesExist,idxToExclude,canBeUsed) = eSD.checkForErroneousFramesIdx(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r,determineAgain=False)
+        (erroneousFramesExist,idxToExclude,canBeUsed) = eSD.checkForErroneousFramesIdx(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2], r,determineAgain=DetermineAgainErronousFrames)
         # if camera was recorded
         if existenceFrames:
             #print('exists',foldersRecordings[f][0],foldersRecordings[f][2][r])
             (frames,softFrameTimes,imageMetaInfo) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior',fileHandleFrames)
-            (ledCoordinates,ledTraces) = openCVtools.findLEDNumberArea(frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist,determineAgain=True,verbose=False)
-            #pdb.set_trace()
+        # determine the
+        if (SavedLEDcoordinates is None) or DetermineAgainLEDcoordinates :
+            LEDcoordinates = openCVtools.findLEDNumberArea(frames,coordinates=SavedLEDcoordinates,currentCoordExist=currentCoodinatesExist,determineAgain=True,verbose=False)
             eSD.saveLEDPositionCoordinates([foldersRecordings[f][0], foldersRecordings[f][2][r], 'LEDinVideo'],ledCoordinates)
+        else:
+            LEDcoordinates = SavedLEDcoordinates
+        LEDtraces = openCVtools.extractLEDtraces(frames,LEDcoordinates,verbose=False)
+        pdb.set_trace()
         if existenceFTimes:
             (exposureDAQArray,exposureDAQArrayTimes) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes',fileHandleFTimes)
         if existenceLEDControl:
@@ -78,7 +85,7 @@ for f in range(len(foldersRecordings)):
         #pdb.set_trace()
         if existenceFrames and existenceFTimes and existenceLEDControl and canBeUsed:
             #(idxIllumFinal, frameTimes, frameStartStopIdx, videoIdx, frameSummary)
-            (idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary) = dataAnalysis.determineFrameTimesBasedOnLED([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],eSD.recordingMachine,verbose=True)
+            (idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary) = dataAnalysis.determineFrameTimesBasedOnLED([LEDtraces,LEDcoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],eSD.recordingMachine,verbose=True)
             #framesDuringRecording = frames[recordedFramesIdx]
             eSD.saveBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo'],idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary, imageMetaInfo)
             #eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
