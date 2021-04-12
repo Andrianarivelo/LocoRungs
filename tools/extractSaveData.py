@@ -108,9 +108,9 @@ class extractSaveData:
         return (imStack, motionCoor, allFiles[0])
 
     ############################################################
-    def saveRungMotionData(self, date, rec, rungPositions):
+    def saveRungMotionData(self, mouse, date, rec, rungPositions):
         rec = rec.replace('/', '-')
-        pickle.dump(rungPositions, open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (self.mouse, date, rec), 'wb'))
+        pickle.dump(rungPositions, open(self.analysisLocation + '%s_%s_%s_rungPositions.p' % (mouse, date, rec), 'wb'))
 
     ############################################################
     def getRungMotionData(self, mouse, date, rec):
