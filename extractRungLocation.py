@@ -28,7 +28,7 @@ else:
 
 
 eSD         = extractSaveData.extractSaveData(mouse)
-(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
 
 cv2Tools = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
 # loop over all folders, mostly days but sometimes there were two recording sessions per day

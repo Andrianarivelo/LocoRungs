@@ -28,7 +28,7 @@ else:
     expDate = args.date
 
 eSD         = extractSaveData.extractSaveData(mouse)
-(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
 
 #tracks = []
 print(foldersRecordings)
