@@ -432,6 +432,7 @@ class extractSaveData:
 
             pFileName = '%s*.pickle' % fData[:-3]
             pfList = glob.glob(pFileName)
+            print(pfList)
             if len(pfList) == 1:
                 pawMetaData = pickle.load(open(pfList[0], 'rb'))
             else:

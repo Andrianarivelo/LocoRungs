@@ -67,6 +67,7 @@ for f in range(len(foldersRecordings)):
             eSD.saveLEDPositionCoordinates([foldersRecordings[f][0], foldersRecordings[f][2][r], 'LEDinVideo'],LEDcoordinates)
         else:
             LEDcoordinates = SavedLEDcoordinates
+            eSD.saveLEDPositionCoordinates([foldersRecordings[f][0], foldersRecordings[f][2][r], 'LEDinVideo'], LEDcoordinates)
         LEDtraces = openCVtools.extractLEDtraces(frames,LEDcoordinates,verbose=False)
         #pdb.set_trace()
         if existenceFTimes:
