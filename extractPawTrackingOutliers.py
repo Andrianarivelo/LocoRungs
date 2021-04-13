@@ -30,7 +30,7 @@ else:
 
 
 eSD         = extractSaveData.extractSaveData(mouse)
-(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
 
 cV       = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 # = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
