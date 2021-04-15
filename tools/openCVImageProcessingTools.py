@@ -338,16 +338,16 @@ class openCVImageProcessingTools:
             ## sets the location of the ROIs for all LEDs
             if nLED > 0:
                 movePixels = 1
-                spacing = 40
+                spacing = 50
                 rotAngle = 2.
                 continueLoop = True
                 # optimize with keyboard
                 if coordinates is None:
                     posX = np.full(nLED,0)
                     posY = np.full(nLED,0)
-                    posX[0] = 780
-                    posY[0] = 70
-                    circleRadius = 15
+                    posX[0] = 730
+                    posY[0] = 30
+                    circleRadius = 20
                     (posX,posY) = changeSpacing(nLED,spacing,posX,posY)
                 else:
                     nLED = coordinates[0]
