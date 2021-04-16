@@ -55,7 +55,7 @@ File | What it does
 ----- | ------
 `getWalkingActivity.py` | The script extracts the Rotary encoder data and saves it to hdf5 file.
 `plotRecordingOverviewPerAnimal.py` | The script uses the extracted Rotary encoder data and generates an overview figures.
-`extractBehaviorCameraTiming.py` | Sets the ROI location for the LED used for synchronization and determines the exact timing of individual frames.  
+`extractBehaviorCameraTiming.py` | Sets the ROI location for the LED used for synchronization and determines the exact timing of individual frames.  <br> **If 3rd LED is not blinking :** A modified version of this script exists in case the 3rd LED is not blinking (due to a loose connection). The modified version is part of a different git branch called `LED3broken`. This branch can be activated by switching from the `main` branch to `LED3broken` by typing `git checkout LED3broken` in the command line. The script is launched as usual through `(locorungs37) python extractBehaviorCameraTiming.py`. Switching back to the main (default) branch can be done with `git checkout main`. 
 `getRawBehaviorImagesSaveVideo.py` | The script extracts images recorded with the high-speed camera. The extracted images are saved as avi video for the tracking procedures.
 `analyzePawMovement.py` | The script uses openCV to analyze the behavioral videos. Paw and rung locations are extracted.
 
