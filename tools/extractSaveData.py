@@ -13,6 +13,8 @@ import pickle
 import re
 import matplotlib.pyplot as plt
 from skimage import io
+#import sys
+#import os
 
 from tools.h5pyTools import h5pyTools
 import tools.googleDocsAccess as googleDocsAccess
@@ -232,6 +234,11 @@ class extractSaveData:
                 print('Choose the recordings for analysis by typing the index, e.g, \'1\', or \'0,1,3,5\' : ', end='')
                 recInput = input()
                 recInputIdx = [int(i) for i in recInput.split(',')]
+            elif recordings=='all':
+                pass
+            else:
+                recInputIdx = [int(i) for i in recordings.split(',')]
+            print('list of recordings : ', recInputIdx)
             #
             # pdb.set_trace()
             # then compile a list the selected recordings
@@ -251,7 +258,22 @@ class extractSaveData:
                         # else:
                         print('Problem, experiment does not exist')
                     recList = self.getDirectories(self.dataLocation)
-                    if recordings == 'some':
+                    if recordings == 'all':
+                        tempRecList = []
+                        for r in recList:
+                            # if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin' or r[:-4] == 'locomotionTriggerSIAndMotor60sec' :
+                            if r[:-4] in self.listOfSequenceExperiments:
+                                subFolders = self.getDirectories(self.dataLocation + '/' + r)
+                                for i in range(len(subFolders)):
+                                    if subFolders[i][0] == '0':
+                                        tempRecList.append(r + '/' + subFolders[i])
+                                    else:
+                                        tempRecList.append(r)
+                                        break
+                            else:
+                                tempRecList.append(r)
+                        folderRec.append([fold, eD, tempRecList])  # folderRec.append([fold,eD,recList])
+                    else: # recordings == 'some':
                         tempRecList = []
                         for r in recList:
                             # only add recordings which were previously selected
@@ -269,21 +291,7 @@ class extractSaveData:
                                     tempRecList.append(r)
                             recIdx += 1
                         folderRec.append([fold, eD, tempRecList])
-                    elif recordings == 'all':
-                        tempRecList = []
-                        for r in recList:
-                            # if r[:-4] == 'locomotionTriggerSIAndMotor' or r[:-4] == 'locomotionTriggerSIAndMotorJin' or r[:-4] == 'locomotionTriggerSIAndMotor60sec' :
-                            if r[:-4] in self.listOfSequenceExperiments:
-                                subFolders = self.getDirectories(self.dataLocation + '/' + r)
-                                for i in range(len(subFolders)):
-                                    if subFolders[i][0] == '0':
-                                        tempRecList.append(r + '/' + subFolders[i])
-                                    else:
-                                        tempRecList.append(r)
-                                        break
-                            else:
-                                tempRecList.append(r)
-                        folderRec.append([fold, eD, tempRecList])  # folderRec.append([fold,eD,recList])
+
         print('Data was recorded on %s' % self.recordingMachine)
         return (folderRec, dataFolders)
 
@@ -308,11 +316,11 @@ class extractSaveData:
                 pathToFile = recLocation + device + '/' + 'video_000.ma'
             else:
                 pathToFile = recLocation + device + '/' + 'frames.ma'
-        elif device is 'PreAmpInput':
+        elif device == 'PreAmpInput':
             pathToFile = recLocation + '%s.ma' % 'DaqDevice'
-        elif device is 'frameTimes':
+        elif device == 'frameTimes':
             pathToFile = recLocation + '%s/%s.ma' % ('CameraGigEBehavior', 'daqResult')
-        elif device is 'SICaImaging':
+        elif device == 'SICaImaging':
             recLocation = self.dataBase + self.dataPCLocation[self.listOfAllExpts[self.mouse]['dates'][eD]['folders'][fold]['recComputer']] + fold + '/'
             print(recLocation)
             tiffList = glob.glob(recLocation + '*tif')
@@ -434,6 +442,7 @@ class extractSaveData:
             pfList = glob.glob(pFileName)
             print(pfList)
             if len(pfList) == 1:
+                #pdb.set_trace()
                 pawMetaData = pickle.load(open(pfList[0], 'rb'))
             else:
                 pawMetaData = None
@@ -817,7 +826,7 @@ class extractSaveData:
         return (rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime, rawPawSpeed, cPawPos)
 
     ############################################################
-    def savePawTrackingData(self, mouse, date, rec, pawPositions, pawTrackingOutliers, pawMetaData, expStartTime, expEndTime, startTime, generateVideo=True):
+    def savePawTrackingData(self, mouse, date, rec, pawPositions, pawTrackingOutliers, pawMetaData, startEndExposureTime, startTime, generateVideo=True):
         # pdb.set_trace()
         jointNames = pawMetaData['data']['DLC-model-config file']['all_joints_names']
         jointIdx = pawMetaData['data']['DLC-model-config file']['all_joints']
@@ -827,7 +836,7 @@ class extractSaveData:
         rec = rec.replace('/', '-')
         (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, [date, rec, 'pawTrackingData'])
         self.h5pyTools.createOverwriteDS(grpHandle, 'rawPawPositionsFromDLC', pawPositions)
-        timeArray = (expStartTime + expEndTime) / 2.
+        timeArray = np.average(startEndExposureTime,axis=1) # use the 'middle' of the exposure time as time-point of the frame
         for i in range(4):
             pawMask = pawTrackingOutliers[i][3]
             # pdb.set_trace()
@@ -840,8 +849,9 @@ class extractSaveData:
             clearedPosIdx = np.arange(len(pawPositions))[pawMask]
             clearedXYPos = np.column_stack((timeArray[pawMask], pawPositions[:, (i * 3 + 1)][pawMask], pawPositions[:, (i * 3 + 2)][pawMask], clearedPosIdx))
             clearedSpeedIdx = np.array((clearedPosIdx[:-1] + clearedPosIdx[1:]) / 2., dtype=int)
-            self.h5pyTools.createOverwriteDS(grpHandle, 'pawTrackingOutliers%s' % i, pawTrackingOutliers[i][3],
-                                             ['PawID', [jointNames[i], pawTrackingOutliers[i][1], pawTrackingOutliers[i][2]]])
+            #pdb.set_trace()
+            self.h5pyTools.createOverwriteDS(grpHandle, 'pawTrackingOutliers%s' % i, pawTrackingOutliers[i][3],[['PawID', jointNames[i],['pawTrackingOutliers',[ pawTrackingOutliers[i][1], pawTrackingOutliers[i][2]]]]])#, pawTrackingOutliers[i][1], pawTrackingOutliers[i][2]]])
+                                             #['PawID', [jointNames[i], pawTrackingOutliers[i][1], pawTrackingOutliers[i][2]]])
             self.h5pyTools.createOverwriteDS(grpHandle, 'rawPawSpeed%s' % i, np.column_stack((rawSpeedTime, rawPawSpeed)), ['recStartTime', startTime])
             self.h5pyTools.createOverwriteDS(grpHandle, 'clearedPawSpeed%s' % i, np.column_stack((clearedSpeedTime, clearedPawSpeed, clearedPawXSpeed, clearedPawYSpeed, clearedSpeedIdx)),
                                              ['recStartTime', startTime])

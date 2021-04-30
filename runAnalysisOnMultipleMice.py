@@ -3,7 +3,7 @@ import tools.extractSaveData as extractSaveData
 #import tools.openCVImageProcessingTools as openCVImageProcessingTools
 import pdb
 import os
-import commands
+import subprocess
 import time
 import pickle
 import multiprocessing
@@ -51,10 +51,10 @@ for m in mouseList:
             continue
         else:
             comandString = 'python %s.py -m %s -d %s' % (script,m,recordings[n][1])
-            print comandString
+            print(comandString)
             #tp = os.system('pwd')
             #print tp
-            (out,err) = commands.getstatusoutput(comandString)
+            (out,err) = subprocess.getstatusoutput(comandString)
             commandHist.append([comandString,out,err])
             #pdb.set_trace()
 
