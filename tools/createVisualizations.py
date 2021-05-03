@@ -3746,8 +3746,10 @@ class createVisualizations:
             outlier = np.asarray(outlier)
             #pdb.set_trace()
             for p in range(4):
-                ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p],'o-',ms=2,c=cc[p])
-        plt.xticks(np.arange(len(foldersRecordings)),dateLabels)
+                ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p],'o-',ms=3,c=cc[p])
+        #plt.xticks(np.arange(len(foldersRecordings)),dateLabels)
+        ax0.set_xticks(np.arange(len(foldersRecordings)))
+ax1.    ax0.set_xticklabels(dateLabels, minor=False, rotation=45,fontsize=9)
         self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)')
         ## save figure ############################################################
         #ax0.invert_yaxis()
