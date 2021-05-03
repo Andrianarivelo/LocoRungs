@@ -3688,6 +3688,7 @@ class createVisualizations:
         # fig = plt.figure(figsize=(11, 11))
         # ax0 = fig.add_subplot(3, 2, 1)
         # ax1 = fig.add_subplot(3, 2, 3)
+        cc = ['C0','C1','C2','C3']
         # figure #################################
         fig_width = 8  # width in inches
         fig_height = 7  # height in inches
@@ -3717,7 +3718,7 @@ class createVisualizations:
         gs.update(wspace=0.3, hspace=0.25)
 
         # possibly change outer margins of the figure
-        plt.subplots_adjust(left=0.05, right=0.96, top=0.96, bottom=0.05)
+        plt.subplots_adjust(left=0.15, right=0.96, top=0.92, bottom=0.15)
 
         # sub-panel enumerations
         plt.figtext(0.06, 0.98, '%s days: %s, recordings: %s' % (self.mouse,len(foldersRecordings),len(outlierData)), clip_on=False, color='black', size=14)
@@ -3745,7 +3746,7 @@ class createVisualizations:
             outlier = np.asarray(outlier)
             pdb.set_trace()
             for p in range(4):
-                ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p])
+                ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p],'o-',c=cc[p])
         self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)')
         ## save figure ############################################################
         #ax0.invert_yaxis()
