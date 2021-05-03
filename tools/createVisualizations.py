@@ -3755,13 +3755,13 @@ class createVisualizations:
                 else:
                     ax0.plot(i + np.arange(nrecs)/8., outlier[:, p], 'o-', ms=3, c=cc[p])
         plt.xticks(np.arange(len(foldersRecordings)),dateLabels,rotation=45)
-        #pdb.set_trace()
+        pdb.set_trace()
         #ax0.set_xticks(np.arange(len(foldersRecordings)))
         #ax0.set_xticklabels(dateLabels, minor=False, rotation=45)
         errorRates = (overallImgs-totOutliers)/overallImgs
         errorRates = np.round(errorRates,5)
-        plt.figtext(0.06, 0.92, 'error rates, paws, total : %s %s %s %s, \033[1m %s \033[0m' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)), clip_on=False, color='black', size=12)
-        print('error rates, paws, total : %s %s %s %s, \033[1m %s \033[0m' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)))
+        plt.figtext(0.06, 0.92, 'error rates, paws, total : %s %s %s %s,  %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)), clip_on=False, color='black', size=12)
+        print('error rates, paws, total : %s %s %s %s, %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)))
         self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)',Leg=[0,9])
         ## save figure ############################################################
         #ax0.invert_yaxis()
