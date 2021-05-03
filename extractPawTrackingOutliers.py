@@ -50,7 +50,7 @@ cV       = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
 
 if os.path.isfile(eSD.analysisLocation + '/allOutlierFramesPerSession.p') and not readDataAgain:
-    outlierData = pickle.load( open(eSD.analysisLocation + '/allOutlierFramesPerSession.p', 'wb') )
+    outlierData = pickle.load( open(eSD.analysisLocation + '/allOutlierFramesPerSession.p', 'rb') )
 else:
     outlierData = []
     for f in range(len(foldersRecordings)) :
@@ -67,7 +67,6 @@ else:
                 eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],pawPositions,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
             #pdb.set_trace()
 
-    #pdb.set_trace()
+    pdb.set_trace()
     pickle.dump(outlierData, open(eSD.analysisLocation + '/allOutlierFramesPerSession.p', 'wb'))
-
 cV.createOutlierStatFigure(foldersRecordings,outlierData)

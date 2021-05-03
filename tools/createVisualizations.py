@@ -3720,7 +3720,7 @@ class createVisualizations:
         plt.subplots_adjust(left=0.05, right=0.96, top=0.96, bottom=0.05)
 
         # sub-panel enumerations
-        plt.figtext(0.06, 0.98, '%s days: %, recordings: %s' % (self.mouse,len(foldersRecordings),len(outlierData)), clip_on=False, color='black', size=14)
+        plt.figtext(0.06, 0.98, '%s days: %s, recordings: %s' % (self.mouse,len(foldersRecordings),len(outlierData)), clip_on=False, color='black', size=14)
         # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
 
         # first sub-plot #######################################################
