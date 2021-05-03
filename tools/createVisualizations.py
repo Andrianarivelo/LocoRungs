@@ -3689,6 +3689,10 @@ class createVisualizations:
         # ax0 = fig.add_subplot(3, 2, 1)
         # ax1 = fig.add_subplot(3, 2, 3)
         cc = ['C0','C1','C2','C3']
+
+        jointNames = []
+        for i in range(len(outlierData[0][2])):
+            jointNames.append(outlierData[0][2][i][4])
         # figure #################################
         fig_width = 8  # width in inches
         fig_height = 6  # height in inches
@@ -3718,7 +3722,7 @@ class createVisualizations:
         gs.update(wspace=0.3, hspace=0.25)
 
         # possibly change outer margins of the figure
-        plt.subplots_adjust(left=0.15, right=0.96, top=0.92, bottom=0.15)
+        plt.subplots_adjust(left=0.15, right=0.96, top=0.9, bottom=0.15)
 
         # sub-panel enumerations
         plt.figtext(0.06, 0.96, '%s   days: %s, recordings: %s' % (self.mouse,len(foldersRecordings),len(outlierData)), clip_on=False, color='black', size=14)
@@ -3746,11 +3750,16 @@ class createVisualizations:
             outlier = np.asarray(outlier)
             #pdb.set_trace()
             for p in range(4):
-                ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p],'o-',ms=3,c=cc[p])
+                if i == 0:
+                    ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p],'o-',ms=3,c=cc[p],labels=jointNames[p])
+                else:
+                    ax0.plot(i + np.arange(nrecs) / 10., outlier[:, p], 'o-', ms=3, c=cc[p])
         plt.xticks(np.arange(len(foldersRecordings)),dateLabels,rotation=45)
-        pdb.set_trace()
+        #pdb.set_trace()
         #ax0.set_xticks(np.arange(len(foldersRecordings)))
         #ax0.set_xticklabels(dateLabels, minor=False, rotation=45)
+        errorRates = (overallImgs-totOutliers)/overallImgs
+        plt.figtext(0.06, 0.92, 'error rates, paws, total : %s %s %s %s, %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)), clip_on=False, color='black', size=14)
         self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)')
         ## save figure ############################################################
         #ax0.invert_yaxis()
