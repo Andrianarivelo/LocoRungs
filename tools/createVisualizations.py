@@ -3691,7 +3691,7 @@ class createVisualizations:
         cc = ['C0','C1','C2','C3']
         # figure #################################
         fig_width = 8  # width in inches
-        fig_height = 7  # height in inches
+        fig_height = 6  # height in inches
         fig_size = [fig_width, fig_height]
         params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
                   'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
@@ -3748,6 +3748,7 @@ class createVisualizations:
             for p in range(4):
                 ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p],'o-',ms=3,c=cc[p])
         plt.xticks(np.arange(len(foldersRecordings)),dateLabels,rotation=45)
+        pdb.set_trace()
         #ax0.set_xticks(np.arange(len(foldersRecordings)))
         #ax0.set_xticklabels(dateLabels, minor=False, rotation=45)
         self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)')
