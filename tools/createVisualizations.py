@@ -3738,10 +3738,10 @@ class createVisualizations:
                     totImages = outlierData[n][2][0][1]
                     outlier.append([outlierData[n][2][0][2]/totImages,outlierData[n][2][1][2]/totImages,outlierData[n][2][2][2]/totImages,outlierData[n][2][3][2]/totImages])
                     nrecs+=1
-                outlier = np.asarray(outlier)
-                pdb.set_trace()
-                for p in range(4):
-                    ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p])
+            outlier = np.asarray(outlier)
+            pdb.set_trace()
+            for p in range(4):
+                ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p])
 
         ## save figure ############################################################
         ax0.invert_yaxis()
