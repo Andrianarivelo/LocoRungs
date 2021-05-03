@@ -3738,7 +3738,7 @@ class createVisualizations:
                 if outlierData[n][0] == foldersRecordings[i][0]:
                     totImages = outlierData[n][2][0][1]
                     overallImgs+=totImages
-                    tmp = np.array(outlierData[n][2][0][2],outlierData[n][2][1][2],outlierData[n][2][2][2],outlierData[n][2][3][2])
+                    tmp = np.array([outlierData[n][2][0][2],outlierData[n][2][1][2],outlierData[n][2][2][2],outlierData[n][2][3][2]])
                     outlier.append((totImages-tmp)/totImages)
                     totOutliers += tmp
                     nrecs+=1
