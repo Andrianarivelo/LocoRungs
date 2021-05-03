@@ -245,6 +245,25 @@ class extractSaveData:
                             recInputIdx.append(recIdx+idx910)
                         recIdx+=len(recList)
                 #pdb.set_trace()
+            elif recordings == 'all820':
+                print('All 910 recording will be analyzed')
+                recIdx = 0
+                recInputIdx = []
+                for eD in expDateList:
+                    dataFolders = self.listOfAllExpts[self.mouse]['dates'][eD]['folders']
+                    if 'recs820' in expDict[eD]:
+                        idx820 = expDict[eD]['recs910']
+                    else:
+                        idx820 = None
+                    for fold in dataFolders:
+                        #print(' ', fold)
+                        self.dataLocation = self.dataBase + self.dataPCLocation[dataFolders[fold]['recComputer']] + fold + '/'
+                        recList = self.getDirectories(self.dataLocation)
+                        #print(recList)
+                        if idx820 is not None:
+                            recInputIdx.append(recIdx+idx820)
+                        recIdx+=len(recList)
+                #pdb.set_trace()
             elif recordings == 'some':
                 # first show all recordings for a given date
                 print('Choose recording to analyze')
