@@ -3729,11 +3729,11 @@ class createVisualizations:
         ax0 = plt.subplot(gs[0])
 
         dateLabels = []
-        for i in range(len(foldersRecordings)):
+        for i in range(len(foldersRecordings)): # loop over recording days
             dateLabels.append(foldersRecordings[i][0])
+            outlier = []
+            nrecs = 0
             for n in range(len(outlierData)):
-                outlier = []
-                nrecs = 0
                 if outlierData[n][0] == foldersRecordings[i][0]:
                     totImages = outlierData[n][2][0][1]
                     outlier.append([outlierData[n][2][0][2]/totImages,outlierData[n][2][1][2]/totImages,outlierData[n][2][2][2]/totImages,outlierData[n][2][3][2]/totImages])
