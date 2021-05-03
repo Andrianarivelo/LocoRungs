@@ -177,6 +177,11 @@ class extractSaveData:
 
     ############################################################
     def getRecordingsList(self, expDate='all', recordings='all'):
+        if recordings == 'all910':
+            recID = 'recs910'
+        elif recordings == 'all820':
+            recID = 'recs820'
+
         self.config = readConfigFile('simplexAnimals.config')
         for i in range(len(self.config)):
             if self.config['%s' % i]['mouse'] == self.mouse:
@@ -205,7 +210,8 @@ class extractSaveData:
                 daysInputIdx = []
                 for d in self.listOfAllExpts[self.mouse]['dates']:
                     if d in expDict.keys() :
-                        daysInputIdx.append(didx)
+                        if recID in expDict[d]:
+                            daysInputIdx.append(didx)
                     didx+=1
             ########################################################
             # generate list of days to analyze
