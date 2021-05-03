@@ -3689,8 +3689,8 @@ class createVisualizations:
         # ax0 = fig.add_subplot(3, 2, 1)
         # ax1 = fig.add_subplot(3, 2, 3)
         # figure #################################
-        fig_width = 25  # width in inches
-        fig_height = 20  # height in inches
+        fig_width = 8  # width in inches
+        fig_height = 7  # height in inches
         fig_size = [fig_width, fig_height]
         params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
                   'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
@@ -3727,7 +3727,8 @@ class createVisualizations:
         #gsList = []
         #axList = []
         ax0 = plt.subplot(gs[0])
-
+        overallImgs = 0
+        totOutliers = np.zeros(4)
         dateLabels = []
         for i in range(len(foldersRecordings)): # loop over recording days
             dateLabels.append(foldersRecordings[i][0])
@@ -3736,15 +3737,18 @@ class createVisualizations:
             for n in range(len(outlierData)):
                 if outlierData[n][0] == foldersRecordings[i][0]:
                     totImages = outlierData[n][2][0][1]
-                    outlier.append([outlierData[n][2][0][2]/totImages,outlierData[n][2][1][2]/totImages,outlierData[n][2][2][2]/totImages,outlierData[n][2][3][2]/totImages])
+                    overallImgs+=totImages
+                    tmp = np.array(outlierData[n][2][0][2],outlierData[n][2][1][2],outlierData[n][2][2][2],outlierData[n][2][3][2])
+                    outlier.append((totImages-tmp)/totImages)
+                    totOutliers += tmp
                     nrecs+=1
             outlier = np.asarray(outlier)
             pdb.set_trace()
             for p in range(4):
                 ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p])
-
+        self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)')
         ## save figure ############################################################
-        ax0.invert_yaxis()
+        #ax0.invert_yaxis()
         #rec = rec.replace('/','-')
         fname = self.determineFileName(self.mouse, what='tracking-outliers')
         # plt.savefig(fname + '.png')
