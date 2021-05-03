@@ -3739,6 +3739,7 @@ class createVisualizations:
                     outlier.append([outlierData[n][2][0][2]/totImages,outlierData[n][2][1][2]/totImages,outlierData[n][2][2][2]/totImages,outlierData[n][2][3][2]/totImages])
                     nrecs+=1
                 outlier = np.asarray(outlier)
+                pdb.set_trace()
                 for p in range(4):
                     ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p])
 
