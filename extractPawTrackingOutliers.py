@@ -13,8 +13,8 @@ import pickle
 import pdb
 
 mouseD = '210120_m85'
-expDateD = 'some' # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordingsD='some' # 'all or 'some', or index of the recoding - e.g. 0,1 - when running analysis for a specific day
+expDateD = 'all910' # specific date e.g. '180214', 'some' for manual selection, 'all' for all, 'all910' for all recordings at 910 nm
+recordingsD='all910' # 'all or 'some' or 'all910', or index of the recoding - e.g. 0,1 - when running analysis for a specific day
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -61,4 +61,6 @@ for f in range(len(foldersRecordings)) :
             eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],pawPositions,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
         #pdb.set_trace()
 
+pdb.set_trace()
 pickle.dump(outlierData, open(eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'wb'))
+cV.createOutlierStatFigure(outlierData)

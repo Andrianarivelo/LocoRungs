@@ -3682,6 +3682,131 @@ class createVisualizations:
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
         #plt.show()
+    ##########################################################################################
+    def createOutlierStatFigure(self,outlierData):
+
+        # fig = plt.figure(figsize=(11, 11))
+        # ax0 = fig.add_subplot(3, 2, 1)
+        # ax1 = fig.add_subplot(3, 2, 3)
+        # figure #################################
+        fig_width = 25  # width in inches
+        fig_height = 20  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(1, 1,  # ,
+                               # width_ratios=[1.2,1]
+                               height_ratios=[1, 1, 1, 1, 4])
+
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.3, hspace=0.25)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.05, right=0.96, top=0.96, bottom=0.05)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.98, '%s ' % (self.mouse), clip_on=False, color='black', size=14)
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+        # first sub-plot #######################################################
+        gsList = []
+        axList = []
+        for i in range(4):
+            gssub = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[i], hspace=0.2)
+            gsList.append(gssub)
+            ax0 = plt.subplot(gssub[0])
+            ax1 = plt.subplot(gssub[1])
+            ax2 = plt.subplot(gssub[2])
+            ax3 = plt.subplot(gssub[3])
+
+            axList.append([ax0, ax1, ax2, ax3])
+        gssub1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[4], hspace=0.2)
+        ax4 = plt.subplot(gssub1[0])
+
+        ccc = ['C0', 'C1', 'C2', 'C3']
+
+        # fig.set_title(jointName)
+
+        for i in range(4):
+            jointName = pawTrackingOutliers[i][4]
+            onePawData = pawTrackingOutliers[i][5]
+            onePawDataTmp = pawTrackingOutliers[i][6]
+            frDispl = pawTrackingOutliers[i][7]
+            frDisplOrig = pawTrackingOutliers[i][8]
+
+            axList[i][0].plot(onePawData[:, 0], onePawData[:, 1]*0.025, c='0.5')
+            axList[i][0].plot(onePawDataTmp[:, 0], onePawDataTmp[:, 1]*0.025, c=ccc[i])
+            if i == 3:
+                self.layoutOfPanel(axList[i][0], xLabel='frame number', yLabel='x (pixel)')
+            else:
+                self.layoutOfPanel(axList[i][0], xLabel=None, yLabel='x (cm)', xyInvisible=[True, False])
+            # ax0.set_ylabel('x (pixel)')
+
+            axList[i][1].plot(onePawData[:, 0], onePawData[:, 2]*0.025, c='0.5')
+            axList[i][1].plot(onePawDataTmp[:, 0], onePawDataTmp[:, 2]*0.025, c=ccc[i])
+            if i == 3:
+                self.layoutOfPanel(axList[i][1], xLabel='frame number', yLabel='y (pixel)')
+            else:
+                self.layoutOfPanel(axList[i][1], xLabel=None, yLabel='y (cm)', xyInvisible=[True, False])
+            axList[i][1].invert_yaxis()
+            # ax1.set_ylabel('y (pixel)')
+
+            axList[i][2].plot(onePawData[:-1, 0], frDisplOrig, c='0.5')
+            axList[i][2].plot(onePawDataTmp[:-1, 0], frDispl, c=ccc[i])
+            if i == 3:
+                self.layoutOfPanel(axList[i][2], xLabel='frame number', yLabel='speed (pix/frame)')
+            else:
+                self.layoutOfPanel(axList[i][2], xLabel=None, yLabel='speed (pix/frame)', xyInvisible=[True, False])
+
+            axList[i][3].hist(frDisplOrig, bins=200, color='0.5')
+            axList[i][3].hist(frDispl, bins=200, range=(min(frDisplOrig), max(frDisplOrig)),color=ccc[i])
+            axList[i][3].set_yscale('log')
+            if i == 3:
+                self.layoutOfPanel(axList[i][3], xLabel='speed (pixel/frame)', yLabel='occurrence')
+            else:
+                self.layoutOfPanel(axList[i][3], xLabel=None, yLabel='occurrence', xyInvisible=[True, False])
+
+            # trajectories of all four paws in the same panel ###################################
+            # ax2 = fig.add_subplot(3, 2, 2)
+            ax4.plot(onePawData[:, 1], onePawData[:, 2], c='0.5')
+            ax4.plot(onePawDataTmp[:, 1], onePawDataTmp[:, 2], c=ccc[i], label='%s' % jointName)
+            self.layoutOfPanel(ax4, xLabel='x (pixel)', yLabel='y (pixel)', Leg=[1, 9])  # ax2.set_xlabel('x (pixel)')  # ax2.set_ylabel('y (pixel)')
+
+
+
+            # ax3 = fig.add_subplot(3, 2, 4)
+            # ax3.plot(onePawData[:-1, 0], frDisplOrig, c='0.5')
+            # ax3.plot(onePawDataTmp[:-1, 0], frDispl, c='C0')
+            # ax3.set_xlabel('frame #')
+            # ax3.set_ylabel('movement speed (pixel/frame)')
+            #
+            # ax4 = fig.add_subplot(3, 2, 5)
+            # ax4.hist(frDisplOrig, bins=300, color='0.5')
+            # ax4.hist(frDispl, bins=300, range=(min(frDisplOrig), max(frDisplOrig)))
+            # ax4.set_xlabel('displacement (pixel)')  # ax4.set_ylabel('occurrence')
+            # ax4.set_yscale('log')
+
+        ## save figure ############################################################
+        ax4.invert_yaxis()
+        rec = rec.replace('/','-')
+        fname = self.determineFileName(rec, what='paw_trajectory',date=date)
+        # plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+        #plt.show()
 
     ##########################################################################################
     def createSwingStanceFigure(self,recs):

@@ -177,7 +177,13 @@ class extractSaveData:
 
     ############################################################
     def getRecordingsList(self, expDate='all', recordings='all'):
-
+        self.config = readConfigFile('simplexAnimals.config')
+        for i in range(len(self.config)):
+            if self.config['%s' % i]['mouse'] == self.mouse:
+                print('experiment dictionary of mouse exists')
+                expDict = self.config['%s' % i]['days']
+                dictExists = True
+        #pdb.set_trace()
         folderRec = []
         if self.mouse in self.listOfAllExpts:
             # print mouse
@@ -194,12 +200,20 @@ class extractSaveData:
                 print('Choose the dates for analysis by typing the index, e.g, \'1\', or \'0,1,3,5\' : ', end='')
                 daysInput = input()
                 daysInputIdx = [int(i) for i in daysInput.split(',')]  # print(daysInputIdx,daysInputIdx[0],type(daysInputIdx))
+            elif expDate == 'all910' or expDate == 'all820':
+                didx = 0
+                daysInputIdx = []
+                for d in self.listOfAllExpts[self.mouse]['dates']:
+                    if d in expDict.keys() :
+                        daysInputIdx.append(didx)
+                    didx+=1
+            ########################################################
             # generate list of days to analyze
             if expDate == 'all':
                 for d in self.listOfAllExpts[self.mouse]['dates']:
                     # print(d)
                     expDateList.append(d)
-            elif expDate == 'some':
+            elif expDate == 'some' or expDate=='all910' or expDate=='all820':
                 didx = 0
                 for d in self.listOfAllExpts[self.mouse]['dates']:
                     if didx in daysInputIdx:
@@ -209,8 +223,29 @@ class extractSaveData:
             else:
                 expDateList.append(expDate)
             print('Selected dates :', expDateList)
-            # pdb.set_trace()
-            if recordings == 'some':
+            #pdb.set_trace()
+            #####################################################
+            # chose recordings
+            if recordings == 'all910':
+                print('All 910 recording will be analyzed')
+                recIdx = 0
+                recInputIdx = []
+                for eD in expDateList:
+                    dataFolders = self.listOfAllExpts[self.mouse]['dates'][eD]['folders']
+                    if 'recs910' in expDict[eD]:
+                        idx910 = expDict[eD]['recs910']
+                    else:
+                        idx910 = None
+                    for fold in dataFolders:
+                        #print(' ', fold)
+                        self.dataLocation = self.dataBase + self.dataPCLocation[dataFolders[fold]['recComputer']] + fold + '/'
+                        recList = self.getDirectories(self.dataLocation)
+                        #print(recList)
+                        if idx910 is not None:
+                            recInputIdx.append(recIdx+idx910)
+                        recIdx+=len(recList)
+                #pdb.set_trace()
+            elif recordings == 'some':
                 # first show all recordings for a given date
                 print('Choose recording to analyze')
                 recIdx = 0
@@ -291,7 +326,7 @@ class extractSaveData:
                                     tempRecList.append(r)
                             recIdx += 1
                         folderRec.append([fold, eD, tempRecList])
-
+        #pdb.set_trace()
         print('Data was recorded on %s' % self.recordingMachine)
         return (folderRec, dataFolders)
 
