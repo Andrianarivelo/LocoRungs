@@ -252,13 +252,13 @@ class extractSaveData:
                         recIdx+=len(recList)
                 #pdb.set_trace()
             elif recordings == 'all820':
-                print('All 910 recording will be analyzed')
+                print('All 820 recording will be analyzed')
                 recIdx = 0
                 recInputIdx = []
                 for eD in expDateList:
                     dataFolders = self.listOfAllExpts[self.mouse]['dates'][eD]['folders']
                     if 'recs820' in expDict[eD]:
-                        idx820 = expDict[eD]['recs910']
+                        idx820 = expDict[eD]['recs820']
                     else:
                         idx820 = None
                     for fold in dataFolders:
