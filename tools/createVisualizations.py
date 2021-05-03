@@ -3710,7 +3710,8 @@ class createVisualizations:
         # define sub-panel grid and possibly width and height ratios
         gs = gridspec.GridSpec(1, 1,  # ,
                                # width_ratios=[1.2,1]
-                               height_ratios=[1, 1, 1, 1, 4])
+                               #height_ratios=[1, 1, 1, 1, 4]
+                               )
 
         # define vertical and horizontal spacing between panels
         gs.update(wspace=0.3, hspace=0.25)
@@ -3723,8 +3724,8 @@ class createVisualizations:
         # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
 
         # first sub-plot #######################################################
-        gsList = []
-        axList = []
+        #gsList = []
+        #axList = []
         ax0 = plt.subplot(gs[0])
 
         dateLabels = []
