@@ -9,12 +9,13 @@ import tools.dataAnalysis as dataAnalysis
 import tools.createVisualizations as createVisualizations
 #import tools.openCVImageProcessingTools as openCVImageProcessingTools
 import pickle
-
+import os
 import pdb
 
 mouseD = '210120_m85'
 expDateD = 'all910' # specific date e.g. '180214', 'some' for manual selection, 'all' for all, 'all910' for all recordings at 910 nm
 recordingsD='all910' # 'all or 'some' or 'all910', or index of the recoding - e.g. 0,1 - when running analysis for a specific day
+readDataAgain = False
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -46,21 +47,27 @@ eSD         = extractSaveData.extractSaveData(mouse)
 cV       = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 # = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
 # loop over all folders, mostly days but sometimes there were two recording sessions per day
-outlierData = []
-for f in range(len(foldersRecordings)) :
-    # loop over all recordings in that folder
-    for r in range(len(foldersRecordings[f][2])): # for r in recordings[f][1]:
-        (existenceFrames,FramesFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '/' +foldersRecordings[f][2][r][-3:],'CameraGigEBehavior')
-        (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '-' +foldersRecordings[f][2][r][-3:])
-        if existenceFrames and existencePawPos:
-            (pawPositions,pawMetaData) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'pawTraces',PawFileHandle)
-            pawTrackingOutliers = dataAnalysis.detectPawTrackingOutlies(pawPositions,pawMetaData)
-            outlierData.append([foldersRecordings[f][0],foldersRecordings[f][2][r],pawTrackingOutliers])
-            cV.createPawMovementFigure(foldersRecordings[f][0],foldersRecordings[f][2][r],pawTrackingOutliers)
-            (idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo) = eSD.readBehaviorVideoTimeData([foldersRecordings[f][0],foldersRecordings[f][2][r],'behaviorVideo'])  #[foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo']
-            eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],pawPositions,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
-        #pdb.set_trace()
 
-pdb.set_trace()
-pickle.dump(outlierData, open(eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'wb'))
-cV.createOutlierStatFigure(outlierData)
+
+if os.path.isfile(eSD.analysisLocation + '/allOutlierFramesPerSession.p') and not readDataAgain:
+    outlierData = pickle.load( open(eSD.analysisLocation + '/allOutlierFramesPerSession.p', 'wb') )
+else:
+    outlierData = []
+    for f in range(len(foldersRecordings)) :
+        # loop over all recordings in that folder
+        for r in range(len(foldersRecordings[f][2])): # for r in recordings[f][1]:
+            (existenceFrames,FramesFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '/' +foldersRecordings[f][2][r][-3:],'CameraGigEBehavior')
+            (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r][:-4] + '-' +foldersRecordings[f][2][r][-3:])
+            if existenceFrames and existencePawPos:
+                (pawPositions,pawMetaData) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'pawTraces',PawFileHandle)
+                pawTrackingOutliers = dataAnalysis.detectPawTrackingOutlies(pawPositions,pawMetaData)
+                outlierData.append([foldersRecordings[f][0],foldersRecordings[f][2][r],pawTrackingOutliers])
+                cV.createPawMovementFigure(foldersRecordings[f][0],foldersRecordings[f][2][r],pawTrackingOutliers)
+                (idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo) = eSD.readBehaviorVideoTimeData([foldersRecordings[f][0],foldersRecordings[f][2][r],'behaviorVideo'])  #[foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo']
+                eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],pawPositions,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
+            #pdb.set_trace()
+
+    #pdb.set_trace()
+    pickle.dump(outlierData, open(eSD.analysisLocation + '/allOutlierFramesPerSession.p', 'wb'))
+
+cV.createOutlierStatFigure(foldersRecordings,outlierData)
