@@ -3747,7 +3747,7 @@ class createVisualizations:
             #pdb.set_trace()
             for p in range(4):
                 ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p],'o-',ms=2,c=cc[p])
-        plt.xticks(np.arange(len(len(foldersRecordings))),dateLabels)
+        plt.xticks(np.arange(len(foldersRecordings)),dateLabels)
         self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)')
         ## save figure ############################################################
         #ax0.invert_yaxis()
