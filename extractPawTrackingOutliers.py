@@ -65,8 +65,6 @@ else:
                 cV.createPawMovementFigure(foldersRecordings[f][0],foldersRecordings[f][2][r],pawTrackingOutliers)
                 (idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo) = eSD.readBehaviorVideoTimeData([foldersRecordings[f][0],foldersRecordings[f][2][r],'behaviorVideo'])  #[foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo']
                 eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],pawPositions,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
-            #pdb.set_trace()
 
-    pdb.set_trace()
     pickle.dump(outlierData, open(eSD.analysisLocation + '/allOutlierFramesPerSession.p', 'wb'))
 cV.createOutlierStatFigure(foldersRecordings,outlierData)
