@@ -3751,7 +3751,7 @@ class createVisualizations:
             #pdb.set_trace()
             for p in range(4):
                 if i == 0:
-                    ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p],'o-',ms=3,c=cc[p],labels=jointNames[p])
+                    ax0.plot(i+np.arange(nrecs)/10.,outlier[:,p],'o-',ms=3,c=cc[p],label=jointNames[p])
                 else:
                     ax0.plot(i + np.arange(nrecs) / 10., outlier[:, p], 'o-', ms=3, c=cc[p])
         plt.xticks(np.arange(len(foldersRecordings)),dateLabels,rotation=45)
@@ -3760,7 +3760,7 @@ class createVisualizations:
         #ax0.set_xticklabels(dateLabels, minor=False, rotation=45)
         errorRates = (overallImgs-totOutliers)/overallImgs
         plt.figtext(0.06, 0.92, 'error rates, paws, total : %s %s %s %s, %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)), clip_on=False, color='black', size=14)
-        self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)')
+        self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)',Leg=[0,9])
         ## save figure ############################################################
         #ax0.invert_yaxis()
         #rec = rec.replace('/','-')
