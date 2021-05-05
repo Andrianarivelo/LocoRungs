@@ -9,7 +9,7 @@ import tools.parameters as par
 import pdb
 import pickle
 
-mouseD = '191108_m52' # id of the mouse to analyze
+mouseD = '210120_m85' # id of the mouse to analyze
 expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='all'     # 'all or 'some'
 
@@ -31,7 +31,7 @@ eSD         = extractSaveData.extractSaveData(mouse)
 (foldersRecordings,dataFolder) = eSD.getRecordingsList(expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
 
 #tracks = []
-print(foldersRecordings)
+#print(foldersRecordings)
 for f in range(len(foldersRecordings)):
     for r in range(len(foldersRecordings[f][2])):
         (existence, fileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'RotaryEncoder')

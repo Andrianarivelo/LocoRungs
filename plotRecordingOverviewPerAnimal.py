@@ -1,6 +1,7 @@
 from oauth2client import tools
 tools.argparser.add_argument("-m","--mouse", help="specify name of the mouse", required=False)
 tools.argparser.add_argument("-d","--date", help="specify name of the mouse", required=False)
+tools.argparser.add_argument("-r","--recs", help="specify index of the specify recording on that day", required=False)
 args = tools.argparser.parse_args()
 
 import tools.extractSaveData as extractSaveData
@@ -11,9 +12,9 @@ import pdb, pickle, os
 ###########################################
 
 #mouseD = '190101_f15' # id of the mouse to analyze
-mouseD = '190108_m24'
+mouseD = '210120_m85'
 expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='all'     # 'all or 'some'
+recordingsD ='all'     # 'all or 'some'
 
 readDataAgain = False
 wheelCircumsphere = 80.65 # in cm
@@ -33,9 +34,17 @@ if args.date == None:
 else:
     expDate = args.date
 
+if args.recs == None:
+    try:
+        recordings = recordingsD
+    except :
+        recordings = 'all'
+else:
+    recordings = args.recs
 
-eSD = extractSaveData.extractSaveData(mouse)
-(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
+
+eSD         = extractSaveData.extractSaveData(mouse)
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
 
 cV = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
@@ -58,9 +67,9 @@ else:
             # check for video recording during trial
             (camExistence, camFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'CameraGigEBehavior')
             if camExistence:
-                (firstLastFrames, expStartTime, expEndTime, startTime) = eSD.readBehaviorVideoData([foldersRecordings[f][0], foldersRecordings[f][2][r],'behavior_video'])
+                (startEndExposureTime, startTime, firstLastRecordedFrame) = eSD.getBehaviorVideoData([foldersRecordings[f][0], foldersRecordings[f][2][r],'behavior_video'])
                 #pdb.set_trace()
-                frames.append([firstLastFrames, expStartTime, expEndTime, startTime])
+                frames.append([firstLastRecordedFrame, startEndExposureTime, startTime])
         # check for ca-imaging data during entire session
         (caImgExistence, tiffList) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][0], 'SICaImaging')
         if caImgExistence:

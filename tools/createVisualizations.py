@@ -3689,7 +3689,7 @@ class createVisualizations:
         # ax0 = fig.add_subplot(3, 2, 1)
         # ax1 = fig.add_subplot(3, 2, 3)
         cc = ['C0','C1','C2','C3']
-
+        DLCinstance = outlierData[0][3]
         jointNames = []
         for i in range(len(outlierData[0][2])):
             jointNames.append(outlierData[0][2][i][4])
@@ -3722,7 +3722,7 @@ class createVisualizations:
         gs.update(wspace=0.3, hspace=0.25)
 
         # possibly change outer margins of the figure
-        plt.subplots_adjust(left=0.15, right=0.96, top=0.9, bottom=0.15)
+        plt.subplots_adjust(left=0.15, right=0.96, top=0.85, bottom=0.1)
 
         # sub-panel enumerations
         plt.figtext(0.06, 0.96, '%s   days: %s, recordings: %s' % (self.mouse,len(foldersRecordings),len(outlierData)), clip_on=False, color='black', size=14)
@@ -3760,7 +3760,8 @@ class createVisualizations:
         #ax0.set_xticklabels(dateLabels, minor=False, rotation=45)
         errorRates = (overallImgs-totOutliers)/overallImgs
         errorRates = np.round(errorRates,5)
-        plt.figtext(0.06, 0.92, 'error rates: ind. paws, total : %s %s %s %s,  %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)), clip_on=False, color='black', size=12)
+        plt.figtext(0.06, 0.93, 'DLC instance : %s' % DLCinstance.split('DLC2_Projects/')[1], size=6.5)
+        plt.figtext(0.06, 0.89, 'error rates: ind. paws, total : %s %s %s %s,  %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)), clip_on=False, color='black', size=12)
         print('error rates: ind. paws, total : %s %s %s %s, %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)))
         self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)',Leg=[0,9])
         ## save figure ############################################################

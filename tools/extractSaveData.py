@@ -181,6 +181,8 @@ class extractSaveData:
             recID = 'recs910'
         elif recordings == 'all820':
             recID = 'recs820'
+        elif recordings == 'all':
+            recID = ['recs910','recs820']
 
         self.config = readConfigFile('simplexAnimals.config')
         for i in range(len(self.config)):
@@ -213,13 +215,16 @@ class extractSaveData:
                         if recID in expDict[d]:
                             daysInputIdx.append(didx)
                     didx+=1
+            elif expDate == 'all':
+                didx = 0
+                daysInputIdx = []
+                for d in self.listOfAllExpts[self.mouse]['dates']:
+                    if d in expDict.keys() :
+                        daysInputIdx.append(didx)
+                    didx+=1
             ########################################################
             # generate list of days to analyze
-            if expDate == 'all':
-                for d in self.listOfAllExpts[self.mouse]['dates']:
-                    # print(d)
-                    expDateList.append(d)
-            elif expDate == 'some' or expDate=='all910' or expDate=='all820':
+            if expDate == 'some' or expDate=='all910' or expDate=='all820' or expDate == 'all':
                 didx = 0
                 for d in self.listOfAllExpts[self.mouse]['dates']:
                     if didx in daysInputIdx:
@@ -233,7 +238,7 @@ class extractSaveData:
             #####################################################
             # chose recordings
             if recordings == 'all910':
-                print('All 910 recording will be analyzed')
+                print('All 910 recordings will be analyzed')
                 recIdx = 0
                 recInputIdx = []
                 for eD in expDateList:
@@ -252,7 +257,7 @@ class extractSaveData:
                         recIdx+=len(recList)
                 #pdb.set_trace()
             elif recordings == 'all820':
-                print('All 820 recording will be analyzed')
+                print('All 820 recordings will be analyzed')
                 recIdx = 0
                 recInputIdx = []
                 for eD in expDateList:
@@ -294,8 +299,30 @@ class extractSaveData:
                 print('Choose the recordings for analysis by typing the index, e.g, \'1\', or \'0,1,3,5\' : ', end='')
                 recInput = input()
                 recInputIdx = [int(i) for i in recInput.split(',')]
-            elif recordings=='all':
-                pass
+            elif recordings == 'all':
+                print('All 910 and 820 recordings will be analyzed')
+                recIdx = 0
+                recInputIdx = []
+                for eD in expDateList:
+                    dataFolders = self.listOfAllExpts[self.mouse]['dates'][eD]['folders']
+                    if 'recs910' in expDict[eD]:
+                        idx910 = expDict[eD]['recs910']
+                    else:
+                        idx910 = None
+                    if 'recs820' in expDict[eD]:
+                        idx820 = expDict[eD]['recs820']
+                    else:
+                        idx820 = None
+                    for fold in dataFolders:
+                        #print(' ', fold)
+                        self.dataLocation = self.dataBase + self.dataPCLocation[dataFolders[fold]['recComputer']] + fold + '/'
+                        recList = self.getDirectories(self.dataLocation)
+                        #print(recList)
+                        if idx910 is not None:
+                            recInputIdx.append(recIdx+idx910)
+                        if idx820 is not None:
+                            recInputIdx.append(recIdx + idx820)
+                        recIdx+=len(recList)
             else:
                 recInputIdx = [int(i) for i in recordings.split(',')]
             print('list of recordings : ', recInputIdx)
@@ -650,9 +677,19 @@ class extractSaveData:
     def getBehaviorVideoData(self, groupNames):
         (grpName, test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
         print(grpName)
-        startExposure = self.f[grpName + '/startExposure'][()]
-        endExposure = self.f[grpName + '/endExposure'][()]
-        return (startExposure, endExposure)
+        startEndExposureTime = self.f[grpName + '/startEndExposureTime'][()]
+        imageMetaInfo = self.f[grpName + '/angularSpeed'].attrs['imageMetaInfo']
+        firstLastRecordedFrame = self.f[grpName + '/firstLastRecordedFrame'][()]
+        return (startEndExposureTime, imageMetaInfo, firstLastRecordedFrame)
+
+    ############################################################
+    # self.saveBehaviorVideoData([date,rec,'behavior_video'],  framesRaw,videoIdx,startEndExposureTime, imageMetaInfo)
+    # [foldersRecordings[f][0], foldersRecordings[f][2][r],'behavior_video']
+    def saveBehaviorVideoData(self, groupNames,  framesRaw,videoIdx,startEndExposureTime, imageMetaInfo):
+        (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+        #print(grpName)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'startEndExposureTime', startEndExposureTime,['imageMetaInfo', imageMetaInfo])
+        self.h5pyTools.createOverwriteDS(grpHandle, 'firstLastRecordedFrame', np.array((framesRaw[videoIdx[0]],framesRaw[videoIdx[-1]])))
 
     ############################################################
     def saveImageStack(self, frames, fTimes, imageMetaInfo, groupNames, motionCorrection=[]):
@@ -954,7 +991,7 @@ class extractSaveData:
     # (mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
     def saveBehaviorVideo(self, mouse, date, rec, framesRaw, idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo):
         # [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
-        # self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,expStartTime, expEndTime, imageMetaInfo)
+        self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,videoIdx,startEndExposureTime, imageMetaInfo)
         midFrameTimes = (startEndExposureTime[:, 0] + startEndExposureTime[:, 1]) / 2.
         # pdb.set_trace()
         # img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)

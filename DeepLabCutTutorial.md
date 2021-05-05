@@ -5,7 +5,7 @@ adapted by Michael Graupner Jan 2021)
 
 DeepLabCut website ([DeepLabCut — adaptive motor control lab](https://www.mousemotorlab.org/deeplabcut)) is very resourceful. In short 
 tutorial on how to use Deeplabcut can be found [here](https://github.com/DeepLabCut/DeepLabCut/blob/master/docs/UseOverviewGuide.md). A 
-more in-depth guide with details on all the function parameters is [here](https://github.com/DeepLabCut/DeepLabCut/blob/master/docs/functionDetails.md#c-data-selection).  
+more in-depth guide with details on all the function parameters is [here](https://github.com/DeepLabCut/DeepLabCut/blob/master/docs/standardDeepLabCut_UserGuide.md).  
 However, the features and tutorials may differ greatly from the installed version. Our current **DeepLabCut version is 2.1.10**. 
 
 
@@ -83,12 +83,11 @@ However, the features and tutorials may differ greatly from the installed versio
    to keep the same order of labelling for each frame (i.e., FL, FR, HR, HL). Check that the labels are correctly 
    saved by going to the next frame and back. <br>
    **Important :** <br>
-   In general, invisible or occluded points should not be labeled by the user. They can simply be skipped by not applying the label anywhere on the frame. <br>
-   The user needs to save the labels after all the frames from one of the videos are labeled by clicking the save button at the bottom right.<br>
+   In general, invisible or occluded points should not be labeled by the user. They can simply be skipped by not applying the label anywhere on the frame. 
+   The user needs to save the labels after all the frames from one of the videos are labeled by clicking the save button at the bottom right.
    It is advisable to consistently label similar spots (e.g., on a wrist that is very large, try to label the same location).
    
-1. **Create Training Dataset :** Run this step on the machine where you are going to train the network. If you labelled the project on your computer, move the  
-   project folder to otillo, then run the step below on that platform. This function combines the labeled datasets from all 
+1. **Create Training Dataset :** Run this step on the machine where you are going to train the network. If you labelled the project on your computer, move the project folder   to otillo, then run the step below on that platform. This function combines the labeled datasets from all 
    the videos and splits them to create train and test datasets. The training data will be used to train the network, 
    while the test data set will be used for evaluating the network. <br>
    `:  deeplabcut.create_training_dataset(config_path)` <br>
