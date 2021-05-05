@@ -13,8 +13,8 @@ import pdb, pickle, os
 
 #mouseD = '190101_f15' # id of the mouse to analyze
 mouseD = '210120_m85'
-expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordingsD ='all'     # 'all or 'some'
+expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordingsD ='all910'     # 'all or 'some'
 
 readDataAgain = False
 wheelCircumsphere = 80.65 # in cm
@@ -71,9 +71,9 @@ else:
                 #pdb.set_trace()
                 frames.append([firstLastRecordedFrame, startEndExposureTime, startTime])
         # check for ca-imaging data during entire session
-        (caImgExistence, tiffList) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][0], 'SICaImaging')
+        (caImgExistence, tiffList,recLocation) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][0], 'SICaImaging')
         if caImgExistence:
-            (nframes,meanImg,meanImgE,scanZoomFactor,timeStamps) =  eSD.getAnalyzedCaImagingData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
+            (nframes,meanImg,meanImgE,scanZoomFactor,timeStamps) =  eSD.getAnalyzedCaImagingData(eSD.analysisLocation+foldersRecordings[f][0],tiffList)
             caImaging.append([nframes,meanImg,meanImgE,scanZoomFactor,timeStamps])
         # combine all recordings from a session
         if (not tracks) and (not frames) and (not caImaging):

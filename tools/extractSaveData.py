@@ -678,7 +678,7 @@ class extractSaveData:
         (grpName, test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
         print(grpName)
         startEndExposureTime = self.f[grpName + '/startEndExposureTime'][()]
-        imageMetaInfo = self.f[grpName + '/angularSpeed'].attrs['imageMetaInfo']
+        imageMetaInfo = self.f[grpName + '/startEndExposureTime'].attrs['imageMetaInfo']
         firstLastRecordedFrame = self.f[grpName + '/firstLastRecordedFrame'][()]
         return (startEndExposureTime, imageMetaInfo, firstLastRecordedFrame)
 
@@ -738,14 +738,14 @@ class extractSaveData:
     ############################################################
     def readMetaDataFileAndReadSetting(self, tiffFile, keyWord):
         metData = ScanImageTiffReader(tiffFile).metadata()
-        pdb.set_trace()
+        #pdb.set_trace()
         keyWordIdx = metData.find(keyWord)
         splitString = re.split('=|\n', metData[keyWordIdx:])
         keyWordParameter = float(splitString[1])
         return keyWordParameter
 
     ############################################################
-    def readTimeStampOfRecording(self, tiffFileObj, nFrame):
+    def readTimeStampOfFrame(self, tiffFileObj, nFrame):
         # frameNumberAcqMode
         # numeric, number of frame, counted from beginning of acquisition mode
         #
@@ -793,9 +793,26 @@ class extractSaveData:
         unixFrameTime = unixStartTime + frameTimestamps
         # print(tiffFile,unixTime)
         return ([frameNumberAcquisition, acquisitionNumbers, unixStartTime, unixFrameTime, frameTimestamps, acqTriggerTimestamps])
+    ############################################################
+    def getRawCalciumImagingData(self, tiffList,saveDir):
+        imagingData = []
+        timeStamps = []
+        for i in range(len(tiffList)):
+            # data = ScanImageTiffReader(tiffPaths[i]).data()
+            tiffFileObject = ScanImageTiffReader(tiffList[i])
+            data = tiffFileObject.data()
+            # pdb.set_trace()
+            fN = np.shape(data)[0]
+            # frameNumbers.append(fN)
+            for n in range(fN):
+                timeStamps.append(self.readTimeStampOfFrame(tiffFileObject, n))
+            timeStampsASingle = np.asarray(timeStamps)
+            imagingData.append([i, data, timeStampsASingle])
+        timeStampsA = np.asarray(timeStamps)
+        return (imagingData, timeStampsA)  # np.save(saveDir+'/suite2p/plane0/timeStamps.npy',timeStampsA)
 
     ############################################################
-    def getAnalyzedCaImagingData(self, caAnalysisLocation, tiffList):
+    def getAnalyzedCaImagingData(self, analysisLocation, tiffList):
 
         timeStamps = []
         for i in range(len(tiffList)):
@@ -805,15 +822,25 @@ class extractSaveData:
             else:
                 if zF != zFold:
                     print('scanZoomFactor is not the same between recordings!')
-            timeS = self.readTimeStampOfRecording(tiffList[i], 0)
+            tiffFileObject = ScanImageTiffReader(tiffList[i])
+            timeS = self.readTimeStampOfFrame(tiffFileObject, 0)
             timeStamps.append(timeS[3])
-
         #
+        nDirs = 0
+        for name in glob.glob(analysisLocation+'_suite2p*'):
+            caAnalysisLocation = name
+            print(name)
+            nDirs+=1
+        if nDirs > 1:
+            print('There are more than one matching directory!')
+            pdb.set_trace()
+        #caAnalysisLocation = eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/'
         if os.path.isdir(caAnalysisLocation):
-            ops = np.load(caAnalysisLocation + '/suite2p/ops1.npy')
-            nframes = ops[0]['nframes']
-            meanImg = ops[0]['meanImg']
-            meanImgE = ops[0]['meanImgE']
+            ops = np.load(caAnalysisLocation + '/suite2p/plane0/ops.npy',allow_pickle=True)
+            ops = ops.item()
+            nframes = ops['nframes']
+            meanImg = ops['meanImg']
+            meanImgE = ops['meanImgE']
             # pdb.set_trace()
             return (nframes, meanImg, meanImgE, zF, timeStamps)
         else:
@@ -821,35 +848,9 @@ class extractSaveData:
 
     ############################################################
     def extractAndSaveCaTimeStamps(self, dataDir, saveDir, tiffPaths):
-        timeStamps = []
-        for i in range(len(tiffPaths)):
-            # data = ScanImageTiffReader(tiffPaths[i]).data()
-            tiffFileObject = ScanImageTiffReader(tiffPaths[i])
-            data = tiffFileObject.data()
-            # pdb.set_trace()
-            fN = np.shape(data)[0]
-            # frameNumbers.append(fN)
-            for n in range(fN):
-                timeStamps.append(self.readTimeStampOfRecording(tiffFileObject, n, ))
 
-        timeStampsA = np.asarray(timeStamps)
+        (_,timeStampsA) = self.getRawCalciumImagingData(tiffPaths)
         np.save(saveDir + '/suite2p/plane0/timeStamps.npy', timeStampsA)
-
-    ############################################################
-    def getRawCalciumImagingData(self, dataDir, tiffPaths):
-        imagingData = []
-        timeStamps = []
-        for i in range(len(tiffPaths)):
-            tiffFileObject = ScanImageTiffReader(tiffPaths[i])
-            data = tiffFileObject.data()
-            fN = np.shape(data)[0]
-            # frameNumbers.append(fN)
-            for n in range(fN):
-                timeStamps.append(self.readTimeStampOfRecording(tiffFileObject, n))
-            timeStampsA = np.asarray(timeStamps)
-            imagingData.append([i, data, timeStampsA])
-        # timeStampsA = np.asarray(timeStamps)
-        return (imagingData)  # np.save(saveDir+'/suite2p/plane0/timeStamps.npy',timeStampsA)
 
     ############################################################
     def getCaImagingRoiData(self, caAnalysisLocation, tiffList):
