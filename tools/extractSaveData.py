@@ -948,7 +948,7 @@ class extractSaveData:
             clearedXYPos = np.column_stack((timeArray[pawMask], pawPositions[:, (i * 3 + 1)][pawMask], pawPositions[:, (i * 3 + 2)][pawMask], clearedPosIdx))
             clearedSpeedIdx = np.array((clearedPosIdx[:-1] + clearedPosIdx[1:]) / 2., dtype=int)
             #pdb.set_trace()
-            self.h5pyTools.createOverwriteDS(grpHandle, 'pawTrackingOutliers%s' % i, pawTrackingOutliers[i][3],[['PawID', jointNames[i]],['pawTrackingOutliers',[ pawTrackingOutliers[i][1], pawTrackingOutliers[i][2]]]])#, pawTrackingOutliers[i][1], pawTrackingOutliers[i][2]]])
+            self.h5pyTools.createOverwriteDS(grpHandle, 'pawTrackingOutliers%s' % i, pawTrackingOutliers[i][3],[['PawID', jointNames[i]],['pawTrackingOutliers',np.array([ pawTrackingOutliers[i][1], pawTrackingOutliers[i][2]])]])#, pawTrackingOutliers[i][1], pawTrackingOutliers[i][2]]])
                                              #['PawID', [jointNames[i], pawTrackingOutliers[i][1], pawTrackingOutliers[i][2]]])
             self.h5pyTools.createOverwriteDS(grpHandle, 'rawPawSpeed%s' % i, np.column_stack((rawSpeedTime, rawPawSpeed)), ['recStartTime', startTime])
             self.h5pyTools.createOverwriteDS(grpHandle, 'clearedPawSpeed%s' % i, np.column_stack((clearedSpeedTime, clearedPawSpeed, clearedPawXSpeed, clearedPawYSpeed, clearedSpeedIdx)),

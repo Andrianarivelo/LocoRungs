@@ -24,8 +24,10 @@ class h5pyTools:
             rec[:] = data
         # save attributes
         if at:
+            #print('evaluating list shape')
+            #print('list shape :', at, self.listShape(at))
             #pdb.set_trace()
-            if len(np.shape(at))==1:
+            if len(self.listShape(at))==1:
                 grp[dsname].attrs[at[0]]=at[1]
             else:
                 for i in range(len(at)):
@@ -42,3 +44,17 @@ class h5pyTools:
                 grpHandle = f[current_group].require_group(groupNames[i])
             current_group += groupNames[i] + '/'
         return (current_group[:-1],grpHandle)
+
+    ############################################################
+    #def list_shape(self,inputList):
+    def listShape(self,lst):
+        def ishape(lst):
+            shapes = [ishape(x) if isinstance(x, list) else [] for x in lst]
+            shape = shapes[0]
+            if shapes.count(shape) != len(shapes):
+                raise ValueError('Ragged list')
+            shape.append(len(lst))
+            return shape
+
+        return tuple(reversed(ishape(lst)))
+
