@@ -3697,7 +3697,7 @@ class createVisualizations:
         fig_width = 8  # width in inches
         fig_height = 6  # height in inches
         fig_size = [fig_width, fig_height]
-        params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+        params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 9, 'ytick.labelsize': 9, 'figure.figsize': fig_size, 'savefig.dpi': 600,
                   'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
                   'xtick.major.size': 4  # major tick size in points
                   # 'edgecolor' : None
@@ -3739,29 +3739,39 @@ class createVisualizations:
             dateLabels.append(foldersRecordings[i][0][5:-4])
             outlier = []
             nrecs = 0
+            outlierDataExist = False
             for n in range(len(outlierData)):
+                #print(outlierData[n][0],foldersRecordings[i][0])
                 if outlierData[n][0] == foldersRecordings[i][0]:
                     totImages = outlierData[n][2][0][1]
                     overallImgs+=totImages
                     tmp = np.array([outlierData[n][2][0][2],outlierData[n][2][1][2],outlierData[n][2][2][2],outlierData[n][2][3][2]])
+                    #if len(outlier)==0:
+                    #    dateLabels.append(foldersRecordings[i][0][5:-4]) # only add recordings for which a corresponding outlier label exists
                     outlier.append((totImages-tmp)/totImages)
                     totOutliers += tmp
                     nrecs+=1
+                    outlierDataExist = True
+            if not outlierDataExist:
+                print('No outlier data exists for :', foldersRecordings[i][0])
             outlier = np.asarray(outlier)
             #pdb.set_trace()
-            for p in range(4):
-                if i == 0:
-                    ax0.plot(i+np.arange(nrecs)/8.,outlier[:,p],'o-',ms=3,c=cc[p],label=jointNames[p])
-                else:
-                    ax0.plot(i + np.arange(nrecs)/8., outlier[:, p], 'o-', ms=3, c=cc[p])
+            if not outlier.size == 0:
+                for p in range(4):
+                    #print(i,p,outlier)
+                    if i == 0:
+                        ax0.plot(i+np.arange(nrecs)/8.,outlier[:,p],'o-',ms=3,c=cc[p],label=jointNames[p])
+                    else:
+                        ax0.plot(i + np.arange(nrecs)/8., outlier[:, p], 'o-', ms=3, c=cc[p])
         plt.xticks(np.arange(len(foldersRecordings)),dateLabels,rotation=45)
         #pdb.set_trace()
         #ax0.set_xticks(np.arange(len(foldersRecordings)))
         #ax0.set_xticklabels(dateLabels, minor=False, rotation=45)
         errorRates = (overallImgs-totOutliers)/overallImgs
         errorRates = np.round(errorRates,5)
+        meanErrorRate = np.round(np.mean(errorRates),5)
         plt.figtext(0.06, 0.93, 'DLC instance : %s' % DLCinstance.split('DLC2_Projects/')[1], size=6.5)
-        plt.figtext(0.06, 0.89, 'error rates: ind. paws, total : %s %s %s %s,  %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)), clip_on=False, color='black', size=12)
+        plt.figtext(0.06, 0.89, 'error rates: ind. paws, total : %s %s %s %s,  %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],meanErrorRate), clip_on=False, color='black', size=10)
         print('error rates: ind. paws, total : %s %s %s %s, %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)))
         self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)',Leg=[0,9])
         ## save figure ############################################################

@@ -10,7 +10,7 @@ import pdb
 import numpy as np
 import sys
 
-mouseD = '210322_t00'
+mouseD = '210214_m15'
 #mouseD = '201017_m99' #'200801_m58' # id of the mouse to analyze
 #mouseD = '190108_m24'
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
