@@ -1,5 +1,6 @@
 #import ezodf
 import numpy as np
+import pdb
 
 class h5pyTools:
     def __init__(self):
@@ -23,6 +24,7 @@ class h5pyTools:
             rec[:] = data
         # save attributes
         if at:
+            #pdb.set_trace()
             if len(np.shape(at))==1:
                 grp[dsname].attrs[at[0]]=at[1]
             else:
