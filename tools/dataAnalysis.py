@@ -443,29 +443,49 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     allLEDVideoRoiValues = []
     # determine threshold   [ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude]
     # tail covering the LEDs for some
+    anticipateCorrectValues = True
     if tail:
-        maxV = [254,251,250,213]
-        minV = [200,174,217,147]
-        idxMaxV = [[8580,8582,8583,8585],
-                   [],
-                   [8589],
-                   []]
-        idxMinV = [[8581,8584,8586,8588],
-                   [8579,8580],
-                   [8590,8591],
-                   [8584,8585,8586,8589,8590,8591]]
-        for i in range(4):
-            for n in idxMaxV[i]:
-                ledVideoRoi[0][i][n] = maxV[i]
-            for m in idxMinV[i]:
-                ledVideoRoi[0][i][m] = minV[i]
+        for i in range(ledVideoRoi[1][0]):
+            plt.plot(ledVideoRoi[0][i],'o-',ms=2,label='%s' % i)
+        plt.legend(loc=1)
+        plt.show()
+        if anticipateCorrectValues:
+            untilOKidx = 3000
+            period = [7,7,7,5]
+            for i in range(ledVideoRoi[1][0]):
+                maxVal = np.max(ledVideoRoi[0][i][20:untilOKidx])
+                minVal = np.min(ledVideoRoi[0][i][20:untilOKidx])
+                for n in range(period[i]):
+                    #repeatValue(ledVideoRoi[0][i][(untilOKidx+n):],7)
+                    isHigh = [True if abs(ledVideoRoi[0][i][(untilOKidx+n)] - maxVal) < abs(ledVideoRoi[0][i][(untilOKidx+n)] - minVal) else False]
+                    if isHigh:
+                        ledVideoRoi[0][i][(untilOKidx+n):][::period[i]] = ledVideoRoi[0][i][(untilOKidx+n)]
+                    else:
+                        ledVideoRoi[0][i][(untilOKidx+n):][::period[i]] = ledVideoRoi[0][i][(untilOKidx+n)]
+                #ledVideoRoi[0][i][]
+        else:
+            maxV = [254,251,250,213]
+            minV = [200,174,217,147]
+            idxMaxV = [[8580,8582,8583,8585],
+                       [],
+                       [8589],
+                       []]
+            idxMinV = [[8581,8584,8586,8588],
+                       [8579,8580],
+                       [8590,8591],
+                       [8584,8585,8586,8589,8590,8591]]
+            for i in range(4):
+                for n in idxMaxV[i]:
+                    ledVideoRoi[0][i][n] = maxV[i]
+                for m in idxMinV[i]:
+                    ledVideoRoi[0][i][m] = minV[i]
 
         #fig = plt.figure()
         for i in range(ledVideoRoi[1][0]):
             #ax = fig.add_subplot(3,1,i)
             plt.plot(ledVideoRoi[0][i],'o-',ms=2,label='%s' % i)
             #ax.set_xlim(8)
-            plt.legend(loc=1)
+        plt.legend(loc=1)
         plt.show()
         pdb.set_trace()
     ###########
