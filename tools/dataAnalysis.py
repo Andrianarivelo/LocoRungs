@@ -452,7 +452,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         if anticipateCorrectValues:
             inputA = input('Index until which the recording is not affected by the tail (integer; type 0 if recording is ok) :')
             untilOKidx = int(inputA)
-            if inputA != 0:
+            if untilOKidx != 0:
                 period = [7, 7, 7, 5]
                 for i in range(ledVideoRoi[1][0]):
                     maxVal = np.max(ledVideoRoi[0][i][20:untilOKidx])
