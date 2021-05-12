@@ -8,9 +8,9 @@ import tools.dataAnalysis as dataAnalysis
 import tools.openCVImageProcessingTools as openCVImageProcessingTools
 import pdb
 
-mouseD = '190911_f25'
-expDateD = 'some' # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='some' # 'all or 'some'
+mouseD = '210122_f84'
+expDateD = 'all910' # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='all910' # 'all or 'some'
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
