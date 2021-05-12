@@ -487,7 +487,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             #ax.set_xlim(8)
         plt.legend(loc=1)
         plt.show()
-        pdb.set_trace()
+        #pdb.set_trace()
     ###########
     for i in range(ledVideoRoi[1][0]):
         allLEDVideoRoiValues.extend(traceToBinaryForChangingMaxMin(ledVideoRoi[0][i])[0]) # rescale all values to [0,1] and stack them
