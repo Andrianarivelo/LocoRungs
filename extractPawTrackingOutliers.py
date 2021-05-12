@@ -15,7 +15,7 @@ import pdb
 mouseD = '210120_m85'
 expDateD = 'all910' # specific date e.g. '180214', 'some' for manual selection, 'all' for all, 'all910' for all recordings at 910 nm
 recordingsD='all910' # 'all or 'some' or 'all910', or index of the recoding - e.g. 0,1 - when running analysis for a specific day
-# TODO access specific DLC instance
+DLCinstance = 'DLC_resnet_50_2021-Apr_PawExtraction_210122_f84Apr23shuffle2_200000'
 
 readDataAgain = True
 
@@ -51,23 +51,23 @@ cV       = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 # loop over all folders, mostly days but sometimes there were two recording sessions per day
 
 #pdb.set_trace()
-if os.path.isfile(eSD.analysisLocation + '/allOutlierFramesPerSession.p') and not readDataAgain:
-    outlierData = pickle.load( open(eSD.analysisLocation + '/allOutlierFramesPerSession.p', 'rb') )
+if os.path.isfile(eSD.analysisLocation + '/allOutlierFramesPerSession_%s.p' % DLCinstance) and not readDataAgain:
+    outlierData = pickle.load( open(eSD.analysisLocation + '/allOutlierFramesPerSession_%s.p' % DLCinstance, 'rb') )
 else:
     outlierData = []
     for f in range(len(foldersRecordings)) :
         # loop over all recordings in that folder
         for r in range(len(foldersRecordings[f][2])): # for r in recordings[f][1]:
             (existenceFrames,FramesFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r],'CameraGigEBehavior')
-            (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r])
+            (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r],DLCinstance)
             if existenceFrames and existencePawPos:
                 (pawPositions,pawMetaData) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'pawTraces',PawFileHandle)
                 pawTrackingOutliers = dataAnalysis.detectPawTrackingOutlies(pawPositions,pawMetaData)
-                DLCinstance = pawMetaData['data']['DLC-model-config file']['snapshot_prefix']
+                #DLCinstance = pawMetaData['data']['DLC-model-config file']['snapshot_prefix']
                 outlierData.append([foldersRecordings[f][0],foldersRecordings[f][2][r],pawTrackingOutliers,DLCinstance])
                 cV.createPawMovementFigure(foldersRecordings[f][0],foldersRecordings[f][2][r],pawTrackingOutliers)
                 (idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo) = eSD.readBehaviorVideoTimeData([foldersRecordings[f][0],foldersRecordings[f][2][r],'behaviorVideo'])  #[foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo']
-                eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],pawPositions,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
+                eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],DLCinstance,pawPositions,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
 
-    pickle.dump(outlierData, open(eSD.analysisLocation + '/allOutlierFramesPerSession.p', 'wb'))
-cV.createOutlierStatFigure(foldersRecordings,outlierData)
+    pickle.dump(outlierData, open(eSD.analysisLocation + '/allOutlierFramesPerSession_%s.p' % DLCinstance, 'wb'))
+cV.createOutlierStatFigure(foldersRecordings,outlierData,DLCinstance)

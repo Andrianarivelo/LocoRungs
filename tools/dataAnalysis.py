@@ -16,6 +16,7 @@ from scipy import signal
 from scipy.signal import find_peaks
 import pickle
 
+from scipy import ndimage
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -416,7 +417,16 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             rescaledTraceBin = rescaledTrace > threshold
         return (rescaledTrace,rescaledTraceBin)
     ##############################################################################################################
-
+    def traceToBinaryForChangingMaxMin(trace,threshold=None):
+        maxTrace = ndimage.maximum_filter(trace, size=5*2)
+        minTrace = ndimage.minimum_filter(trace, size=5*2)
+        rescaledTrace = (trace - minTrace) / (maxTrace - minTrace)
+        if threshold is None:
+            rescaledTraceBin = rescaledTrace > 0.3
+        else:
+            rescaledTraceBin = rescaledTrace > threshold
+        return (rescaledTrace,rescaledTraceBin)
+    ##############################################################################################################
 
     # maps LED daq control trace to boolean array ################################################################
     # TODO this number is zero on the behavior setup and 4 here
@@ -433,7 +443,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     allLEDVideoRoiValues = []
     # determine threshold   [ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude]
     for i in range(ledVideoRoi[1][0]):
-        allLEDVideoRoiValues.extend(traceToBinary(ledVideoRoi[0][i])[0]) # rescale all values to [0,1] and stack them
+        allLEDVideoRoiValues.extend(traceToBinaryForChangingMaxMin(ledVideoRoi[0][i])[0]) # rescale all values to [0,1] and stack them
     allLEDVideoRoiValues = np.sort(np.asarray(allLEDVideoRoiValues)) # convert to array and sort
     luminocityDifferences = np.diff(allLEDVideoRoiValues)
     idxMaxDiff = np.argmax(luminocityDifferences)
@@ -444,13 +454,14 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         illumLEDcontrolThreshold = LEDVideoThreshold**2.61290794 # 2pinvivo
 
     print('thresholds : ',LEDVideoThreshold, illumLEDcontrolThreshold)
-    #LEDVideoThreshold = 0.84
-    #illumLEDcontrolThreshold = 0.66
+    #LEDVideoThreshold = 0.8
+    #illumLEDcontrolThreshold = 0.6
+    #print('adjusted thresholds : ', LEDVideoThreshold, illumLEDcontrolThreshold)
     #pdb.set_trace()
     # threshold and convert to binary
     for i in range(ledVideoRoi[1][0]):
-        ledVideoRoiBins.append(traceToBinary(ledVideoRoi[0][i],threshold=LEDVideoThreshold)[1])  # 0.6 before 0.4
-        ledVideoRoiRescaled.append(traceToBinary(ledVideoRoi[0][i])[0])
+        ledVideoRoiBins.append(traceToBinaryForChangingMaxMin(ledVideoRoi[0][i],threshold=LEDVideoThreshold)[1])  # 0.6 before 0.4
+        ledVideoRoiRescaled.append(traceToBinaryForChangingMaxMin(ledVideoRoi[0][i])[0])
 
     # find start and end of camera exposure period ################################################################
     exposureInt = np.array(cameraExposure[0][0], dtype=int)  # convert boolean array into array of zeros and ones
@@ -606,7 +617,21 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     shiftToZero = shiftDifference[:,0][(shiftDifference[:,1]==0) & (shiftDifference[:,3]==0)]
     finalLength = shiftDifference[:,2][(shiftDifference[:,1]==0) & (shiftDifference[:,3]==0)]
     if len(shiftToZero)>1 or len(shiftToZero)==0:
-        if shiftToZero[1] == (shiftToZero[0]+5):
+        if len(shiftToZero)==0:
+            idxTemp = idxFramesDuringRecording + 0
+            idx = idxTemp[idxTemp >= 0]
+            idxIllum = idx[idx < len(illumLEDcontrolBin)]
+            # pdb.set_trace()
+            shortest = [len(ledVideoRoiRescaled[3][mask][missedFramesBegin:]) if len(ledVideoRoiRescaled[3][mask][missedFramesBegin:]) < len(illumLEDcontrolrescaled[idxIllum]) else len(
+                illumLEDcontrolrescaled[idxIllum])]
+            plt.plot(ledVideoRoiRescaled[3][mask][missedFramesBegin:][:shortest[0]], illumLEDcontrolrescaled[idxIllum][:shortest[0]], 'o', ms=1)
+            plt.show()
+            pdb.set_trace()
+            plt.plot(ledVideoRoiRescaled[3][mask][missedFramesBegin:][:shortest[0]], 'o-')
+            #plt.plot(illumLEDcontrolrescaled[idxIllum][:shortest[0]], 'o-')
+            plt.show()
+            pdb.set_trace()
+        elif shiftToZero[1] == (shiftToZero[0]+5):
             print('Multiple shifts to zero, so multiple perfect overlays exist. First overlay with shift %s will be used.' % shiftToZero[0])
             pass
         else:
