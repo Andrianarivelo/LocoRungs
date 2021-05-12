@@ -438,10 +438,10 @@ class extractSaveData:
             return (False, None)
 
     ############################################################
-    def checkIfPawPositionWasExtracted(self, fold, eD, recording):
+    def checkIfPawPositionWasExtracted(self, fold, eD, recording,DLCinst):
 
         rec = recording.replace('/', '-')
-        fName = self.analysisLocation + '%s_%s_%s_*.h5' % (self.mouse, fold, rec)
+        fName = self.analysisLocation + '%s_%s_%s_*%s.h5' % (self.mouse, fold, rec, DLCinst)
         fList = glob.glob(fName)
         if len(fList) > 1:
             print('more than one file exist matching the file pattern %s' % fName)
@@ -924,7 +924,8 @@ class extractSaveData:
         return (rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime, rawPawSpeed, cPawPos)
 
     ############################################################
-    def savePawTrackingData(self, mouse, date, rec, pawPositions, pawTrackingOutliers, pawMetaData, startEndExposureTime, startTime, generateVideo=True):
+    # savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],DLCinstance,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
+    def savePawTrackingData(self, mouse, date, rec, DLCinstance, pawPositions, pawTrackingOutliers, pawMetaData, startEndExposureTime, startTime, generateVideo=True):
         # pdb.set_trace()
         jointNames = pawMetaData['data']['DLC-model-config file']['all_joints_names']
         jointIdx = pawMetaData['data']['DLC-model-config file']['all_joints']
@@ -932,7 +933,7 @@ class extractSaveData:
         print('cropping parameters', cropping)
         # pdb.set_trace()
         rec = rec.replace('/', '-')
-        (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, [date, rec, 'pawTrackingData'])
+        (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, [date, rec, 'pawTrackingData', DLCinstance])
         self.h5pyTools.createOverwriteDS(grpHandle, 'rawPawPositionsFromDLC', pawPositions)
         timeArray = np.average(startEndExposureTime,axis=1) # use the 'middle' of the exposure time as time-point of the frame
         for i in range(4):

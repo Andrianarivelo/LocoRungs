@@ -1,2 +1,6 @@
 *pyc
 *mat
+tempScriptOutput/*
+testScripts/*
+scriptRunHistory/*
+.idea*

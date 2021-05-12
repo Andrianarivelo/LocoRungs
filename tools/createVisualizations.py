@@ -3683,13 +3683,13 @@ class createVisualizations:
         plt.savefig(fname + '.pdf')
         #plt.show()
     ##########################################################################################
-    def createOutlierStatFigure(self,foldersRecordings,outlierData):
+    def createOutlierStatFigure(self,foldersRecordings,outlierData,DLCinstance):
 
         # fig = plt.figure(figsize=(11, 11))
         # ax0 = fig.add_subplot(3, 2, 1)
         # ax1 = fig.add_subplot(3, 2, 3)
         cc = ['C0','C1','C2','C3']
-        DLCinstance = outlierData[0][3]
+        #DLCinstance = outlierData[0][3]
         jointNames = []
         for i in range(len(outlierData[0][2])):
             jointNames.append(outlierData[0][2][i][4])
@@ -3770,14 +3770,14 @@ class createVisualizations:
         errorRates = (overallImgs-totOutliers)/overallImgs
         errorRates = np.round(errorRates,5)
         meanErrorRate = np.round(np.mean(errorRates),5)
-        plt.figtext(0.06, 0.93, 'DLC instance : %s' % DLCinstance.split('DLC2_Projects/')[1], size=6.5)
-        plt.figtext(0.06, 0.89, 'error rates: ind. paws, total : %s %s %s %s,  %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],meanErrorRate), clip_on=False, color='black', size=10)
+        plt.figtext(0.06, 0.92, 'DLC instance : %s' % DLCinstance, size=9)
+        plt.figtext(0.06, 0.88, 'error rates: ind. paws, total : %s %s %s %s,  %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],meanErrorRate), clip_on=False, color='black', size=9)
         print('error rates: ind. paws, total : %s %s %s %s, %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)))
         self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)',Leg=[0,9])
         ## save figure ############################################################
         #ax0.invert_yaxis()
         #rec = rec.replace('/','-')
-        fname = self.determineFileName(self.mouse, what='tracking-outliers')
+        fname = self.determineFileName(self.mouse, what='tracking-outliers_%s' % DLCinstance)
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
         #plt.show()

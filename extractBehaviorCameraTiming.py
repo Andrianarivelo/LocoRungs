@@ -18,8 +18,9 @@ recordings='some'     # 'all or 'some'
 
 # further analaysis parameter
 assumePerfectRecording = True  # that means a recording without any flash-back - or double frames
-startRecording = 0  # each session/day per animal is composed of 5 recordings, this index allows chose with which recording to start, default is 0
-DetermineAgainLEDcoordinates = False # whether or not to determine LED coordinates even though they exist already for current or previous recording
+startRecording = None # each session/day per animal is composed of 5 recordings, this index allows chose with which recording to start, default is 0
+endRecording = None # in case only specify recording will be analyzed, otherwise set to None
+DetermineAgainLEDcoordinates = True # whether or not to determine LED coordinates even though they exist already for current or previous recording
 DetermineAgainErronousFrames = False # whether or not to determine errnonous frames even though the are already exist for current recording
 
 # in case mouse, and date were specified as input arguments
@@ -50,7 +51,7 @@ openCVtools  = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysi
 # loop over all folders, mostly days but sometimes there were two recording sessions per day
 for f in range(len(foldersRecordings)):
     # loop over all recordings in that folder
-    for r in range(startRecording,len(foldersRecordings[f][2])):
+    for r in range((0 if startRecording is None else startRecording),(len(foldersRecordings[f][2]) if endRecording is None else endRecording)):
         #pdb.set_trace()
         (existenceFrames,fileHandleFrames) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'CameraGigEBehavior')
         (existenceFTimes,fileHandleFTimes) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'frameTimes')
