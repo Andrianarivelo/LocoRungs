@@ -443,26 +443,32 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     allLEDVideoRoiValues = []
     # determine threshold   [ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude]
     # tail covering the LEDs for some
-    anticipateCorrectValues = True
     if tail:
+        anticipateCorrectValues = True
         for i in range(ledVideoRoi[1][0]):
             plt.plot(ledVideoRoi[0][i],'o-',ms=2,label='%s' % i)
         plt.legend(loc=1)
         plt.show()
         if anticipateCorrectValues:
-            untilOKidx = 3000
-            period = [7,7,7,5]
-            for i in range(ledVideoRoi[1][0]):
-                maxVal = np.max(ledVideoRoi[0][i][20:untilOKidx])
-                minVal = np.min(ledVideoRoi[0][i][20:untilOKidx])
-                for n in range(period[i]):
-                    #repeatValue(ledVideoRoi[0][i][(untilOKidx+n):],7)
-                    isHigh = [True if abs(ledVideoRoi[0][i][(untilOKidx+n)] - maxVal) < abs(ledVideoRoi[0][i][(untilOKidx+n)] - minVal) else False]
-                    if isHigh:
-                        ledVideoRoi[0][i][(untilOKidx+n):][::period[i]] = ledVideoRoi[0][i][(untilOKidx+n)]
-                    else:
-                        ledVideoRoi[0][i][(untilOKidx+n):][::period[i]] = ledVideoRoi[0][i][(untilOKidx+n)]
-                #ledVideoRoi[0][i][]
+            inputA = input('Index until which the recording is not affected by the tail (integer; type 0 if recording is ok) :')
+            untilOKidx = int(inputA)
+            if inputA == 0:
+                pass
+            else:
+                period = [7, 7, 7, 5]
+                for i in range(ledVideoRoi[1][0]):
+                    maxVal = np.max(ledVideoRoi[0][i][20:untilOKidx])
+                    minVal = np.min(ledVideoRoi[0][i][20:untilOKidx])
+                    for n in range(period[i]):
+                        # repeatValue(ledVideoRoi[0][i][(untilOKidx+n):],7)
+                        isHigh = [True if abs(ledVideoRoi[0][i][(untilOKidx + n)] - maxVal) < abs(ledVideoRoi[0][i][(untilOKidx + n)] - minVal) else False]
+                        if isHigh:
+                            ledVideoRoi[0][i][(untilOKidx + n):][::period[i]] = ledVideoRoi[0][i][(untilOKidx + n)]
+                        else:
+                            ledVideoRoi[0][i][(untilOKidx + n):][::period[i]] = ledVideoRoi[0][i][(untilOKidx + n)]  # ledVideoRoi[0][i][]
+                for i in range(ledVideoRoi[1][0]):
+                    plt.plot(ledVideoRoi[0][i], 'o-', ms=2)
+                plt.show()
         else:
             maxV = [254,251,250,213]
             minV = [200,174,217,147]
