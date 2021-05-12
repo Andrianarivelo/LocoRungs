@@ -406,7 +406,7 @@ def determineErroneousFrames(frames):
 # maps an abritray input array to the entire range of X-bit encoding
 #################################################################################
 # ([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],verbose=True)
-def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verbose=False):
+def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verbose=False, tail=False):
     ##############################################################################################################
     # auxiliary function to convert bimodal trace into boolean array
     def traceToBinary(trace,threshold=None):
@@ -442,6 +442,13 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     ledVideoRoiRescaled = []
     allLEDVideoRoiValues = []
     # determine threshold   [ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude]
+    # tail covering the LEDs for some
+    if tail:
+        for i in range(ledVideoRoi[1][0]):
+            plt.plot(ledVideoRoi[0][i],label='%s' % i)
+        plt.legend(loc=1)
+        pdb.set_trace()
+    ###########
     for i in range(ledVideoRoi[1][0]):
         allLEDVideoRoiValues.extend(traceToBinaryForChangingMaxMin(ledVideoRoi[0][i])[0]) # rescale all values to [0,1] and stack them
     allLEDVideoRoiValues = np.sort(np.asarray(allLEDVideoRoiValues)) # convert to array and sort
