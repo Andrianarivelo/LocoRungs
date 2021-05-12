@@ -449,11 +449,11 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         idxMaxV = [[8580,8582,8583,8585],
                    [],
                    [8589],
-                   [8584,8589]]
+                   []]
         idxMinV = [[8581,8584,8586,8588],
                    [8579,8580],
                    [8590,8591],
-                   [8585,8586,8590,8591]]
+                   [8584,8585,8586,8589,8590,8591]]
         for i in range(4):
             for n in idxMaxV[i]:
                 ledVideoRoi[0][i][n] = maxV[i]
