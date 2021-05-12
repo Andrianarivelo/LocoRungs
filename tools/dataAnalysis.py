@@ -444,9 +444,13 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     # determine threshold   [ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude]
     # tail covering the LEDs for some
     if tail:
+        #fig = plt.figure()
         for i in range(ledVideoRoi[1][0]):
-            plt.plot(ledVideoRoi[0][i],label='%s' % i)
-        plt.legend(loc=1)
+            #ax = fig.add_subplot(3,1,i)
+            plt.plot(ledVideoRoi[0][i],'o-',ms=2,label='%s' % i)
+            #ax.set_xlim(8)
+            #plt.legend(loc=1)
+        plt.show()
         pdb.set_trace()
     ###########
     for i in range(ledVideoRoi[1][0]):
