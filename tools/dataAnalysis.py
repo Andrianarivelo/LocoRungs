@@ -655,7 +655,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             plt.show()
             pdb.set_trace()
             plt.plot(ledVideoRoiRescaled[3][mask][missedFramesBegin:][:shortest[0]], 'o-')
-            #plt.plot(illumLEDcontrolrescaled[idxIllum][:shortest[0]], 'o-')
+            plt.plot(illumLEDcontrolrescaled[idxIllum][:shortest[0]], 'o-')
             plt.show()
             pdb.set_trace()
         elif shiftToZero[1] == (shiftToZero[0]+5):
