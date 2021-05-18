@@ -613,6 +613,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         print('Number of frames recorded before first full exposed frame during recording (increased by one):', missedFramesBegin, idxFirstFrameRec, illumLEDcontrolBin[:20],videoRoi[:20])
         videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
     else:
+        print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin, idxFirstFrameRec, illumLEDcontrolBin[:20],videoRoi[:20] )
         print('Problem with determining index of first recorded frame.')
         pdb.set_trace()
     #pdb.set_trace()
