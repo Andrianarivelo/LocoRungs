@@ -605,7 +605,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             if np.all(videoRoiWOEX[:20] == illumLEDcontrolBin[:20]): # note that illumLEDcontrolBin already accounts for a recording duing stat of rec, this frame is removed
                 missedFramesBegin = j
                 break
-    if idxFirstFrameRec == missedFramesBegin:
+    if (idxFirstFrameRec == missedFramesBegin) or (missedFramesBegin == 0):
         print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin, idxFirstFrameRec, illumLEDcontrolBin[:20],videoRoi[:20] )
         videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
     elif idxFirstFrameRec == (missedFramesBegin+1):
