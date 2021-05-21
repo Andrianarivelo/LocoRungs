@@ -674,22 +674,20 @@ class extractSaveData:
         return (idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo)
 
     ############################################################
-    def getBehaviorVideoData(self, groupNames):
+    def getBehaviorVideoFrames(self, groupNames):
         (grpName, test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
         print(grpName)
         #pdb.set_trace()
-        startEndExposureTime = self.f[grpName + '/startEndExposureTime'][()]
-        imageMetaInfo = self.f[grpName + '/startEndExposureTime'].attrs['imageMetaInfo']
         firstLastRecordedFrame = self.f[grpName + '/firstLastRecordedFrame'][()]
-        return (startEndExposureTime, imageMetaInfo, firstLastRecordedFrame)
+        return firstLastRecordedFrame
 
     ############################################################
     # self.saveBehaviorVideoData([date,rec,'behavior_video'],  framesRaw,videoIdx,startEndExposureTime, imageMetaInfo)
     # [foldersRecordings[f][0], foldersRecordings[f][2][r],'behavior_video']
-    def saveBehaviorVideoData(self, groupNames,  framesRaw,videoIdx,startEndExposureTime, imageMetaInfo):
+    def saveBehaviorVideoFrames(self, groupNames,  framesRaw, videoIdx ):
         (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
         #print(grpName)
-        self.h5pyTools.createOverwriteDS(grpHandle, 'startEndExposureTime', startEndExposureTime,['imageMetaInfo', imageMetaInfo])
+        #self.h5pyTools.createOverwriteDS(grpHandle, 'startEndExposureTime', startEndExposureTime,['imageMetaInfo', imageMetaInfo])
         self.h5pyTools.createOverwriteDS(grpHandle, 'firstLastRecordedFrame', np.array((framesRaw[videoIdx[0]],framesRaw[videoIdx[-1]])))
 
     ############################################################
@@ -994,7 +992,6 @@ class extractSaveData:
     # (mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)
     def saveBehaviorVideo(self, mouse, date, rec, framesRaw, idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo):
         # [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
-        self.saveBehaviorVideoData([date,rec,'behavior_video'], framesRaw,videoIdx,startEndExposureTime, imageMetaInfo)
         midFrameTimes = (startEndExposureTime[:, 0] + startEndExposureTime[:, 1]) / 2.
         # pdb.set_trace()
         # img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)

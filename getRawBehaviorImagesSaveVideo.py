@@ -54,4 +54,5 @@ for f in range(len(foldersRecordings)):
         # use frame drop/miss and timing information to save video
         if existenceFrames and existenceFTimes and existenceLEDControl:
             (idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfoCopy ) =  eSD.readBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo'])
+            eSD.saveBehaviorVideoFrames([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideoFirstLastFrames'], frames, videoIdx)
             eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], frames, idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo)

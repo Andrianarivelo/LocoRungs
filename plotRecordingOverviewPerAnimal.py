@@ -67,7 +67,8 @@ else:
             # check for video recording during trial
             (camExistence, camFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'CameraGigEBehavior')
             if camExistence:
-                (startEndExposureTime, startTime, firstLastRecordedFrame) = eSD.getBehaviorVideoData([foldersRecordings[f][0], foldersRecordings[f][2][r],'behavior_video'])
+                (idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, startTime) = eSD.readBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo'])
+                firstLastRecordedFrame = eSD.getBehaviorVideoFrames([foldersRecordings[f][0], foldersRecordings[f][2][r],'behaviorVideoFirstLastFrames'])
                 #pdb.set_trace()
                 frames.append([firstLastRecordedFrame, startEndExposureTime, startTime])
         # check for ca-imaging data during entire session
