@@ -677,6 +677,7 @@ class extractSaveData:
     def getBehaviorVideoData(self, groupNames):
         (grpName, test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
         print(grpName)
+        #pdb.set_trace()
         startEndExposureTime = self.f[grpName + '/startEndExposureTime'][()]
         imageMetaInfo = self.f[grpName + '/startEndExposureTime'].attrs['imageMetaInfo']
         firstLastRecordedFrame = self.f[grpName + '/firstLastRecordedFrame'][()]
@@ -719,7 +720,7 @@ class extractSaveData:
     ############################################################
     def getWalkingActivity(self, groupNames):
         (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, groupNames)
-        # print(grpName)
+        print(grpName)
         angularSpeed = self.f[grpName + '/angularSpeed'][()]
         monitor = self.f[grpName + '/angularSpeed'].attrs['monitor']
         linearSpeed = self.f[grpName + '/linearSpeed'][()]

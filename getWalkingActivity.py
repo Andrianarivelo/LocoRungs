@@ -10,8 +10,8 @@ import pdb
 import pickle
 
 mouseD = '210120_m85' # id of the mouse to analyze
-expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='all'     # 'all or 'some'
+expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='all910'     # 'all or 'some'
 
 
 if args.mouse == None:
