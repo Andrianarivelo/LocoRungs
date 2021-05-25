@@ -677,8 +677,16 @@ class extractSaveData:
     def getBehaviorVideoFrames(self, groupNames):
         (grpName, test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
         print(grpName)
-        #pdb.set_trace()
-        firstLastRecordedFrame = self.f[grpName + '/firstLastRecordedFrame'][()]
+        #pdb.set_trace()  [date,rec,'behavior_video']
+        try:
+            firstLastRecordedFrame = self.f[grpName + '/firstLastRecordedFrame'][()]
+        except:  # before, first and last name was stored under a different name
+            groupNames[2] = 'behavior_video'
+            (grpName, test) = self.h5pyTools.getH5GroupName(self.f, groupNames)
+            firstLastRecordedFrame = self.f[grpName + '/firstLastRecordedFrame'][()]
+        else:
+            pass
+
         return firstLastRecordedFrame
 
     ############################################################

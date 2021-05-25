@@ -1919,16 +1919,10 @@ class createVisualizations:
 
             VideoTimeStamps = allDataPerSession[nSess][2]
             for i in range(len(VideoTimeStamps)):
-                pass
-                #print(i)
-                #pdb.set_trace()
                 ax0.plot([(VideoTimeStamps[i][2]-startTime)/60.,(VideoTimeStamps[i][2]-startTime+ 60.)/60],[-0.02,-0.02],lw=5,c='C1',label=('Video Rec.' if i==0 else None))
             # show when calcium imaging was performed
             CaImgTimeStamps = allDataPerSession[nSess][3][0][4]
-            # pdb.set_trace()
             for i in range(len(CaImgTimeStamps)):
-                pass
-                # pdb.set_trace()
                 ax0.plot([(CaImgTimeStamps[i] - startTime) / 60., (CaImgTimeStamps[i] - startTime + 60.) / 60], [-0.04, -0.04], lw=5, c='C0', label=('Ca Imaging' if i == 0 else None))
 
             ax0.set_title('%s. day, %s, %s trials' % ((nSess + 1), allDataPerSession[nSess][0], highResTrials), loc='left', fontweight='bold')
@@ -1963,21 +1957,7 @@ class createVisualizations:
                 else:
                     #timeDiff = np.diff(tracks[i][2])
                     #ax1.plot((tracks[i][2]+(tracks[i][3]-startTime))/60.,tracks[i][1],color=colors)
-                    ax1.plot((tracks[i][2])/60.,tracks[i][1],color=colors)
-            #pdb.set_trace()
-            VideoTimeStamps = allDataPerSession[nSess][2]
-            for i in range(len(VideoTimeStamps)):
-                pass
-                #print(i)
-                #pdb.set_trace()
-                #ax1.plot([(VideoTimeStamps[i][2]-startTime)/60.,(VideoTimeStamps[i][2]-startTime+ 60.)/60],[-10,-10],lw=5,c='C1',label=('Video Rec.' if i==0 else None))
-            # show when calcium imaging was performed
-            CaImgTimeStamps = allDataPerSession[nSess][3][0][4]
-            # pdb.set_trace()
-            for i in range(len(CaImgTimeStamps)):
-                pass
-                # pdb.set_trace()
-                #ax1.plot([(CaImgTimeStamps[i] - startTime) / 60., (CaImgTimeStamps[i] - startTime + 60.) / 60], [-15, -15], lw=5, c='C0', label=('Ca Imaging' if i == 0 else None))
+                    ax1.plot(tracks[i][2],tracks[i][1],color=colors)
 
             # removes upper and right axes
             # and moves left and bottom axes away
