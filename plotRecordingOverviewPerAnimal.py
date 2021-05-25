@@ -16,7 +16,7 @@ mouseD = '210120_m85'
 expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordingsD ='all910'     # 'all or 'some'
 
-readDataAgain = False
+readDataAgain = True
 wheelCircumsphere = 80.65 # in cm
 
 ###########################################
