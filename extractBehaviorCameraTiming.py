@@ -22,6 +22,7 @@ startRecording = None # each session/day per animal is composed of 5 recordings,
 endRecording = None # in case only specify recording will be analyzed, otherwise set to None
 DetermineAgainLEDcoordinates = True # whether or not to determine LED coordinates even though they exist already for current or previous recording
 DetermineAgainErronousFrames = False # whether or not to determine errnonous frames even though the are already exist for current recording
+recordingWithTail = True
 
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
@@ -87,7 +88,7 @@ for f in range(len(foldersRecordings)):
         #pdb.set_trace()
         if existenceFrames and existenceFTimes and existenceLEDControl and canBeUsed:
             #(idxIllumFinal, frameTimes, frameStartStopIdx, videoIdx, frameSummary)
-            (idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary) = dataAnalysis.determineFrameTimesBasedOnLED([LEDtraces,LEDcoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],eSD.recordingMachine,verbose=True)
+            (idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary) = dataAnalysis.determineFrameTimesBasedOnLED([LEDtraces,LEDcoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],eSD.recordingMachine,verbose=True,tail=recordingWithTail)
             #framesDuringRecording = frames[recordedFramesIdx]
             eSD.saveBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo'],idxTimePoints,startEndExposureTime,startEndExposurepIdx,videoIdx,frameSummary, imageMetaInfo)
             #eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], framesDuringRecording, expStartTime, expEndTime, imageMetaInfo)

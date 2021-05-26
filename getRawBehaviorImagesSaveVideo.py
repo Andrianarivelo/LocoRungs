@@ -12,7 +12,7 @@ import sys
 mouseD = '210214_m15' # id of the mouse to analyze
 #mouseD = '190108_m24'
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='all'     # 'all or 'some'
+recordings='some'     # 'all or 'some'
 
 
 # in case mouse, and date were specified as input arguments
@@ -54,4 +54,5 @@ for f in range(len(foldersRecordings)):
         # use frame drop/miss and timing information to save video
         if existenceFrames and existenceFTimes and existenceLEDControl:
             (idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfoCopy ) =  eSD.readBehaviorVideoTimeData([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo'])
+            eSD.saveBehaviorVideoFrames([foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideoFirstLastFrames'], frames, videoIdx)
             eSD.saveBehaviorVideo(mouse, foldersRecordings[f][0], foldersRecordings[f][2][r], frames, idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo)

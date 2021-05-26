@@ -1877,7 +1877,7 @@ class createVisualizations:
         plt.subplots_adjust(left=0.05, right=0.96, top=0.9+(fig_height*0.001), bottom=1.1/fig_height)
 
         # sub-panel enumerations
-        plt.figtext(0.05, 0.975, 'mouse : %s with %s recording sessions' % (mouse, nSessions),clip_on=False,color='red',size=18)
+        plt.figtext(0.05, 0.975, 'mouse : %s with %s recording days' % (mouse, nSessions),fontweight='bold',clip_on=False,color='red',size=18)
 
 
         for nSess in range(len(allDataPerSession)):
@@ -1914,12 +1914,21 @@ class createVisualizations:
                 else:
                     highResTrials+=1
                     #timeDiff = np.diff(tracks[i][2])
-                    ax0.plot((tracks[i][5][:,0] + (tracks[i][3] - startTime)) / 60., (endAngles[i-1]+tracks[i][5][:,1])*conversionFactor, color=colors)
+                    #ax0.plot((tracks[i][5][:,0] + (tracks[i][3] - startTime)) / 60., (endAngles[i-1]+tracks[i][5][:,1])*conversionFactor, color=colors)
+                    ax0.plot((tracks[i][5][:, 0] + (tracks[i][3] - startTime)) / 60., (tracks[i][5][:, 1]) * conversionFactor, color=colors,label='trial %s' % i)
 
-            ax0.set_title('%s. session, %s, %s trials' % ((nSess + 1), allDataPerSession[nSess][0], highResTrials), loc='left', fontweight='bold')
+            VideoTimeStamps = allDataPerSession[nSess][2]
+            for i in range(len(VideoTimeStamps)):
+                ax0.plot([(VideoTimeStamps[i][2]-startTime)/60.,(VideoTimeStamps[i][2]-startTime+ 60.)/60],[-0.02,-0.02],lw=5,c='C1',label=('Video Rec.' if i==0 else None))
+            # show when calcium imaging was performed
+            CaImgTimeStamps = allDataPerSession[nSess][3][0][4]
+            for i in range(len(CaImgTimeStamps)):
+                ax0.plot([(CaImgTimeStamps[i] - startTime) / 60., (CaImgTimeStamps[i] - startTime + 60.) / 60], [-0.04, -0.04], lw=5, c='C0', label=('Ca Imaging' if i == 0 else None))
+
+            ax0.set_title('%s. day, %s, %s trials' % ((nSess + 1), allDataPerSession[nSess][0], highResTrials), loc='left', fontweight='bold')
             # removes upper and right axes
             # and moves left and bottom axes away
-            self.layoutOfPanel(ax0, xLabel='time (min)', yLabel='distance covered (m)')
+            self.layoutOfPanel(ax0, xLabel='time (min)', yLabel='distance covered (m)',Leg=[2,9])
 
 
             # speed plot #######################################################
@@ -1947,17 +1956,8 @@ class createVisualizations:
                         ax1.plot((tracks[i][2][start:end]+(tracks[i][3]-startTime))/60.,tracks[i][1][start:end],color='0.3')
                 else:
                     #timeDiff = np.diff(tracks[i][2])
-                    ax1.plot((tracks[i][2]+(tracks[i][3]-startTime))/60.,tracks[i][1],color=colors)
-            #pdb.set_trace()
-            VideoTimeStamps = allDataPerSession[nSess][2]
-            for i in range(len(VideoTimeStamps)):
-                ax1.plot([(VideoTimeStamps[i][3]-startTime)/60.,(VideoTimeStamps[i][3]-startTime+30.)/60],[-10,-10],lw=5,c='C1',label=('Video Rec.' if i==0 else None))
-            # show when calcium imaging was performed
-            CaImgTimeStamps = allDataPerSession[nSess][3][0][4]
-            # pdb.set_trace()
-            for i in range(len(CaImgTimeStamps)):
-                # pdb.set_trace()
-                ax1.plot([(CaImgTimeStamps[i] - startTime) / 60., (CaImgTimeStamps[i] - startTime + 30.) / 60], [-15, -15], lw=5, c='C0', label=('Ca Imaging' if i == 0 else None))
+                    #ax1.plot((tracks[i][2]+(tracks[i][3]-startTime))/60.,tracks[i][1],color=colors)
+                    ax1.plot(tracks[i][2],tracks[i][1],color=colors)
 
             # removes upper and right axes
             # and moves left and bottom axes away
@@ -1975,8 +1975,14 @@ class createVisualizations:
             # average Ca imaging plot #######################################################
             ax3 = plt.subplot(gssub[3])
             scaleFactor = allDataPerSession[nSess][3][0][3]
-            dimensions = np.shape(allDataPerSession[nSess][3][0][1])
-            ax3.imshow(np.log(allDataPerSession[nSess][3][0][1]),extent=(0,dimensions[0]*xScalingFactor/scaleFactor,0,dimensions[1]*yScalingFactor/scaleFactor))
+            caImg = allDataPerSession[nSess][3][0][1]
+            dimensions = np.shape(caImg)
+            if np.min(caImg)<0:
+                caImg = caImg + 3.*np.abs(np.min(caImg))
+            #print(nSess)
+            #pdb.set_trace()
+            #ax3.imshow(np.log(allDataPerSession[nSess][3][0][1]),extent=(0,dimensions[0]*xScalingFactor/scaleFactor,0,dimensions[1]*yScalingFactor/scaleFactor))
+            ax3.imshow(np.log(caImg),extent=(0,dimensions[0]*xScalingFactor/scaleFactor,0,dimensions[1]*yScalingFactor/scaleFactor))
             ax3.set_xlabel(u'μm')
             ax3.set_ylabel(u'μm')
             #self.layoutOfPanel(ax3,yLabel='speed (cm/s)') #,Leg=[1,8])
@@ -1991,7 +1997,7 @@ class createVisualizations:
 
         ## save figure ############################################################
         date = '2019.05.24'
-        fname = self.determineFileName(date,'OverviewFigure')
+        fname = self.determineFileName(mouse,'OverviewFigure')
 
         plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')

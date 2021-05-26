@@ -406,7 +406,7 @@ def determineErroneousFrames(frames):
 # maps an abritray input array to the entire range of X-bit encoding
 #################################################################################
 # ([ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude],[exposureDAQArray,exposureDAQArrayTimes],[ledDAQControlArray, ledDAQControlArrayTimes],verbose=True)
-def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verbose=False):
+def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verbose=False, tail=False):
     ##############################################################################################################
     # auxiliary function to convert bimodal trace into boolean array
     def traceToBinary(trace,threshold=None):
@@ -442,6 +442,54 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     ledVideoRoiRescaled = []
     allLEDVideoRoiValues = []
     # determine threshold   [ledTraces,ledCoordinates,frames,softFrameTimes,imageMetaInfo,idxToExclude]
+    # tail covering the LEDs for some
+    if tail:
+        anticipateCorrectValues = True
+        for i in range(ledVideoRoi[1][0]):
+            plt.plot(ledVideoRoi[0][i],'o-',ms=2,label='%s' % i)
+        plt.legend(loc=1)
+        plt.show()
+        if anticipateCorrectValues:
+            inputA = input('Index until which the recording is not affected by the tail (integer; type 0 if recording is ok) :')
+            untilOKidx = int(inputA)
+            if untilOKidx != 0:
+                period = [7, 7, 7, 5]
+                for i in range(ledVideoRoi[1][0]):
+                    maxVal = np.max(ledVideoRoi[0][i][20:untilOKidx])
+                    minVal = np.min(ledVideoRoi[0][i][20:untilOKidx])
+                    for n in range(period[i]):
+                        # repeatValue(ledVideoRoi[0][i][(untilOKidx+n):],7)
+                        isHigh = [True if abs(ledVideoRoi[0][i][(untilOKidx + n)] - maxVal) < abs(ledVideoRoi[0][i][(untilOKidx + n)] - minVal) else False]
+                        if isHigh:
+                            ledVideoRoi[0][i][(untilOKidx + n):][::period[i]] = ledVideoRoi[0][i][(untilOKidx + n)]
+                        else:
+                            ledVideoRoi[0][i][(untilOKidx + n):][::period[i]] = ledVideoRoi[0][i][(untilOKidx + n)]  # ledVideoRoi[0][i][]
+        else:
+            maxV = [254,251,250,213]
+            minV = [200,174,217,147]
+            idxMaxV = [[8580,8582,8583,8585],
+                       [],
+                       [8589],
+                       []]
+            idxMinV = [[8581,8584,8586,8588],
+                       [8579,8580],
+                       [8590,8591],
+                       [8584,8585,8586,8589,8590,8591]]
+            for i in range(4):
+                for n in idxMaxV[i]:
+                    ledVideoRoi[0][i][n] = maxV[i]
+                for m in idxMinV[i]:
+                    ledVideoRoi[0][i][m] = minV[i]
+
+        #fig = plt.figure()
+        for i in range(ledVideoRoi[1][0]):
+            #ax = fig.add_subplot(3,1,i)
+            plt.plot(ledVideoRoi[0][i],'o-',ms=2,label='%s' % i)
+            #ax.set_xlim(8)
+        plt.legend(loc=1)
+        plt.show()
+        #pdb.set_trace()
+    ###########
     for i in range(ledVideoRoi[1][0]):
         allLEDVideoRoiValues.extend(traceToBinaryForChangingMaxMin(ledVideoRoi[0][i])[0]) # rescale all values to [0,1] and stack them
     allLEDVideoRoiValues = np.sort(np.asarray(allLEDVideoRoiValues)) # convert to array and sort
@@ -460,8 +508,8 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     #pdb.set_trace()
     # threshold and convert to binary
     for i in range(ledVideoRoi[1][0]):
-        ledVideoRoiBins.append(traceToBinaryForChangingMaxMin(ledVideoRoi[0][i],threshold=LEDVideoThreshold)[1])  # 0.6 before 0.4
-        ledVideoRoiRescaled.append(traceToBinaryForChangingMaxMin(ledVideoRoi[0][i])[0])
+        ledVideoRoiBins.append(traceToBinary(ledVideoRoi[0][i],threshold=LEDVideoThreshold)[1])  # 0.6 before 0.4
+        ledVideoRoiRescaled.append(traceToBinary(ledVideoRoi[0][i])[0])
 
     # find start and end of camera exposure period ################################################################
     exposureInt = np.array(cameraExposure[0][0], dtype=int)  # convert boolean array into array of zeros and ones
@@ -557,7 +605,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             if np.all(videoRoiWOEX[:20] == illumLEDcontrolBin[:20]): # note that illumLEDcontrolBin already accounts for a recording duing stat of rec, this frame is removed
                 missedFramesBegin = j
                 break
-    if idxFirstFrameRec == missedFramesBegin:
+    if (idxFirstFrameRec == missedFramesBegin) or (missedFramesBegin == 0):
         print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin, idxFirstFrameRec, illumLEDcontrolBin[:20],videoRoi[:20] )
         videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
     elif idxFirstFrameRec == (missedFramesBegin+1):
@@ -565,6 +613,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
         print('Number of frames recorded before first full exposed frame during recording (increased by one):', missedFramesBegin, idxFirstFrameRec, illumLEDcontrolBin[:20],videoRoi[:20])
         videoRoiWOEX = videoRoi[mask][missedFramesBegin:]
     else:
+        print('Number of frames recorded before first full exposed frame during recording :', missedFramesBegin, idxFirstFrameRec, illumLEDcontrolBin[:20],videoRoi[:20] )
         print('Problem with determining index of first recorded frame.')
         pdb.set_trace()
     #pdb.set_trace()
@@ -628,7 +677,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             plt.show()
             pdb.set_trace()
             plt.plot(ledVideoRoiRescaled[3][mask][missedFramesBegin:][:shortest[0]], 'o-')
-            #plt.plot(illumLEDcontrolrescaled[idxIllum][:shortest[0]], 'o-')
+            plt.plot(illumLEDcontrolrescaled[idxIllum][:shortest[0]], 'o-')
             plt.show()
             pdb.set_trace()
         elif shiftToZero[1] == (shiftToZero[0]+5):
