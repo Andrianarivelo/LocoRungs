@@ -10,9 +10,9 @@ import os
 import pdb
 import sys
 
-mouseD = '201220_m59' # id of the mouse to analyze
-expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='all910'     # 'all or 'some'
+mouseD = '210120_m85' # id of the mouse to analyze
+expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='all'     # 'all or 'some'
 
 onAllData = False
 
@@ -49,7 +49,7 @@ for f in range(len(foldersRecordings)):
     # if camera was recorded
     if existence:
         #pdb.set_trace()
-        specificTiffLists = caI.decideWhichTiffFilesToUse(recLocation,tiffList)
+        specificTiffLists = caI.decideWhichTiffFilesToUse(recLocation,tiffList,eSD.expDict[foldersRecordings[f][1]],recordings)
         print(len(specificTiffLists),specificTiffLists)
         #pdb.set_trace()
         dataDirs.append(eSD.dataBase+foldersRecordings[f][0]+'/')

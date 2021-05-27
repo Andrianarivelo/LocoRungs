@@ -33,9 +33,41 @@ class caImagingSuite2p:
         print('suite2p : on exit')
 
     ############################################################
-    def decideWhichTiffFilesToUse(self,dataDir,tiffFiles,defaultNumber=5):
+    def decideWhichTiffFilesToUse(self,dataDir,tiffFiles,recList,whichRecordings,defaultNumber=5):
         specificList = []
-        availableIdxs = []
+        #availableIdxs = []
+        recsDict = {'all910':'recs910', 'all820':'recs820'}
+        if whichRecordings == 'all910' or whichRecordings == 'all820':
+            if 'CaImgs' in recList[recsDict[whichRecordings]]:
+                print('Ca imaging files index exists in config file')
+                #print(recList[recsDict[whichRecordings]]['CaImgs'])
+                if type(recList[recsDict[whichRecordings]]['CaImgs'])==int:
+                    fileIdxs = [recList[recsDict[whichRecordings]]['CaImgs']]
+                else:
+                    fileIdxs = recList[recsDict[whichRecordings]]['CaImgs']
+                ll = []
+                nn = ''
+                for n in fileIdxs :
+                    ll.append(tiffFiles[n])
+                    nn+= str(tiffFiles[n][-5:-4])
+                specificList.append([ll,nn])
+                return specificList
+        if whichRecordings == 'all':
+            for k in recsDict:
+                if 'CaImgs' in recList[recsDict[k]]:
+                    print('Ca imaging files index exists in config file')
+                    # print(recList[recsDict[whichRecordings]]['CaImgs'])
+                    if type(recList[recsDict[k]]['CaImgs']) == int:
+                        fileIdxs = [recList[recsDict[k]]['CaImgs']]
+                    else:
+                        fileIdxs = recList[recsDict[k]]['CaImgs']
+                    ll = []
+                    nn = ''
+                    for n in fileIdxs:
+                        ll.append(tiffFiles[n])
+                        nn += str(tiffFiles[n][-5:-4])
+                    specificList.append([ll, nn])
+            return specificList
         # first show available tiff files with index
         print('List of available tiff files with index :')
         for n in range(len(tiffFiles)):
