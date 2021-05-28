@@ -857,7 +857,7 @@ class extractSaveData:
     ############################################################
     def extractAndSaveCaTimeStamps(self, dataDir, saveDir, tiffPaths):
 
-        (_,timeStampsA) = self.getRawCalciumImagingData(tiffPaths)
+        (_,timeStampsA) = self.getRawCalciumImagingData(tiffPaths, saveDir)
         np.save(saveDir + '/suite2p/plane0/timeStamps.npy', timeStampsA)
 
     ############################################################
