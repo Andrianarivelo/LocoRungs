@@ -49,7 +49,7 @@ for f in range(len(foldersRecordings)):
     # if camera was recorded
     if existence:
         #pdb.set_trace()
-        specificTiffLists = caI.decideWhichTiffFilesToUse(recLocation,tiffList)
+        specificTiffLists = caI.decideWhichTiffFilesToUse(recLocation,tiffList,eSD.expDict[foldersRecordings[f][1]],recordings)
         print(len(specificTiffLists),specificTiffLists)
         #pdb.set_trace()
         dataDirs.append(eSD.dataBase+foldersRecordings[f][0]+'/')

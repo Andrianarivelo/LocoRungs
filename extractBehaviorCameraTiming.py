@@ -24,6 +24,7 @@ DetermineAgainLEDcoordinates = True # whether or not to determine LED coordinate
 DetermineAgainErronousFrames = False # whether or not to determine errnonous frames even though the are already exist for current recording
 recordingWithTail = True
 
+print("Hello world!")
 # in case mouse, and date were specified as input arguments
 if args.mouse == None:
     mouse = mouseD

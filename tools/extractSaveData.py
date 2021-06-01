@@ -185,10 +185,11 @@ class extractSaveData:
             recID = ['recs910','recs820']
 
         self.config = readConfigFile('simplexAnimals.config')
+        #pdb.set_trace()
         for i in range(len(self.config)):
             if self.config['%s' % i]['mouse'] == self.mouse:
                 print('experiment dictionary of mouse exists')
-                expDict = self.config['%s' % i]['days']
+                self.expDict = self.config['%s' % i]['days']
                 dictExists = True
         #pdb.set_trace()
         folderRec = []
@@ -211,15 +212,15 @@ class extractSaveData:
                 didx = 0
                 daysInputIdx = []
                 for d in self.listOfAllExpts[self.mouse]['dates']:
-                    if d in expDict.keys() :
-                        if recID in expDict[d]:
+                    if d in self.expDict.keys() :
+                        if recID in self.expDict[d]:
                             daysInputIdx.append(didx)
                     didx+=1
             elif expDate == 'all':
                 didx = 0
                 daysInputIdx = []
                 for d in self.listOfAllExpts[self.mouse]['dates']:
-                    if d in expDict.keys() :
+                    if d in self.expDict.keys() :
                         daysInputIdx.append(didx)
                     didx+=1
             ########################################################
@@ -243,8 +244,8 @@ class extractSaveData:
                 recInputIdx = []
                 for eD in expDateList:
                     dataFolders = self.listOfAllExpts[self.mouse]['dates'][eD]['folders']
-                    if 'recs910' in expDict[eD]:
-                        idx910 = expDict[eD]['recs910']
+                    if 'recs910' in self.expDict[eD]:
+                        idx910 = self.expDict[eD]['recs910']['recordings']
                     else:
                         idx910 = None
                     for fold in dataFolders:
@@ -262,8 +263,8 @@ class extractSaveData:
                 recInputIdx = []
                 for eD in expDateList:
                     dataFolders = self.listOfAllExpts[self.mouse]['dates'][eD]['folders']
-                    if 'recs820' in expDict[eD]:
-                        idx820 = expDict[eD]['recs820']
+                    if 'recs820' in self.expDict[eD]:
+                        idx820 = self.expDict[eD]['recs820']['recordings']
                     else:
                         idx820 = None
                     for fold in dataFolders:
@@ -305,12 +306,12 @@ class extractSaveData:
                 recInputIdx = []
                 for eD in expDateList:
                     dataFolders = self.listOfAllExpts[self.mouse]['dates'][eD]['folders']
-                    if 'recs910' in expDict[eD]:
-                        idx910 = expDict[eD]['recs910']
+                    if 'recs910' in self.expDict[eD]:
+                        idx910 = self.expDict[eD]['recs910']['recordings']
                     else:
                         idx910 = None
-                    if 'recs820' in expDict[eD]:
-                        idx820 = expDict[eD]['recs820']
+                    if 'recs820' in self.expDict[eD]:
+                        idx820 = self.expDict[eD]['recs820']['recordings']
                     else:
                         idx820 = None
                     for fold in dataFolders:
@@ -856,7 +857,7 @@ class extractSaveData:
     ############################################################
     def extractAndSaveCaTimeStamps(self, dataDir, saveDir, tiffPaths):
 
-        (_,timeStampsA) = self.getRawCalciumImagingData(tiffPaths)
+        (_,timeStampsA) = self.getRawCalciumImagingData(tiffPaths, saveDir)
         np.save(saveDir + '/suite2p/plane0/timeStamps.npy', timeStampsA)
 
     ############################################################
