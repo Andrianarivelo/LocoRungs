@@ -1,6 +1,7 @@
 from oauth2client import tools
 tools.argparser.add_argument("-m","--mouse", help="specify name of the mouse", required=False)
 tools.argparser.add_argument("-d","--date", help="specify name of the mouse", required=False)
+tools.argparser.add_argument("-r","--recs", help="specify index of the specify recording on that day", required=False)
 args = tools.argparser.parse_args()
 
 import tools.extractSaveData as extractSaveData
@@ -15,9 +16,9 @@ import h5py
 import scipy.stats as stats
 
 
-mouseD = '190101_f15' # id of the mouse to analyze
-expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='all'     # 'all or 'some'
+mouseD = '210122_f84' # id of the mouse to analyze
+expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordingsD='all910'     # 'all or 'some'
 
 readDataAgain = True
 
@@ -34,6 +35,15 @@ if args.date == None:
         expDate = 'all'
 else:
     expDate = args.date
+
+if args.recs == None:
+    try:
+        recordings = recordingsD
+    except :
+        recordings = 'all'
+else:
+    recordings = args.recs
+
 
 eSD         = extractSaveData.extractSaveData(mouse)
 (foldersRecordings,dataFolder) = eSD.getRecordingsList(expDate=expDate,recordings=recordings)  # get recordings for specific mouse and date

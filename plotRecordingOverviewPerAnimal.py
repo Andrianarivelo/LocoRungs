@@ -12,7 +12,7 @@ import pdb, pickle, os
 ###########################################
 
 #mouseD = '190101_f15' # id of the mouse to analyze
-mouseD = '210120_m85'
+mouseD = '210122_f84'
 expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordingsD ='all910'     # 'all or 'some'
 
