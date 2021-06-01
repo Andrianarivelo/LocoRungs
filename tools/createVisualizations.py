@@ -3687,6 +3687,7 @@ class createVisualizations:
         fname = self.determineFileName(rec, what='paw_trajectory',date=date)
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
+        plt.clf()
         #plt.show()
     ##########################################################################################
     def createOutlierStatFigure(self,foldersRecordings,outlierData,DLCinstance):
