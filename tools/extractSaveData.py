@@ -905,11 +905,13 @@ class extractSaveData:
         tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
 
     ############################################################
-    def readPawTrackingData(self, date, rec):
+    def readPawTrackingData(self, date, rec, DLCinstance):
         rec = rec.replace('/', '-')
-        (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, [date, rec, 'pawTrackingData'])
+        (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, [date, rec, 'pawTrackingData',DLCinstance])
         # pdb.set_trace()
         rawPawPositionsFromDLC = self.f[grpName + '/rawPawPositionsFromDLC'][()]
+        # self.h5pyTools.createOverwriteDS(grpHandle, 'croppingParameters', np.array(cropping))
+        croppingParameters = self.f[grpName + '/croppingParameters'][()]
         pawTrackingOutliers = []
         jointNamesFramesInfo = []
         pawSpeed = []
@@ -918,7 +920,7 @@ class extractSaveData:
         for i in range(4):
             pTTemp = self.f[grpName + '/pawTrackingOutliers%s' % i][()]
             pawTrackingOutliers.append(pTTemp)
-            jNTemp = self.f[grpName + '/pawTrackingOutliers%s' % i].attrs['PawID']
+            jNTemp = 'paw %s' % i #self.f[grpName + '/pawTrackingOutliers%s' % i].attrs['PawID']
             jointNamesFramesInfo.append(jNTemp)
             pStemp = self.f[grpName + '/clearedPawSpeed%s' % i][()]
             pawSpeed.append(pStemp)
@@ -929,7 +931,7 @@ class extractSaveData:
             if i == 0:
                 recStartTime = self.f[grpName + '/clearedPawSpeed%s' % i].attrs['recStartTime']
 
-        return (rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime, rawPawSpeed, cPawPos)
+        return (rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime, rawPawSpeed, cPawPos, croppingParameters)
 
     ############################################################
     # savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],DLCinstance,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
@@ -943,6 +945,7 @@ class extractSaveData:
         rec = rec.replace('/', '-')
         (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, [date, rec, 'pawTrackingData', DLCinstance])
         self.h5pyTools.createOverwriteDS(grpHandle, 'rawPawPositionsFromDLC', pawPositions)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'croppingParameters', np.array(cropping))
         timeArray = np.average(startEndExposureTime,axis=1) # use the 'middle' of the exposure time as time-point of the frame
         for i in range(4):
             pawMask = pawTrackingOutliers[i][3]

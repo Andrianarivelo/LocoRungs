@@ -4196,8 +4196,8 @@ class createVisualizations:
                 #if i == 2:
                 #    print(np.percentile(speedProfile[n][i],95.))
                 axL[n][i+4][0].axvline(x=0,c='0.7')
-                axL[n][i+4][0].hist(speedProfile[n][i],bins=100,normed=True,cumulative=True,histtype='step')
-                (hh,be) = np.histogram(speedProfile[n][i],bins=100,range=[-100,300],normed=True)
+                axL[n][i+4][0].hist(speedProfile[n][i],bins=100,density=True,cumulative=True,histtype='step')
+                (hh,be) = np.histogram(speedProfile[n][i],bins=100,range=[-100,300],density=True)
                 for j in range(len(speedRanges)):
                     mask = (be[:-1]>=speedRanges[j][0]) & (be[1:]<=speedRanges[j][1])
                     histIntegrals[i,j,n] = sum(hh[mask])*(be[1]-be[0])

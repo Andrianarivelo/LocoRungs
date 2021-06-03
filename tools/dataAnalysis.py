@@ -2034,7 +2034,7 @@ def calculateDistanceBtwLineAndPoint(x1,y1,x2,y2,x0,y0):
 # (tracks,pawTracks,stanceSwingsParams)
 def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=False) :
 
-    speedDiffThresh = 5  # cm/s Speed threshold, determine with variance
+    speedDiffThresh = 10  # cm/s Speed threshold, determine with variance
     minimalLengthOfSwing = 3 # number of frames @ 200 Hz
     thStance = 10
     thSwing = 2
@@ -2081,9 +2081,11 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
     for i in range(4):
         rungInd = []
         for n in forFit[i][4]:
+            #pawTracks.append([rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime, pawPos, croppingParameters])
+            # (cropping[0] + int(pawPositions[nFrame, 3 * i + 1] + 0.5), cropping[2] + int(pawPositions[nFrame, 3 * i + 2] + 0.5))
             rungLocs = rungMotion[3][n][3]
-            xPaw = pawTracks[0][n,(i*3+1)]
-            yPaw = pawTracks[0][n,(i*3+2)]
+            xPaw = pawTracks[6][0] + pawTracks[0][n,(i*3+1)]
+            yPaw = pawTracks[6][2] + pawTracks[0][n,(i*3+2)]
             distances = calculateDistanceBtwLineAndPoint(rungLocs[:,0],rungLocs[:,1],rungLocs[:,2],rungLocs[:,3],xPaw,yPaw)
             sortedArguments  = np.argsort(np.abs(distances))
             #closestRungIdx = np.argmin(np.abs(distances))
@@ -2092,12 +2094,14 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
             secondClosestRungNumber = rungMotion[3][n][2][sortedArguments[1]]
             secondClosestDist = distances[sortedArguments[1]]
             rungInd.append([n,closestDist,sortedArguments[0],closestRungNumber,secondClosestDist,sortedArguments[1],secondClosestRungNumber,xPaw,yPaw])
+            #pdb.set_trace()
         rungInd = np.asarray(rungInd)
         pawRungDistances.append([i,rungInd])
 
     ##############################################################################################################
     # determine regions during which the speed is different for more than xLength values #########################
-    stanceDistances = [[10, 40],[10,40],[-4,40],[-4,40]]
+    #stanceDistances = [[10, 40],[10,40],[-4,40],[-4,40]]
+    stanceDistances = [[-10, 20], [-10, 20], [-20, 20], [-20, 20]]
     swingPhases = []
 
     for i in range(4):
@@ -2191,7 +2195,9 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
             speedDuringStep = speedDiff[cleanedSwingIndicies[n][0]:cleanedSwingIndicies[n][1]]
             thresholded = np.abs(speedDuringStep) < 10. # use different, larger threshold
             if sum(thresholded)==0:
+                #pdb.set_trace()
                 indecisiveStep = False
+                closeIndicies = None
             else:
                 startStop = np.diff(np.arange(len(speedDuringStep))[thresholded]) > 2 # use indices taking into account missed frames
                 mmmStart = np.hstack((([True]), startStop))
@@ -2218,8 +2224,8 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
         #swingIndices[:, 0] = swingIndices[:, 0] - 0
         #swingIndices[:, 1] = swingIndices[:, 1] + 0
         if showFigPaw :
-            fig = plt.figure(figsize=(22,7)) 
-            ax = fig.add_subplot(1,2,1)
+            fig = plt.figure(figsize=(27,7))
+            ax = fig.add_subplot(1,3,1)
             ax.axvline(x=stanceDistances[i][0],color='0.6')
             ax.axvline(x=stanceDistances[i][1],color='0.6')
             ax.hist(pawRungDistances[i][1][:, 1],bins=100)
@@ -2227,11 +2233,15 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
             plt.ylabel('occurrence')
             #plt.show()
 
-            ax = fig.add_subplot(1,2,2)
-            ax.fill_between(forFit[i][2],stanceDistances[i][0],stanceDistances[i][1],color='0.8')
-            ax.plot(forFit[i][2], forFit[i][0])
-            ax.plot(forFit[i][2], forFit[i][1] * p1)
+            ax1 = fig.add_subplot(1,3,2)
+            ax2 = fig.add_subplot(1,3,3)
+            ax1.fill_between(forFit[i][2],stanceDistances[i][0],stanceDistances[i][1],color='0.8')
+            ax1.plot(forFit[i][2], forFit[i][0])
+            ax1.plot(forFit[i][2], forFit[i][1] * p1)
 
+            ax2.fill_between(forFit[i][2], stanceDistances[i][0], stanceDistances[i][1], color='0.8')
+            ax2.plot(forFit[i][2], forFit[i][0])
+            ax2.plot(forFit[i][2], forFit[i][1] * p1)
             # ax.plot(forFit[0][5][:,0],forFit[0][5][:,1])#+forFit[0][5][:,1][0])
             # ax.plot(forFit[1][5][:,0],forFit[1][5][:,1])#+forFit[1][5][:,1][0])
             # ax.plot(forFit[2][5][:,0],forFit[2][5][:,1])#+forFit[2][5][:,1][0])
@@ -2249,17 +2259,20 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
             for n in range(len(cleanedSwingIndicies)):
                 startI = int(cleanedSwingIndicies[n][0])
                 endI   = int(cleanedSwingIndicies[n][1]) + 1
-                ax.fill_between(forFit[i][2][range(startI,endI)], 0, 1, color='0.5', alpha=0.5, transform=ax.get_xaxis_transform())
+                ax1.fill_between(forFit[i][2][range(startI,endI)], 0, 1, color='0.5', alpha=0.5, transform=ax.get_xaxis_transform())
+                ax2.fill_between(forFit[i][2][range(startI,endI)], 0, 1, color='0.5', alpha=0.5, transform=ax.get_xaxis_transform())
                 #print(n,startI,endI,endI-startI,len(cleanedSwingIndicies))
                 if stepCharacter[n][3]:
-                    ax.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
+                    ax1.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
+                    ax2.plot(forFit[i][2][range(startI, endI)], forFit[i][1][startI:endI] * p1, c='C2')
                 else:
-                    ax.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
+                    ax1.plot(forFit[i][2][range(startI,endI)],forFit[i][1][startI:endI] * p1,c='C2')
+                    ax2.plot(forFit[i][2][range(startI, endI)], forFit[i][1][startI:endI] * p1, c='C2')
                 #plt.fill_between()
                 #plt.plot(range(startI,endI),forFit[i][1][startI:endI] * p1,c='C2')
-                plt.xlim(15,20)
-                plt.xlabel('time (s)')
-                plt.ylabel('speed (cm)')
+                ax1.set_xlim(15,20)
+                ax1.set_xlabel('time (s)')
+                ax1.set_ylabel('speed (cm)')
 
             #plt.xlim(4610, 4720)
             #plt.savefig('')
