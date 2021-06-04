@@ -877,10 +877,10 @@ class extractSaveData:
             timeStamps = np.load(caAnalysisLocation + '/suite2p/plane0/timeStamps.npy')
             F = np.load(caAnalysisLocation + '/suite2p/plane0/F.npy')
             Fneu = np.load(caAnalysisLocation + '/suite2p/plane0/Fneu.npy')
-            ops = np.load(caAnalysisLocation + '/suite2p/plane0/ops.npy')
+            ops = np.load(caAnalysisLocation + '/suite2p/plane0/ops.npy',allow_pickle=True)
             ops = ops.item()
             iscell = np.load(caAnalysisLocation + '/suite2p/plane0/iscell.npy')
-            stat = np.load(caAnalysisLocation + '/suite2p/plane0/stat.npy')
+            stat = np.load(caAnalysisLocation + '/suite2p/plane0/stat.npy',allow_pickle=True)
 
             # pdb.set_trace()
             nRois = np.arange(len(F))
@@ -949,7 +949,7 @@ class extractSaveData:
         timeArray = np.average(startEndExposureTime,axis=1) # use the 'middle' of the exposure time as time-point of the frame
         for i in range(4):
             pawMask = pawTrackingOutliers[i][3]
-            # pdb.set_trace()
+            #pdb.set_trace()
             rawPawSpeed = np.sqrt((np.diff(pawPositions[:, (i * 3 + 1)])) ** 2 + (np.diff(pawPositions[:, (i * 3 + 2)])) ** 2) / np.diff(timeArray)
             rawSpeedTime = (timeArray[:-1] + timeArray[1:]) / 2.
             clearedPawSpeed = np.sqrt((np.diff(pawPositions[:, (i * 3 + 1)][pawMask])) ** 2 + (np.diff(pawPositions[:, (i * 3 + 2)][pawMask])) ** 2) / np.diff(timeArray[pawMask])
@@ -1005,7 +1005,7 @@ class extractSaveData:
     def saveBehaviorVideo(self, mouse, date, rec, framesRaw, idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo):
         # [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
         midFrameTimes = (startEndExposureTime[:, 0] + startEndExposureTime[:, 1]) / 2.
-        # pdb.set_trace()
+        #pdb.set_trace()
         # img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
         # tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
         # replace possible backslashes from subdirectory structure and

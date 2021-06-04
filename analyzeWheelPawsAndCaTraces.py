@@ -1,20 +1,22 @@
 from oauth2client import tools
 tools.argparser.add_argument("-m","--mouse", help="specify name of the mouse", required=False)
 tools.argparser.add_argument("-d","--date", help="specify name of the mouse", required=False)
+tools.argparser.add_argument("-r","--recs", help="specify index of the specify recording on that day", required=False)
 args = tools.argparser.parse_args()
 
 import tools.extractSaveData as extractSaveData
 import tools.dataAnalysis as dataAnalysis
 import tools.createVisualizations as createVisualizations
+import tools.caImagingSuite2p as caImaging
 import pdb, pickle, os
 import tools.parameters as pas
 
 ###########################################
 
-mouseD = '190101_f15' # id of the mouse to analyze
-#mouseD = '190108_m24'
-expDateD = 'all'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='all'     # 'all or 'some'
+mouseD = '210122_f84' # id of the mouse to analyze
+expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordingsD='all910'     # 'all or 'some'
+DLCinstance = 'DLC_resnet_50_2021-Apr_PawExtraction_210122_f84Apr23shuffle2_200000'
 
 readDataAgain = False
 
@@ -33,19 +35,28 @@ if args.date == None:
 else:
     expDate = args.date
 
+if args.recs == None:
+    try:
+        recordings = recordingsD
+    except :
+        recordings = 'all'
+else:
+    recordings = args.recs
+
 
 eSD = extractSaveData.extractSaveData(mouse)
-(foldersRecordings,dataFolder) = eSD.getRecordingsList(mouse,expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
+(foldersRecordings,dataFolder) = eSD.getRecordingsList(expDate=expDate,recordings=recordings) # get recordings for specific mouse and date
 
 cV = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
 if os.path.isfile(eSD.analysisLocation + '/allSingStanceDataPerSession.p'):
     recordingsM = pickle.load( open( eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'rb' ) )
 
-if os.path.isfile(eSD.analysisLocation + '/allDataPerSession.p') and not readDataAgain:
+if os.path.isfile(eSD.analysisLocation + '/allCorrDataPerSession.p') and not readDataAgain:
     allCorrDataPerSession = pickle.load( open( eSD.analysisLocation + '/allCorrDataPerSession.p', 'rb' ) )
 else:
     allCorrDataPerSession = []
+    caI = caImaging.caImagingSuite2p(eSD.analysisLocation, eSD.figureLocation, eSD.f)
     for f in range(len(foldersRecordings)): # loop over all days
         wheel = []
         paws = []
@@ -60,13 +71,15 @@ else:
             # check for video recording during trial
             (camExistence, camFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], 'CameraGigEBehavior')
             if camExistence :
-                (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime,rawPawSpeed,cPawPos) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r])
+                (rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime,rawPawSpeed,cPawPos,croppingParameters) = eSD.readPawTrackingData(foldersRecordings[f][0], foldersRecordings[f][2][r], DLCinstance)
                 #pdb.set_trace()
                 paws.append([rawPawPositionsFromDLC,pawTrackingOutliers,jointNamesFramesInfo,pawSpeed,recStartTime])
         # check for ca-imaging data during entire session
-        (caImgExistence, tiffList) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][0], 'SICaImaging')
+        (caImgExistence, tiffList, recLocation) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][0], 'SICaImaging')
         if caImgExistence: # (Fluo,nRois,ops,frameNumbers)
-            (Fluo,nRois,ops,timeStamps,stat) =  eSD.getCaImagingRoiData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p/',tiffList)
+            specificTiffLists = caI.decideWhichTiffFilesToUse(recLocation, tiffList, eSD.expDict[foldersRecordings[f][1]], recordings)
+            #pdb.set_trace()
+            (Fluo,nRois,ops,timeStamps,stat) =  eSD.getCaImagingRoiData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[0][1],tiffList)
             caimg.append([Fluo,nRois,ops,timeStamps,stat])
         # combine all recordings from a session only if all three data-sets were recorded
         if (not wheel) and (not paws) and (not caimg):
@@ -75,18 +88,42 @@ else:
             allCorrDataPerSession.append([foldersRecordings[f][0],wheel,paws,caimg])
     pickle.dump(allCorrDataPerSession, open(eSD.analysisLocation + '/allCorrDataPerSession.p', 'wb'))  # eSD.analysisLocation,
 
+#######################################################
+# remove second and third recording since rotary encoder was not working for them
+for n in range(len(allCorrDataPerSession)):
+    print(allCorrDataPerSession[n][0])
 
-#allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRois(mouse,allCorrDataPerSession,eSD.analysisLocation,refDate=3)
+if mouse == '210122_f84':
+    allCorrDataPerSession.pop(1)
+    allCorrDataPerSession.pop(1)
+    recordingsM.pop(1)
+    recordingsM.pop(1)
+
+for n in range(len(allCorrDataPerSession)):
+    print(allCorrDataPerSession[n][0])
 
 #pdb.set_trace()
-# generate overview figure for animal
-#Rvalues = dataAnalysis.doRegressionAnalysis(mouse,allCorrDataPerSession)
-#cV.generateR2ValueFigure(mouse,Rvalues,'R2-Values')
+#######################################################
+# check which ROIs have been recorded across days
+# allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRois(mouse,allCorrDataPerSession,eSD.analysisLocation,refDate=3)
 
-#borders = [10,25]
+#pdb.set_trace()
+
+#######################################################
+# print('Do regression analysis between calcium and paw speed ...')
+# Rvalues = dataAnalysis.doRegressionAnalysis(mouse,allCorrDataPerSession)
+# cV.generateR2ValueFigure(mouse,Rvalues,'R2-Values')
+# print('done')
+
+
+#borders = [10,25] # borders ?
 #Rvalues2 = dataAnalysis.doRegressionAnalysis(mouse,allCorrDataPerSession,borders=borders)
 #cV.generateR2ValueFigure(mouse,Rvalues2,'R2-Values-LocomotionPeriod_%s-%s_only' % (borders[0],borders[1]))
-#pdb.set_trace()
+
+# pdb.set_trace()
+
+#######################################################
+# step triggered averages where steps from all paws are used
 
 # caTriggeredAveragesAllPaws = dataAnalysis.generateStepTriggeredCaTracesAllPaws(mouse,allCorrDataPerSession,recordingsM)
 # pickle.dump(caTriggeredAveragesAllPaws, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAveragesAllPaws.p', 'wb'))
@@ -98,15 +135,20 @@ else:
 # cV.directionOfChangeSpatialOrganization(maxMin,allCorrDataPerSession)
 # pdb.set_trace()
 #cV.generateSwingTriggeredCaTracesFigureAllPaws(caTriggeredAveragesAllPaws,rescal=True)
+
+#######################################################
+print( 'Do step triggered, paw-specific averages of the calcium signal ...')
 #caTriggeredAverages = dataAnalysis.generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,recordingsM)
 #pickle.dump(caTriggeredAverages, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'wb'))  # eSD.analysisLocation,
 caTriggeredAverages = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'rb'))
 cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=False)
 cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=True)
-#pickle.dump(caTriggeredAverages, open('caSwingPhaseTriggeredAverages.p', 'wb'))
+cV.generateSwingTriggeredCa3DProfilesFigure(caTriggeredAverages,rescal=True)
+print('done')
 
 pdb.set_trace()
 
+#######################################################
 pawSwingTimes = dataAnalysis.generateInterstepTimeHistogram(mouse,allCorrDataPerSession,recordingsM)
 cV.generateSwingTimesHistograms(pawSwingTimes)
 

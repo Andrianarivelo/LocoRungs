@@ -21,6 +21,8 @@ from matplotlib import rcParams
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.cm as cm
+import matplotlib
+matplotlib.use('TkAgg')
 
 
 def getSpeed(angles,times,circumsphere,minSpacing):
@@ -582,7 +584,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     if exposureAtEnd:
         idxFramesDuringRecording = idxFramesDuringRecording[:-1]
     #pdb.set_trace()
-    idxMissingFrames = np.delete(np.arange(idxFramesDuringRecording[-1]),idxFramesDuringRecording)
+    idxMissingFrames = np.delete(np.arange(idxFramesDuringRecording[-1]+1),idxFramesDuringRecording)
 
     #idxTestMask = idxFramesDuringRecording < len(illumLEDcontrolBin) # index should not exceed length of array
     #illum = illumLEDcontrolBin[idxFramesDuringRecording[idxTestMask]]
@@ -1030,14 +1032,15 @@ def detectPawTrackingOutlies(pawTraces,pawMetaData):
 #################################################################################
 # convert ca traces in easily usable numpy array
 #################################################################################
-def getCaWheelPawInterpolatedDictsPerDay(nSess,allCorrDataPerSession):
+def getCaWheelPawInterpolatedDictsPerDay(nSess,allCorrDataPerSession,allStepData):
+    showFig = False
     baselineTime = 5.
     # calcium traces ##############################################################
     trialStartUnixTimes = []
 
     fTraces = allCorrDataPerSession[nSess][3][0][0]
-    timeStamps = allCorrDataPerSession[nSess][3][0][3]
-    recordings = np.unique(timeStamps[:, 1])
+    timeStamps = allCorrDataPerSession[nSess][3][0][3] # the array containing the time-stamp array
+    recordings = np.unique(timeStamps[:, 1]) # determine how many recordings where performed
     caTracesDict = {}
     for n in range(len(recordings)):
         mask = (timeStamps[:, 1] == recordings[n])
@@ -1048,7 +1051,9 @@ def getCaWheelPawInterpolatedDictsPerDay(nSess,allCorrDataPerSession):
                 print('problem in trial order')
                 sys.exit(1)
         # for i in range(len(fTraces)):
-        caTracesTime = (timeStamps[:, 4][mask] - triggerStart)
+        # triggerstart - time of the acq start trigger for the current acquisition
+        # timeStamps[:, 4][mask] - time of the first pixel in the frame passed since acqModeEpoch
+        caTracesTime = (timeStamps[:, 4][mask] - triggerStart) # triggerStart is negative
         #pdb.set_trace()
         caTracesFluo = fTraces[:, mask]
         # pdb.set_trace()
@@ -1157,7 +1162,26 @@ def getCaWheelPawInterpolatedDictsPerDay(nSess,allCorrDataPerSession):
             newPawSpeedAtCaTimes = interpPaw(caTracesDict[nrec][0][interpMask])
             pawTracksDictInterp[nrec][i] = np.row_stack((caTracesDict[nrec][0][interpMask], newPawSpeedAtCaTimes))
             #pawAll[i].extend(newPawSpeedAtCaTimes)
+        if showFig:
+            cc = ['C0','C1']
+            fig, ax = plt.subplots(figsize=(10, 6))
+            for i in range(2):
+                ax.plot(pawTracksDictInterp[nrec][i][0],pawTracksDictInterp[nrec][i][1]/np.max(pawTracksDictInterp[nrec][i][1]),c=cc[i])
 
+                idxSwings = allStepData[nSess][4][nrec][3][i][1]
+                # print('Wow nSess',nDay,allStepData[nDay-1][0])
+                recTimes = allStepData[nSess][4][nrec][4][i][2]
+                # pdb.set_trace()
+                idxSwings = np.asarray(idxSwings)
+                for k in range(len(idxSwings)):  # loop over all swings
+                    startSwingTime = recTimes[idxSwings[k, 0]]
+                    endSwingTime = recTimes[idxSwings[k, 1]]
+                    ax.fill_between((startSwingTime,endSwingTime), 0, 1, color='0.6', alpha=0.5, transform=ax.get_xaxis_transform())
+                    ax.fill_between((startSwingTime,endSwingTime), 0, 1, color='0.4', alpha=0.5, transform=ax.get_xaxis_transform())
+
+            #ax.plot(caTracesDictInterp[nrec][0],caTracesDictInterp[nrec][1]/np.max(caTracesDictInterp[nrec][1]),c='black')
+            plt.show()
+            pdb.set_trace()
 
     return (wheelSpeedDictInterp,pawTracksDictInterp,caTracesDictInterp,wheelSpeedDict,pawTracksDict,caTracesDict)
 
@@ -1281,37 +1305,38 @@ def doRegressionAnalysis(mouse,allCorrDataPerSession,borders=None):
 # calculate correlations between ca-imaging, wheel speed and paw speed
 #################################################################################
 def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
+    matplotlib.use('TkAgg')
     # check for sanity
     if len(allCorrDataPerSession) != len(allStepData):
         print('both dictionaries are not of the same length')
         print('CaWheelPawDict:',len(allCorrDataPerSession),' StepStanceDict:,',len(allStepData))
 
-    timeAxis = np.linspace(-0.4,0.6,(0.6+0.4)/0.02+1)
-    timeAxisRescaled = np.linspace(-1.,2.,(2+1)/0.02+1)
+    timeAxis = np.linspace(-0.4,0.6,int((0.4+0.6)/0.02)+1)
+    timeAxisRescaled = np.linspace(-1.,2.,int((1.+2.)/0.02)+1)
     preStanceMask = timeAxis<-0.1
     preStanceRescaledMask = timeAxisRescaled<-0.2
     K = len(timeAxis)
     KRescaled = len(timeAxisRescaled)
     caTraces = []
-    for nDay in range(1,len(allCorrDataPerSession)):
-        print(allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay)
-        (wheelSpeedDictInterP, pawTracksDictInterP, caTracesDictInterP,wheelSpeedDict,pawTracksDict,caTracesDict) = getCaWheelPawInterpolatedDictsPerDay(nDay, allCorrDataPerSession)
-        if len(allStepData[nDay-1][4])==6:
-            print('more recordings :',len(allStepData[nDay-1][4]))
-            addIdx = 1
-        else:
-            addIdx = 0
+    for nDay in range(len(allCorrDataPerSession)):
+        print(allCorrDataPerSession[nDay][0],allStepData[nDay][0],nDay)
+        #print(allCorrDataPerSession[nDay][0],nDay)
+        (wheelSpeedDictInterP, pawTracksDictInterP, caTracesDictInterP,wheelSpeedDict,pawTracksDict,caTracesDict) = getCaWheelPawInterpolatedDictsPerDay(nDay, allCorrDataPerSession,allStepData)
+        #if len(allStepData[nDay-1][4])==6:
+        #    print('more recordings :',len(allStepData[nDay][4]))
+        #    addIdx = 1
+        #else:
+        #    addIdx = 0
         #pdb.set_trace()
         N = len(caTracesDict[0][1:])
         caSnippets = [[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)]] #np.zeros((4,N,K))
-        caSnippetsRescaled = [[[] for i in range(N)], [[] for i in range(N)], [[] for i in range(N)], [[] for i in range(N)]]
-        caSnippetsArray = np.zeros((4,N,2,K))
-        caSnippetsRescaledArray = np.zeros((4, N, 2, KRescaled))
+        caSnippetsRescaled = [[[] for i in range(N)], [[] for i in range(N)], [[] for i in range(N)],[[] for i in range(N)]]
+
         for nrec in range(5): # loop over the five recordings of a day
             for i in range(4): # loop over the four paws
-                idxSwings = allStepData[nDay-1][4][nrec+addIdx][3][i][1]
+                idxSwings = allStepData[nDay][4][nrec][3][i][1]
                 #print('Wow nSess',nDay,allStepData[nDay-1][0])
-                recTimes = allStepData[nDay-1][4][nrec+addIdx][4][i][2]
+                recTimes = allStepData[nDay][4][nrec][4][i][2]
                 #pdb.set_trace()
                 idxSwings = np.asarray(idxSwings)
                 for k in range(len(idxSwings)): # loop over all swings
@@ -1339,23 +1364,26 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
                             #caSnippets[i,l,:] += newCaTraceAtSwing
                             caSnippetsRescaled[i][l].append(newCaTraceAtSwingRescaled)
         #pdb.set_trace()
-        for i in range(4):
-            for l in range(N):
+        caSnippetsArray = np.zeros((4, N, 2, K))
+        caSnippetsRescaledArray = np.zeros((4, N, 2, KRescaled))
+        for i in range(4): # loop over four paws
+            for l in range(N): # loop over all ROIs
                 caTempArray = np.asarray(caSnippets[i][l])
-                caSnippetsZscores = (caTempArray - np.mean(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]) #/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
+                #pdb.set_trace()
+                caSnippetsZscores = (caTempArray - np.mean(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis])/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
                 caTemp = np.mean(caSnippetsZscores,axis=0)
                 caTempSTD = np.std(caSnippetsZscores,axis=0)
                 caSnippetsArray[i,l,0,:] = caTemp
                 caSnippetsArray[i,l,1,:] = caTempSTD
-                #
+                #pdb.set_trace()
                 caTempRescaledArray = np.asarray(caSnippetsRescaled[i][l])
                 #pdb.set_trace()
-                caSnippetsRescaledZscores = (caTempRescaledArray - np.mean(caTempRescaledArray[:,preStanceRescaledMask],axis=1)[:,np.newaxis]) #/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
+                caSnippetsRescaledZscores = (caTempRescaledArray - np.mean(caTempRescaledArray[:,preStanceRescaledMask],axis=1)[:,np.newaxis])/np.std(caTempRescaledArray[:,preStanceRescaledMask],axis=1)[:,np.newaxis]
                 caTempRe = np.mean(caSnippetsRescaledZscores,axis=0)
                 caTempReSTD = np.std(caSnippetsRescaledZscores,axis=0)
                 caSnippetsRescaledArray[i,l,0,:] = caTempRe
                 caSnippetsRescaledArray[i,l,1,:] = caTempReSTD
-        caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay-1][0],nDay,caSnippetsArray,caSnippetsRescaledArray])
+        caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay][0],nDay,timeAxis,caSnippetsArray,timeAxisRescaled,caSnippetsRescaledArray])
 
     return caTraces
 
@@ -1824,7 +1852,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
     #pickle.dump(intersectionROIs, open( dataOutDir + 'ROIintersections_%s.p' % aS.animalID, 'wb' ) )
 
 #################################################################################
-# calculate correlations between ca-imaging, wheel speed and paw speed
+# find ROI recorded on ref day and on any other given day
 #################################################################################
 def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
     # check for sanity
@@ -1863,6 +1891,68 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
             warp_matrix = alignTwoImages(refImg,refImgCutLengths,img,cutLengths,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],movementValuesPreset[nDay],figShow=True,)
         opsAlign  = allCorrDataPerSession[nDay][3][0][2]
         statAlign = allCorrDataPerSession[nDay][3][0][4]
+        (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],showFig=True)
+        print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statRef), len(statAlign), len(cleanedIntersectionROIs))
+        allData.append([allCorrDataPerSession[nDay][0],nDay,cutLengths,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
+
+    intersectingCellsInRefRecording = np.arange(len(statRef))
+    for nDay in recDaysList:
+        intersectingCellsInRefRecording = np.intersect1d(intersectingCellsInRefRecording,allData[nDay][5][:,0])
+        print(nDay,allCorrDataPerSession[nDay][0],intersectingCellsInRefRecording)
+
+    pdb.set_trace()
+
+    return 0
+
+#################################################################################
+# find ROIs recorded across successive recording days
+#################################################################################
+def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
+    # check for sanity
+    nDays = len(allCorrDataPerSession)
+
+    refDay = allCorrDataPerSession[refDate][0]
+    print('fluo images will be aligned to recordings of :', refDay)
+    refDayCaData = allCorrDataPerSession[refDate][3][0]
+    refImg = refDayCaData[2]['meanImgE']
+    refImgCutLengths = removeEmptyColumnAndRows(refImg)
+    opsRef = refDayCaData[2]
+    statRef = refDayCaData[4]
+
+    # create list of recoridng day indicies
+    recDaysList = [i for i in range(nDays)]
+    movementValuesPreset = np.zeros((len(recDaysList), 2))
+    # movementValuesPreset[0] = np.array([-20,-47])
+    movementValuesPreset[1] = np.array([143, 153])
+    # movementValuesPreset[3] = np.array([-1,15])
+
+    # remove day used for referencing
+    recDaysList.remove(refDate)
+    if os.path.exists(analysisLocation+'/alignmentData.p'):
+        allDataRead = pickle.load(open(analysisLocation+'/alignmentData.p'))
+    else:
+        allDataRead = None
+    allData = []
+    for nPair in range(len(allCorrDataPerSession)-1):
+        nDayA = nPair
+        nDayB = nPair + 1
+        print(nPair, allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0])
+
+        imgA = allCorrDataPerSession[nDayA][3][0][2]['meanImgE']
+        cutLengthsA = removeEmptyColumnAndRows(imgA)
+        opsRefA = allCorrDataPerSession[nDayA][3][0][2]
+        statRefA = allCorrDataPerSession[nDayA][3][0][2]
+
+        imgB = allCorrDataPerSession[nDayB][3][0][2]['meanImgE']
+        cutLengthsB = removeEmptyColumnAndRows(imgB)
+        opsB = allCorrDataPerSession[nDayB][3][0][2]
+        statB = allCorrDataPerSession[nDayB][3][0][4]
+
+        if allDataRead is not None:
+            warp_matrix = allDataRead[nPair][3]
+        else:
+            warp_matrix = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=True,)
+
         (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],showFig=True)
         print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statRef), len(statAlign), len(cleanedIntersectionROIs))
         allData.append([allCorrDataPerSession[nDay][0],nDay,cutLengths,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
