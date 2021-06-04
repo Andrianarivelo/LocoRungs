@@ -59,9 +59,10 @@ else:
         # loop over all recordings in that folder
         for r in range(len(foldersRecordings[f][2])): # for r in recordings[f][1]:
             (existenceFrames,FramesFileHandle) = eSD.checkIfDeviceWasRecorded(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r],'CameraGigEBehavior')
-            (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r],DLCinstance)
+            (existencePawPos,PawFileHandle) = eSD.checkIfPawPositionWasExtracted(foldersRecordings[f][0], foldersRecordings[f][1], foldersRecordings[f][2][r], DLCinstance)
             if existenceFrames and existencePawPos:
                 (pawPositions,pawMetaData) = eSD.readRawData(foldersRecordings[f][0],foldersRecordings[f][1],foldersRecordings[f][2][r],'pawTraces',PawFileHandle)
+                #pdb.set_trace()
                 pawTrackingOutliers = dataAnalysis.detectPawTrackingOutlies(pawPositions,pawMetaData)
                 #DLCinstance = pawMetaData['data']['DLC-model-config file']['snapshot_prefix']
                 outlierData.append([foldersRecordings[f][0],foldersRecordings[f][2][r],pawTrackingOutliers,DLCinstance])

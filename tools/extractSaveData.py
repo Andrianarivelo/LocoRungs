@@ -877,10 +877,10 @@ class extractSaveData:
             timeStamps = np.load(caAnalysisLocation + '/suite2p/plane0/timeStamps.npy')
             F = np.load(caAnalysisLocation + '/suite2p/plane0/F.npy')
             Fneu = np.load(caAnalysisLocation + '/suite2p/plane0/Fneu.npy')
-            ops = np.load(caAnalysisLocation + '/suite2p/plane0/ops.npy')
+            ops = np.load(caAnalysisLocation + '/suite2p/plane0/ops.npy',allow_pickle=True)
             ops = ops.item()
             iscell = np.load(caAnalysisLocation + '/suite2p/plane0/iscell.npy')
-            stat = np.load(caAnalysisLocation + '/suite2p/plane0/stat.npy')
+            stat = np.load(caAnalysisLocation + '/suite2p/plane0/stat.npy',allow_pickle=True)
 
             # pdb.set_trace()
             nRois = np.arange(len(F))
@@ -905,11 +905,13 @@ class extractSaveData:
         tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
 
     ############################################################
-    def readPawTrackingData(self, date, rec):
+    def readPawTrackingData(self, date, rec, DLCinstance):
         rec = rec.replace('/', '-')
-        (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, [date, rec, 'pawTrackingData'])
+        (grpName, grpHandle) = self.h5pyTools.getH5GroupName(self.f, [date, rec, 'pawTrackingData',DLCinstance])
         # pdb.set_trace()
         rawPawPositionsFromDLC = self.f[grpName + '/rawPawPositionsFromDLC'][()]
+        # self.h5pyTools.createOverwriteDS(grpHandle, 'croppingParameters', np.array(cropping))
+        croppingParameters = self.f[grpName + '/croppingParameters'][()]
         pawTrackingOutliers = []
         jointNamesFramesInfo = []
         pawSpeed = []
@@ -918,7 +920,7 @@ class extractSaveData:
         for i in range(4):
             pTTemp = self.f[grpName + '/pawTrackingOutliers%s' % i][()]
             pawTrackingOutliers.append(pTTemp)
-            jNTemp = self.f[grpName + '/pawTrackingOutliers%s' % i].attrs['PawID']
+            jNTemp = 'paw %s' % i #self.f[grpName + '/pawTrackingOutliers%s' % i].attrs['PawID']
             jointNamesFramesInfo.append(jNTemp)
             pStemp = self.f[grpName + '/clearedPawSpeed%s' % i][()]
             pawSpeed.append(pStemp)
@@ -929,7 +931,7 @@ class extractSaveData:
             if i == 0:
                 recStartTime = self.f[grpName + '/clearedPawSpeed%s' % i].attrs['recStartTime']
 
-        return (rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime, rawPawSpeed, cPawPos)
+        return (rawPawPositionsFromDLC, pawTrackingOutliers, jointNamesFramesInfo, pawSpeed, recStartTime, rawPawSpeed, cPawPos, croppingParameters)
 
     ############################################################
     # savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],DLCinstance,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
@@ -943,10 +945,11 @@ class extractSaveData:
         rec = rec.replace('/', '-')
         (test, grpHandle) = self.h5pyTools.getH5GroupName(self.f, [date, rec, 'pawTrackingData', DLCinstance])
         self.h5pyTools.createOverwriteDS(grpHandle, 'rawPawPositionsFromDLC', pawPositions)
+        self.h5pyTools.createOverwriteDS(grpHandle, 'croppingParameters', np.array(cropping))
         timeArray = np.average(startEndExposureTime,axis=1) # use the 'middle' of the exposure time as time-point of the frame
         for i in range(4):
             pawMask = pawTrackingOutliers[i][3]
-            # pdb.set_trace()
+            #pdb.set_trace()
             rawPawSpeed = np.sqrt((np.diff(pawPositions[:, (i * 3 + 1)])) ** 2 + (np.diff(pawPositions[:, (i * 3 + 2)])) ** 2) / np.diff(timeArray)
             rawSpeedTime = (timeArray[:-1] + timeArray[1:]) / 2.
             clearedPawSpeed = np.sqrt((np.diff(pawPositions[:, (i * 3 + 1)][pawMask])) ** 2 + (np.diff(pawPositions[:, (i * 3 + 2)][pawMask])) ** 2) / np.diff(timeArray[pawMask])
@@ -1002,7 +1005,7 @@ class extractSaveData:
     def saveBehaviorVideo(self, mouse, date, rec, framesRaw, idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo):
         # [foldersRecordings[f][0],foldersRecordings[f][2][r],'walking_activity']
         midFrameTimes = (startEndExposureTime[:, 0] + startEndExposureTime[:, 1]) / 2.
-        # pdb.set_trace()
+        #pdb.set_trace()
         # img_stack_uint8 = np.array(frames[:, :, :, 0], dtype=np.uint8)
         # tiff.imsave(self.analysisLocation + '%s_%s_%s_ImageStack.tif' % (mouse, date, rec), img_stack_uint8)
         # replace possible backslashes from subdirectory structure and

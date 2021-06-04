@@ -10,9 +10,9 @@ import os
 import pdb
 import sys
 
-mouseD = '201220_m59' # id of the mouse to analyze
-expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='all910'     # 'all or 'some'
+mouseD = '210122_f84' # id of the mouse to analyze
+expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='some'     # 'all or 'some'
 
 onAllData = False
 
@@ -57,16 +57,8 @@ for f in range(len(foldersRecordings)):
         if not onAllData:
             for i in range(len(specificTiffLists)): # loop over the the lists of tiff files to analyze
                 print('analysis on :',specificTiffLists[i])
-                #inputList = []
-                #inputList.append(recLocation)
-                #inputList.append(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1])
-                #saveLocation = eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1]
-                #inputList.extend(specificTiffLists[i][0])
-                #pdb.set_trace()
-                #os.system(eSD.suite2pPath+' tools/runSuite2p.py %s %s ' % (recLocation,saveLocation) + ' '.join(specificTiffLists[i][0]) )
-                caI.runSuite2pPipeline(eSD.suite2pPath,recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
                 #
-                #caI.runSuite2pPipeline()
+                caI.runSuite2pPipeline(eSD.suite2pPath,recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
                 #
                 eSD.extractAndSaveCaTimeStamps(recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
                 #

@@ -4196,8 +4196,8 @@ class createVisualizations:
                 #if i == 2:
                 #    print(np.percentile(speedProfile[n][i],95.))
                 axL[n][i+4][0].axvline(x=0,c='0.7')
-                axL[n][i+4][0].hist(speedProfile[n][i],bins=100,normed=True,cumulative=True,histtype='step')
-                (hh,be) = np.histogram(speedProfile[n][i],bins=100,range=[-100,300],normed=True)
+                axL[n][i+4][0].hist(speedProfile[n][i],bins=100,density=True,cumulative=True,histtype='step')
+                (hh,be) = np.histogram(speedProfile[n][i],bins=100,range=[-100,300],density=True)
                 for j in range(len(speedRanges)):
                     mask = (be[:-1]>=speedRanges[j][0]) & (be[1:]<=speedRanges[j][1])
                     histIntegrals[i,j,n] = sum(hh[mask])*(be[1]-be[0])
@@ -4456,17 +4456,17 @@ class createVisualizations:
     def generateSwingTriggeredCaTracesFigure(self,caTriggeredAverages,rescal=True):
 
         rescaled = rescal
+        #caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay][0],nDay,timeAxis,caSnippetsArray,timeAxisRescaled,caSnippetsRescaledArray])
         #caTriggeredAverages = pickle.load(open('caSwingPhaseTriggeredAverages.p', 'rb'))
         if rescaled:
-            timeAxis = np.linspace(-1., 2., (2 + 1) / 0.02 + 1)
-            idxCa = 4
+            idxCa = 5
         else:
-            timeAxis = np.linspace(-0.4, 0.6, (0.6 + 0.4) / 0.02 + 1)
             idxCa = 3
 
         for nDays in range(len(caTriggeredAverages)):
             print(caTriggeredAverages[nDays][0])
-            caTraces = caTriggeredAverages[nDays][idxCa]
+            timeAxis = caTriggeredAverages[nDays][idxCa]
+            caTraces = caTriggeredAverages[nDays][idxCa+1]
             dims = np.shape(caTraces)
             nSquared = np.sqrt(dims[1])
 
@@ -4518,17 +4518,17 @@ class createVisualizations:
                     ax.axvline(x=1, ls='-', c='0.8')
                 ax.axhline(y=0, ls='--', c='0.8')
                 for i in range(4):
-                    # ax.fill_between(timeAxis, caTraces[i][n][0]-caTraces[i][n][1],caTraces[i][n][0]+caTraces[i][n][1],color=col[i],alpha=0.5)
+                    #ax.fill_between(timeAxis, caTraces[i][n][0]-caTraces[i][n][1],caTraces[i][n][0]+caTraces[i][n][1],color=col[i],alpha=0.5)
                     ax.plot(timeAxis, caTraces[i][n][0], lw=2)
                 # ax.set_ylim(-1.2,3)
                 if rescaled:
                     majorLocator_x = plt.MultipleLocator(0.5)
                 else:
                     majorLocator_x = plt.MultipleLocator(0.2)
-                if n==0:
-                    ax.set_ylim(-2,3)
-                else:
-                    ax.set_ylim(-1,1.5)
+                #if n==0:
+                #    ax.set_ylim(-2,3)
+                #else:
+                ax.set_ylim(-1.5,2.5)
                 ax.xaxis.set_major_locator(majorLocator_x)
 
                 self.layoutOfPanel(ax)  # axL[n].append(ax)
