@@ -13,8 +13,8 @@ import sys
 mouseD = '210122_f84'
 #mouseD = '201017_m99' #'200801_m58' # id of the mouse to analyze
 #mouseD = '190108_m24'
-expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='some'     # 'all or 'some'
+expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='all910'     # 'all or 'some'
 
 # further analaysis parameter
 assumePerfectRecording = True  # that means a recording without any flash-back - or double frames
