@@ -4542,6 +4542,102 @@ class createVisualizations:
             plt.savefig(fname + '.pdf')
 
     ##################################################################################################################
+    def generateSwingTriggeredCa3DProfilesFigure(self,caTriggeredAverages,rescal=True):
+
+        rescaled = rescal
+        #caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay][0],nDay,timeAxis,caSnippetsArray,timeAxisRescaled,caSnippetsRescaledArray])
+        #caTriggeredAverages = pickle.load(open('caSwingPhaseTriggeredAverages.p', 'rb'))
+        if rescaled:
+            idxCa = 5
+        else:
+            idxCa = 3
+
+        NDays = len(caTriggeredAverages)
+
+        #for nDays in range(len(caTriggeredAverages)):
+            # print(caTriggeredAverages[nDays][0])
+            # timeAxis = caTriggeredAverages[nDays][idxCa]
+            # caTraces = caTriggeredAverages[nDays][idxCa+1]
+            # dims = np.shape(caTraces)
+            # nSquared = np.sqrt(dims[1])
+            #
+            # nSquaredN = int(nSquared + 1)
+
+        # figure #################################
+        fig_width = 25  # width in inches
+        fig_height = 25  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(4, NDays,  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[10,4]
+                               )
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.2, hspace=0.2)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.05, right=0.96, top=0.95, bottom=0.05)
+
+        # sub-panel enumerations
+        plt.figtext(0.06, 0.96, '%s, %s recordings' % (self.mouse,NDays), clip_on=False, color='black', size=14)
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+        # create panels #######################################################
+        # gssub0 = gridspec.GridSpecFromSubplotSpec(nDays, 8, subplot_spec=gs[0], hspace=0.2)
+        axL = []
+        col = ['C1', 'C2', 'C3', 'C4']
+        for nDay in range(NDays):
+            #if n == dims[1]:
+            #    break
+            print(caTriggeredAverages[nDay][0])
+            timeAxis = caTriggeredAverages[nDay][idxCa]
+            caTraces = caTriggeredAverages[nDay][idxCa + 1]
+            dims = np.shape(caTraces)
+            for i in range(4):
+                ax = plt.subplot(gs[4*nDay+i])
+                ax.imshow(caTraces[i],origin='upper',extend=(timeAxis[0],timeAxis[-1],dims[0],0),interpolatoin=None)
+                ax.axvline(x=0, ls='--', c='0.8')
+                if rescaled:
+                    ax.axvline(x=1, ls='-', c='0.8')
+                #ax.fill_between(timeAxis, caTraces[i][n][0]-caTraces[i][n][1],caTraces[i][n][0]+caTraces[i][n][1],color=col[i],alpha=0.5)
+                #ax.plot(timeAxis, caTraces[i][n][0], lw=2)
+                # ax.set_ylim(-1.2,3)
+                if rescaled:
+                    majorLocator_x = plt.MultipleLocator(0.5)
+                else:
+                    majorLocator_x = plt.MultipleLocator(0.2)
+                ax.xaxis.set_major_locator(majorLocator_x)
+                #if n==0:
+                #    ax.set_ylim(-2,3)
+                #else:
+                #ax.set_ylim(-1.5,2.5)
+                self.layoutOfPanel(ax)  # axL[n].append(ax)
+        if rescaled:
+            fname = self.determineFileName(self.mouse, what='caTriggeredAverages3D_rescaled_%s' % caTriggeredAverages[nDays][0])
+            #plt.savefig('caTriggeredAverages_rescaled_%s.pdf' % caTriggeredAverages[nDays][0])
+        else:
+            fname = self.determineFileName(self.mouse, what='caTriggeredAverages3D_%s' % caTriggeredAverages[nDays][0])
+            #plt.savefig('caTriggeredAverages_%s.pdf' % caTriggeredAverages[nDays][0])  # define vertical and horizontal spacing between panels  # plt.show()
+        # plt.savefig(fname + '.png')
+        plt.savefig(fname + '.pdf')
+
+
+    ##################################################################################################################
     def findLocalMaxMinCloseToZero(self,timee,values):
         from scipy.signal import argrelextrema
         argMax = argrelextrema(values,np.greater)
