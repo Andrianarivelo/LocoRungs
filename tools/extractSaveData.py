@@ -493,7 +493,7 @@ class extractSaveData:
             imageMetaInfo = self.readMetaInformation(recLocation)
             return (frames, frameTimes, imageMetaInfo)
         elif device == 'CameraGigEBehavior':
-            print('reading raw GigE data ...', end=" ")
+            print('reading raw GigE data ...')
             if readRawData:
                 frames = fData['data'][()]
             else:
