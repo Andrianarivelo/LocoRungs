@@ -4610,7 +4610,7 @@ class createVisualizations:
             dims = np.shape(caTraces)
             for i in range(4):
                 ax = plt.subplot(gs[4*nDay+i])
-                ax.imshow(caTraces[i],origin='upper',extend=(timeAxis[0],timeAxis[-1],dims[0],0),interpolatoin=None)
+                cax = ax.imshow(caTraces[i],origin='upper',extend=(timeAxis[0],timeAxis[-1],dims[0],0),interpolatoin=None,vmin=-1.5, vmax=2.5)
                 ax.axvline(x=0, ls='--', c='0.8')
                 if rescaled:
                     ax.axvline(x=1, ls='-', c='0.8')
@@ -4627,6 +4627,7 @@ class createVisualizations:
                 #else:
                 #ax.set_ylim(-1.5,2.5)
                 self.layoutOfPanel(ax)  # axL[n].append(ax)
+            plt.colorbar(cax=cax)
         if rescaled:
             fname = self.determineFileName(self.mouse, what='caTriggeredAverages3D_rescaled_%s' % caTriggeredAverages[nDays][0])
             #plt.savefig('caTriggeredAverages_rescaled_%s.pdf' % caTriggeredAverages[nDays][0])

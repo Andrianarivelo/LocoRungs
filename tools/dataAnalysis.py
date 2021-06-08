@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.cm as cm
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('WXAgg')
 
 
 def getSpeed(angles,times,circumsphere,minSpacing):
