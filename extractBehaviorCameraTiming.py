@@ -18,7 +18,7 @@ recordings='some'     # 'all or 'some'
 
 # further analaysis parameter
 assumePerfectRecording = False  # that means a recording without any flash-back - or double frames
-startRecording = 1  # each session/day per animal is composed of 5 recordings, this index allows chose with which recording to start, default is 0
+startRecording = None # each session/day per animal is composed of 5 recordings, this index allows chose with which recording to start, default is 0
 endRecording = None # in case only specify recording will be analyzed, otherwise set to None
 DetermineAgainLEDcoordinates = True # whether or not to determine LED coordinates even though they exist already for current or previous recording
 DetermineAgainErronousFrames = True # whether or not to determine errnonous frames even though the are already exist for current recording
