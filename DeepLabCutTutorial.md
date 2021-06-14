@@ -119,7 +119,7 @@ there is used; otherwise it is overwritten. Default: None.
    
 1. **Video Analysis:** The trained network can be used to analyze new videos. The user needs to first choose a checkpoint 
    with the best evaluation results for analyzing the videos. <br>
-   `: deeplabcut.analyze_videos(config_path, videos ,save_as_csv=True)` <br>
+   `: deeplabcut.analyze_videos(config_path, shuffle=1, videos ,save_as_csv=True)` <br>
    The analyzed videos do not have to be the one extracted and you can use any other video with the trained network. 
    Ubuntu accepts only files under 144 characters long, the pickle file generated from the videos might be a problem so 
    be sure the videos don’t have a too long name (remove useless parts of the names but not the dates). 
