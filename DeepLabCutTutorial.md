@@ -18,41 +18,41 @@ However, the features and tutorials may differ greatly from the installed versio
    On your machine, open the terminal and connect to the computing unit through SSH with X11 forwarding. 
    This method displays DeepLabCut’s GUI faster and lighter than TeamViewer but changing window size can mess with its disposition. 
    Use -C flag for data compression if using a low bandwidth connection (not necessary at the lab): <br>
-   `$ ssh -X mgraupe@otillo`    
+   `ssh -X mgraupe@otillo`    
 
 1. **Activate Deeplabcut enviornment and move to folder :** Open a terminal and start the DeepLabCut conda 
    environment called **DLC-GPU** : <br>
-   `$ conda activate DLC-GPU` <br>
+   `conda activate DLC-GPU` <br>
    Move to the folder `analysis/DLC2_Projects/` where currently all DeepLabCut projects are stored : <br>
    `cd /home/mgraupe/analysis/DLC2_Projects/` <br>
    This folder contains a file called `dlc_project.py` which contains all typically used function calls. 
    
 1. **Start Python and load DeepLabCut :** Start in **ipython** session and load the requires python libraries : <br>
-   `$ ipython ` <br>
-   `: import deeplabcut` <br>
-   `: import glob` <br>
-   `: import pdb` <br>
+   `ipython ` <br>
+   `import deeplabcut` <br>
+   `import glob` <br>
+   `import pdb` <br>
    
 1. **Assemble videos to be analyzed :** If you analyze different animals, their extracted video files are usually 
    placed in seperate folders on the analysis drive (`/media/paris_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData`) server. 
    Create list of string paths that contains all videos of the animals you want to analyze. DeepLabCut only accepts 
    paths under the format [‘path’]. [Glob](https://docs.python.org/3/library/glob.html) is a convenient tool to get all paths using wildcards. 
    ```
-   videoBase = '/media/paris_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/'
+   videoBase = '/media/HDnyc_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/'
    animals = ['201017_m99']
    videos = []
 
    for n in range(len(animals)):
-       vids = glob.glob(videBase+animals[n]+'/*.avi')
+       vids = glob.glob(videoBase+animals[n]+'/*.avi')
        videos.extend(vids)
    ```
 
 1. **Start the DeepLabCut project :** 
    1. Start a **new** project with : <br>
-    `: config_path = deeplabcut.create_new_project('2021-Jan_PawExtractionTestMG','MichaelG', videos, copy_videos=False)` <br>
+    `config_path = deeplabcut.create_new_project('2021-Jan_PawExtractionTestMG','MichaelG', videos, copy_videos=False)` <br>
       The `config_path` variable contains the absolute path to the configure file  `config.yaml` which is located in the project folder.
    2. Work on an existing project with by creating the variable `config_path` pointing ot the existing config file : <br>
-    `: config_path = /home/mgraupe/analysis/DLC2_projects/[project]/config.yaml`
+    `config_path = /home/mgraupe/analysis/DLC2_projects/[project]/config.yaml`
       
 1. **Configure the Project :** Open the `config.yaml` file in a text editior and edit the project parameters.  
    1. In  particular you must add the list of bodyparts (or poins of interests) that you want to track. We use **Front left**, 
@@ -62,9 +62,10 @@ However, the features and tutorials may differ greatly from the installed versio
    be of the order 100-200 frames (i.e., numframes2pick=20 for 10 videos). Too much is not that more effective
    1.  Also set the cropping parameters per video `[video_file_path] : crop: 21, 795, 175, 525` in the `config.yaml` file. 
        The cropping window can be determined with <br> 
-   `: deeplabcut.extract_frames(config_path, mode='manual', algo='uniform', crop=True)` <br>
+   `deeplabcut.extract_frames(config_path, mode='manual', algo='uniform', crop=True)` <br>
    This command launches the manual frame extraction and allows to draw the cropping window. The routine can then be 
-       aborted but the cropping parameters are still preserved. <br>
+       aborted but the cropping parameters are still preserved, this will change the cropping parameters only for the loaded video. 
+       Those parameters can be set as cropping parameters for remaining videos and as cropping parameters for videos training/analysis after setting cropping=true (cropping=true affect training speed) in the config.yaml file. <br>
        
 
 1. **Extract frames for labelling :** A good training dataset should consist of a sufficient number of frames that capture
@@ -72,12 +73,12 @@ However, the features and tutorials may differ greatly from the installed versio
    lighting and different animals, if those vary substantially (to train an invariant, robust feature detector).
    The function ``extract_frames`` extracts frames from all the videos in the project configuration file in order 
    to create a training dataset.  Launch the frame extraction with : <br>
-   `: deeplabcut.extract_frames(config_path, mode='automatic', algo='kmeans', crop=True)` <br>
+   `deeplabcut.extract_frames(config_path, mode='automatic', algo='kmeans', crop=True, userfeedback=False)` <br>
    The extracted frames can be inspected in the `labeled-data` subfolder which contains a folder for each video.
    
 1. **Label Frames:** The toolbox provides a function label_frames which helps the user to easily label all the 
    extracted frames using an interactive graphical user interface (GUI). Launch with : <br>
-   `: deeplabcut.label_frames(config_path)` <br>
+   `deeplabcut.label_frames(config_path)` <br>
    A window appears, click on Load frames, where you and chose one after another the directories (per vidoe) of the 
    previously extracted frames. Right click to place and left click to move the label positions on the paws. Note
    to keep the same order of labelling for each frame (i.e., FL, FR, HR, HL). Check that the labels are correctly 
@@ -90,26 +91,31 @@ However, the features and tutorials may differ greatly from the installed versio
 1. **Create Training Dataset :** Run this step on the machine where you are going to train the network. If you labelled the project on your computer, move the project folder   to otillo, then run the step below on that platform. This function combines the labeled datasets from all 
    the videos and splits them to create train and test datasets. The training data will be used to train the network, 
    while the test data set will be used for evaluating the network. <br>
-   `:  deeplabcut.create_training_dataset(config_path)` <br>
+   `deeplabcut.create_training_dataset(config_path, num_shuffles=1)` <br>
     At this step, for create_training_dataset you select the network you want to use, and any additional data augmentation 
-    (beyond the defaults). You can set net_type and augmenter_type when you call the function.
+    (beyond the defaults). You can set net_type and augmenter_type when you call the function. Specify an integer value in the num_shuffles parameters to keep track of DLC performance.
     In the `pose_config.yaml` (in the `dlc-models/.../train` subdirectory), you can modify some parameters :
     save_iters saves every n iteration the network state. If the training is stopped between 2 saved iterations, the last one 
       is saved (or none if before the first saved one). Bigger number means less space occupied but less snapshots.
     You can change the cropping variables if needed.
    
 1. **Train the Network :** The function ‘train_network’ helps the user in training the network. It is used as follows: <br>
-   `: deeplabcut.train_network(config_path)` <br>
-   Check the GPU usage by running `$ nvidia-smi` in another terminal, the vram should be almost full (10 GB out of 11). 
-   Otherwise the CPU is used, the training will be much slower. After some time, the 1000th iterations should be displayed. 
-   If it’s not the case, the training is stuck so cancel it and run it again. The training can be stopped anytime, 
-   just make sure that it’s stopped after a snapshot. In any case, the training runs until the 1’300’000th iteration 
-   (in case of training overnight) and saves a snapshot.
+   `deeplabcut.train_network(config_path,shuffle=1,max_snapshots_to_keep=5, displayiters=1000,saveiters=10000,maxiters=400000)` <br>
+   ● shuffle=Integer value specifying the shuffle index for the model to be trained. The default is set to 1. 
+   
+   ● displayiters. This sets how often the network iterations are displayed in the terminal. This variable is set in pose_config.yaml (called display_iters). However, you can overwrite it by
+passing a variable. If None, the value from pose_config.yaml is used; otherwise, it is overwritten..
+   
+   ● saveiters. This sets how many iterations to save; every 50,000 is the default. This variable is set in pose_config.yaml (called save_iters). However, you can overwrite it by passing a
+variable. If None, the value from the pose_config.yaml file is used; otherwise, it is overwritten.
+   
+   ● maxiters. This variable sets how many iterations to train for. This variable is set in pose_config.yaml. However, you can overwrite it by passing a variable. If None, the value from
+there is used; otherwise it is overwritten. Default: None.
    
 1. **Evaluate the Network:** It is important to evaluate the performance of the trained network. 
    This performance is measured by computing the mean average Euclidean error (MAE; which is proportional to the 
    average root mean square error) between the manual labels and the ones predicted by DeepLabCut. Evaluation is run with :<br>
-   `: deeplabcut.evaluate_network(config_path,Shuffles=[1], plotting=True)`
+   `deeplabcut.evaluate_network(config_path,Shuffles=[1], plotting=True)`
    
 1. **Video Analysis:** The trained network can be used to analyze new videos. The user needs to first choose a checkpoint 
    with the best evaluation results for analyzing the videos. <br>
@@ -121,21 +127,21 @@ However, the features and tutorials may differ greatly from the installed versio
    so you have to delete them for new video analysis. You can change the iteration number in config.yaml for a previous 
    one if the results are getting worse (in case of overtraining).
    Create labelled videos (for figures, presentations or checking for instance) with : <br>
-   `: deeplabcut.create_labeled_video(config_path, videos, save_frames = False)`
+   `deeplabcut.create_labeled_video(config_path, videos, save_frames = False)`
 
 1. **Refine Network:** A single training is usually not enough to have satisfying results. 
    Refining the dataset if a crucial part and can be done with : <br>
-   `: deeplabcut.extract_outlier_frames(config_path, videos)` <br>
+   `deeplabcut.extract_outlier_frames(config_path, videos)` <br>
    The number of frames extracted is based on the `numframes2pick` variable, so you might want to adjust it. 
    The frames extracted are based on the jump of a label between 2 frames but other methods exist. <br>
    Refining the labels can then be done in the GUI : <br>
-   `: deeplabcut.refine_labels(config_path)` <br>
+   `deeplabcut.refine_labels(config_path)` <br>
    The same way as during the labelling, a window opens, Load the frames. You can then move the labels to the desired location. 
    Even more than before, DeepLabCut sometimes doesn’t save the position correctly so go a frame forward then 
    backward again to be sure. <br>
    Merge the datasets with : <br>
-   `: deeplabcut.merge_datasets(config_path)` <br>
-   Now you can run `create_training_dataset`, then `train_network`, etc.
+   `deeplabcut.merge_datasets(config_path)` <br>
+   Now you can run `deeplabcut.create_training_dataset`, then `deeplabcut.train_network`, etc.
 
 
 
