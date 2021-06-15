@@ -34,7 +34,7 @@ However, the features and tutorials may differ greatly from the installed versio
    `import pdb` <br>
    
 1. **Assemble videos to be analyzed :** If you analyze different animals, their extracted video files are usually 
-   placed in seperate folders on the analysis drive (`/media/paris_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData`) server. 
+   placed in seperate folders on the analysis drive (`/media/HDnyc_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/`) server. 
    Create list of string paths that contains all videos of the animals you want to analyze. DeepLabCut only accepts 
    paths under the format [‘path’]. [Glob](https://docs.python.org/3/library/glob.html) is a convenient tool to get all paths using wildcards. 
    ```
@@ -52,11 +52,11 @@ However, the features and tutorials may differ greatly from the installed versio
     `config_path = deeplabcut.create_new_project('2021-Jan_PawExtractionTestMG','MichaelG', videos, copy_videos=False)` <br>
       The `config_path` variable contains the absolute path to the configure file  `config.yaml` which is located in the project folder.
    2. Work on an existing project with by creating the variable `config_path` pointing ot the existing config file : <br>
-    `config_path = /home/mgraupe/analysis/DLC2_projects/[project]/config.yaml`
+    `config_path ='/home/mgraupe/analysis/DLC2_projects/[project's folder name]/config.yaml`
       
 1. **Configure the Project :** Open the `config.yaml` file in a text editior and edit the project parameters.  
    1. In  particular you must add the list of bodyparts (or poins of interests) that you want to track. We use **Front left**, 
-   **Front right**, **Hind right** and **Hind left** for the four paws. The location of the paws in the video image is 
+   **Front right**, **Hind left** and **Hind right** for the four paws. The location of the paws in the video image is 
    as shown below.
    1. Set the numframes2pick (number of frames extracted per individual video) variable. The total a number of images should 
    be of the order 100-200 frames (i.e., numframes2pick=20 for 10 videos). Too much is not that more effective
@@ -119,15 +119,8 @@ there is used; otherwise it is overwritten. Default: None.
    
 1. **Video Analysis:** The trained network can be used to analyze new videos. The user needs to first choose a checkpoint 
    with the best evaluation results for analyzing the videos. <br>
-   `: deeplabcut.analyze_videos(config_path, shuffle=1, videos ,save_as_csv=True)` <br>
-   The analyzed videos do not have to be the one extracted and you can use any other video with the trained network. 
-   Ubuntu accepts only files under 144 characters long, the pickle file generated from the videos might be a problem so 
-   be sure the videos don’t have a too long name (remove useless parts of the names but not the dates). 
-   DeepLabCut is creating files in the same path for every iteration, thinking that the video has already been analyzed, 
-   so you have to delete them for new video analysis. You can change the iteration number in config.yaml for a previous 
-   one if the results are getting worse (in case of overtraining).
-   Create labelled videos (for figures, presentations or checking for instance) with : <br>
-   `deeplabcut.create_labeled_video(config_path, videos, save_frames = False)`
+   `deeplabcut.analyze_videos(config_path, videos, shuffle=1, save_as_csv=True)` <br>
+   The analyzed videos do not have to be the one extracted 
 
 1. **Refine Network:** A single training is usually not enough to have satisfying results. 
    Refining the dataset if a crucial part and can be done with : <br>
