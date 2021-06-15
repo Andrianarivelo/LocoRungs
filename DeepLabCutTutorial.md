@@ -146,15 +146,20 @@ there is used; otherwise it is overwritten. Default: None.
 1. **Adding new videos to analyze:** You can use the trained network to analyze new set of videos. 
    If you want to analyze videos from different animals, you should remove already analyzed videos from the project's videos folder. 
    Adding new videos to the project can be done with : 
-   <br> videoBase = '/media/HDnyc_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/'
+   ```
+   videoBase ='/media/HDnyc_data/data_analysis/in_vivo_cerebellum_walking/LocoRungsData/'
+   
    animals = ['201017_m99'] 
+   
    videos = []
 
    for n in range(len(animals)):
        vids = glob.glob(videoBase+animals[n]+'/*.avi')
-       videos.extend(vids)
-   `deeplabcut.add_new_videos(config_path,videos)`<br> 
-   Multiple animals can be added by separating the animal by a ',' (animals = ['201017_m99', '210122_f83', '210214'])
+       videos.extend(vids) 
+
+   <br>`deeplabcut.add_new_videos(config_path,videos)`<br> 
+     ```
+   Multiple animals can be added by separating the animal by a ',' `(animals = ['201017_m99', '210122_f83', '210214'])`
    Now you can run `deeplabcut.extract_frames(config_path, mode='automatic', algo='kmeans', crop=True, userfeedback=False)`, then `deeplabcut.label_frames(config_path)`, etc
 
 
