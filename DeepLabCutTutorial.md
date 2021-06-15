@@ -157,7 +157,7 @@ there is used; otherwise it is overwritten. Default: None.
        vids = glob.glob(videoBase+animals[n]+'/*.avi')
        videos.extend(vids) 
 
-   <br>`deeplabcut.add_new_videos(config_path,videos)`<br> 
+   deeplabcut.add_new_videos(config_path,videos)
      ```
    Multiple animals can be added by separating the animal by a ',' `(animals = ['201017_m99', '210122_f83', '210214'])`
    Now you can run `deeplabcut.extract_frames(config_path, mode='automatic', algo='kmeans', crop=True, userfeedback=False)`, then `deeplabcut.label_frames(config_path)`, etc
