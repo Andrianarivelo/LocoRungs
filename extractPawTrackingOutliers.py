@@ -12,10 +12,10 @@ import pickle
 import os
 import pdb
 
-mouseD = '201220_m59210122_f84'
+mouseD = '210214_m15'
 expDateD = 'some' # specific date e.g. '180214', 'some' for manual selection, 'all' for all, 'all910' for all recordings at 910 nm
 recordingsD='some' # 'all or 'some' or 'all910', or index of the recoding - e.g. 0,1 - when running analysis for a specific day
-DLCinstance = 'DLC_resnet_50_2021-Apr_PawExtraction_210122_f84Apr23shuffle2_200000'
+DLCinstance = '2021Jun_clarisseTest2-Clarisse-2021-06-15'
 
 readDataAgain = True
 
