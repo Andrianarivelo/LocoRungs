@@ -50,10 +50,15 @@ eSD         = extractSaveData.extractSaveData(mouse)
 (foldersRecordings,dataFolder) = eSD.getRecordingsList(expDate=expDate,recordings=recordings)  # get recordings for specific mouse and date
 cV = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
+#if expDateD == 'all910' or expDateD == 'all820':
+pickleFileName = eSD.analysisLocation + '/allSingStanceDataPerSession_%s.p' % (expDate)
+
+
+
 #########################################################
 # Get paws coordinates
-if os.path.isfile(eSD.analysisLocation + '/allSingStanceDataPerSession.p') and not readDataAgain:
-    recordingsM = pickle.load( open( eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'rb' ) )
+if os.path.isfile(pickleFileName) and not readDataAgain:
+    recordingsM = pickle.load( open( pickleFileName, 'rb' ) )
 else:
     recordingsM = []
     for f in range(len(foldersRecordings)):
@@ -84,10 +89,10 @@ else:
 
         recordingsM.append([foldersRecordings[f][0],tracks,pawTracks,rungMotion,swingPhases])
         #pdb.set_trace()
-    pickle.dump(recordingsM, open(eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'wb'))  # eSD.analysisLocation,
+    pickle.dump(recordingsM, open(pickleFileName, 'wb'))  # eSD.analysisLocation,
 
-cV.createSwingStanceFigure(recordingsM)
+cV.createSwingStanceFigure(recordingsM,expDate)
 #cV.createSwingTraceFigure(recordingsM,linear=False)
 #cV.createSwingTraceFigure(recordingsM,linear=True)
-cV.createSwingSpeedProfileFigure(recordingsM,linear=False)
-cV.createRungCrossingFigure(recordingsM)
+cV.createSwingSpeedProfileFigure(recordingsM,expDate,linear=False)
+cV.createRungCrossingFigure(recordingsM,expDate)

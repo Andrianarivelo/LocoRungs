@@ -444,7 +444,8 @@ class extractSaveData:
         rec = recording.replace('/', '-')
         fName = self.analysisLocation + '%s_%s_%s_*%s.h5' % (self.mouse, fold, rec, DLCinst)
         fList = glob.glob(fName)
-        pdb.set_trace()
+        #print(fName)
+        #pdb.set_trace()
         if len(fList) > 1:
             print('more than one file exist matching the file pattern %s' % fName)
             return (False, None)

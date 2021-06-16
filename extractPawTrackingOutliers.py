@@ -12,6 +12,7 @@ import pickle
 import os
 import pdb
 
+
 mouseD = '210214_m15'
 expDateD = 'some' # specific date e.g. '180214', 'some' for manual selection, 'all' for all, 'all910' for all recordings at 910 nm
 recordingsD='some' # 'all or 'some' or 'all910', or index of the recoding - e.g. 0,1 - when running analysis for a specific day
@@ -50,9 +51,15 @@ cV       = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 # = openCVImageProcessingTools.openCVImageProcessingTools(eSD.analysisLocation,eSD.figureLocation,eSD.f,showI=True)
 # loop over all folders, mostly days but sometimes there were two recording sessions per day
 
+if expDateD == 'all910' or expDateD == 'all820':
+    pickleFileName = eSD.analysisLocation + '/allOutlierFramesPerSession_%s_%s.p' % (DLCinstance, expDateD)
+else:
+    pickleFileName = eSD.analysisLocation + '/allOutlierFramesPerSession_%s.p' % (DLCinstance)
+
+
 #pdb.set_trace()
-if os.path.isfile(eSD.analysisLocation + '/allOutlierFramesPerSession_%s.p' % DLCinstance) and not readDataAgain:
-    outlierData = pickle.load( open(eSD.analysisLocation + '/allOutlierFramesPerSession_%s.p' % DLCinstance, 'rb') )
+if os.path.isfile(pickleFileName) and not readDataAgain:
+    outlierData = pickle.load( open(pickleFileName, 'rb') )
 else:
     outlierData = []
     for f in range(len(foldersRecordings)) :
@@ -70,5 +77,5 @@ else:
                 (idxTimePoints, startEndExposureTime, startEndExposurepIdx, videoIdx, frameSummary, imageMetaInfo) = eSD.readBehaviorVideoTimeData([foldersRecordings[f][0],foldersRecordings[f][2][r],'behaviorVideo'])  #[foldersRecordings[f][0], foldersRecordings[f][2][r], 'behaviorVideo']
                 eSD.savePawTrackingData(mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],DLCinstance,pawPositions,pawTrackingOutliers,pawMetaData,startEndExposureTime,imageMetaInfo,generateVideo=False)
 
-    pickle.dump(outlierData, open(eSD.analysisLocation + '/allOutlierFramesPerSession_%s.p' % DLCinstance, 'wb'))
-cV.createOutlierStatFigure(foldersRecordings,outlierData,DLCinstance)
+    pickle.dump(outlierData, open(pickleFileName, 'wb'))
+cV.createOutlierStatFigure(foldersRecordings,outlierData,DLCinstance,expDateD)
