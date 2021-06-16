@@ -3690,7 +3690,7 @@ class createVisualizations:
         plt.clf()
         #plt.show()
     ##########################################################################################
-    def createOutlierStatFigure(self,foldersRecordings,outlierData,DLCinstance):
+    def createOutlierStatFigure(self,foldersRecordings,outlierData,DLCinstance,expDateD):
 
         # fig = plt.figure(figsize=(11, 11))
         # ax0 = fig.add_subplot(3, 2, 1)
@@ -3777,20 +3777,20 @@ class createVisualizations:
         errorRates = (overallImgs-totOutliers)/overallImgs
         errorRates = np.round(errorRates,5)
         meanErrorRate = np.round(np.mean(errorRates),5)
-        plt.figtext(0.06, 0.92, 'DLC instance : %s' % DLCinstance, size=9)
+        plt.figtext(0.06, 0.92, 'DLC instance : %s %s' % (DLCinstance,expDateD), size=9)
         plt.figtext(0.06, 0.88, 'error rates: ind. paws, total : %s %s %s %s,  %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],meanErrorRate), clip_on=False, color='black', size=9)
         print('error rates: ind. paws, total : %s %s %s %s, %s' % (errorRates[0],errorRates[1],errorRates[2],errorRates[3],np.mean(errorRates)))
         self.layoutOfPanel(ax0, xLabel='recording days/sessions', yLabel='error rate (%)',Leg=[0,9])
         ## save figure ############################################################
         #ax0.invert_yaxis()
         #rec = rec.replace('/','-')
-        fname = self.determineFileName(self.mouse, what='tracking-outliers_%s' % DLCinstance)
+        fname = self.determineFileName(self.mouse, what='tracking-outliers_%s_%s' % (DLCinstance,expDateD))
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
         #plt.show()
 
     ##########################################################################################
-    def createSwingStanceFigure(self,recs):
+    def createSwingStanceFigure(self,recs,expDate):
 
         stepNumber = []
         stepDuration = []
@@ -3902,7 +3902,7 @@ class createVisualizations:
 
         # save figure #######################################################
         #rec = rec.replace('/','-')
-        fname = self.determineFileName(self.mouse, what='swing_stance')
+        fname = self.determineFileName(self.mouse, what='swing_stance_%s' % expDate)
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
         #plt.show()
@@ -4084,7 +4084,7 @@ class createVisualizations:
         #plt.show()
 
     ##########################################################################################
-    def createSwingSpeedProfileFigure(self,recs,linear=True):
+    def createSwingSpeedProfileFigure(self,recs,expDate,linear=True):
 
         nDays = len(recs)
 
@@ -4253,15 +4253,15 @@ class createVisualizations:
         # save figure #######################################################
         #rec = rec.replace('/','-')
         if linear:
-            fname = self.determineFileName(self.mouse, what='swing_speed-profile-linear')
+            fname = self.determineFileName(self.mouse, what='swing_speed-profile-linear_%s' % expDate)
         else:
-            fname = self.determineFileName(self.mouse, what='swing_speed-profile')
+            fname = self.determineFileName(self.mouse, what='swing_speed-profile_%s' % expDate)
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
         #plt.show()
 
     ##########################################################################################
-    def createRungCrossingFigure(self,recs):
+    def createRungCrossingFigure(self,recs,expDate):
 
         nDays = len(recs)
         stepNumber = []
@@ -4382,7 +4382,7 @@ class createVisualizations:
 
         # save figure #######################################################
         #rec = rec.replace('/','-')
-        fname = self.determineFileName(self.mouse, what='rungs-crossed')
+        fname = self.determineFileName(self.mouse, what='rungs-crossed_%s' % expDate)
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
         #plt.show()
@@ -4453,7 +4453,7 @@ class createVisualizations:
         plt.savefig(fname + '.pdf')
         #plt.show()
     ##################################################################################################################
-    def generateSwingTriggeredCaTracesFigure(self,caTriggeredAverages,rescal=True):
+    def generateSwingTriggeredCaTracesFigure(self,caTriggeredAverages,expDate,rescal=True):
 
         rescaled = rescal
         #caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay][0],nDay,timeAxis,caSnippetsArray,timeAxisRescaled,caSnippetsRescaledArray])
@@ -4502,7 +4502,7 @@ class createVisualizations:
             plt.subplots_adjust(left=0.05, right=0.96, top=0.95, bottom=0.05)
 
             # sub-panel enumerations
-            plt.figtext(0.06, 0.96, '%s recording, %s ROIs' % (caTriggeredAverages[nDays][0], dims[1]), clip_on=False, color='black', size=14)
+            plt.figtext(0.06, 0.96, '%s recording, %s ROIs, %s' % (caTriggeredAverages[nDays][0], dims[1],expDate), clip_on=False, color='black', size=14)
             # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
 
             # create panels #######################################################
@@ -4533,16 +4533,16 @@ class createVisualizations:
 
                 self.layoutOfPanel(ax)  # axL[n].append(ax)
             if rescaled:
-                fname = self.determineFileName(self.mouse, what='caTriggeredAverages_rescaled_%s' % caTriggeredAverages[nDays][0])
+                fname = self.determineFileName(self.mouse, what='caTriggeredAverages_rescaled_%s_%s' % (caTriggeredAverages[nDays][0],expDate))
                 #plt.savefig('caTriggeredAverages_rescaled_%s.pdf' % caTriggeredAverages[nDays][0])
             else:
-                fname = self.determineFileName(self.mouse, what='caTriggeredAverages_%s' % caTriggeredAverages[nDays][0])
+                fname = self.determineFileName(self.mouse, what='caTriggeredAverages_%s_%s' % (caTriggeredAverages[nDays][0], expDate))
                 #plt.savefig('caTriggeredAverages_%s.pdf' % caTriggeredAverages[nDays][0])  # define vertical and horizontal spacing between panels  # plt.show()
             # plt.savefig(fname + '.png')
             plt.savefig(fname + '.pdf')
 
     ##################################################################################################################
-    def generateSwingTriggeredCa3DProfilesFigure(self,caTriggeredAverages,rescal=True):
+    def generateSwingTriggeredCa3DProfilesFigure(self,caTriggeredAverages,expDate,rescal=True):
 
         rescaled = rescal
         #caTraces.append([allCorrDataPerSession[nDay][0],allStepData[nDay][0],nDay,timeAxis,caSnippetsArray,timeAxisRescaled,caSnippetsRescaledArray])
@@ -4564,8 +4564,8 @@ class createVisualizations:
             # nSquaredN = int(nSquared + 1)
 
         # figure #################################
-        fig_width = 25  # width in inches
-        fig_height = 25  # height in inches
+        fig_width = 12  # width in inches
+        fig_height = 40  # height in inches
         fig_size = [fig_width, fig_height]
         params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
                   'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
@@ -4583,7 +4583,7 @@ class createVisualizations:
         fig = plt.figure()
 
         # define sub-panel grid and possibly width and height ratios
-        gs = gridspec.GridSpec(4, NDays,  # ,
+        gs = gridspec.GridSpec(NDays,4,  # ,
                                # width_ratios=[1.2,1]
                                # height_ratios=[10,4]
                                )
@@ -4594,7 +4594,7 @@ class createVisualizations:
         plt.subplots_adjust(left=0.05, right=0.96, top=0.95, bottom=0.05)
 
         # sub-panel enumerations
-        plt.figtext(0.06, 0.96, '%s, %s recordings' % (self.mouse,NDays), clip_on=False, color='black', size=14)
+        plt.figtext(0.06, 0.96, '%s, %s recordings, %s' % (self.mouse,NDays,expDate), clip_on=False, color='black', size=14)
         # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
 
         # create panels #######################################################
@@ -4608,9 +4608,17 @@ class createVisualizations:
             timeAxis = caTriggeredAverages[nDay][idxCa]
             caTraces = caTriggeredAverages[nDay][idxCa + 1]
             dims = np.shape(caTraces)
+            maxMask = (timeAxis>0.)&(timeAxis<0.3)
             for i in range(4):
                 ax = plt.subplot(gs[4*nDay+i])
-                cax = ax.imshow(caTraces[i],origin='upper',extend=(timeAxis[0],timeAxis[-1],dims[0],0),interpolatoin=None,vmin=-1.5, vmax=2.5)
+                #pdb.set_trace()
+                if i ==0:
+                    ax.set_title('%s' % caTriggeredAverages[nDay][0])
+                    maxVal = np.max(caTraces[i][:,0,maxMask],axis=1)
+                    sortedIdx = np.argsort(maxVal)
+                #pdb.set_trace()
+                #print(np.min(caTraces[i][sortedIdx,0,:]),np.max(caTraces[i][sortedIdx,0,:]))
+                cax = ax.imshow(caTraces[i][sortedIdx,0,:],origin='upper',aspect=0.007,extent=(timeAxis[0],timeAxis[-1],dims[1],0),interpolation=None,vmin=-1, vmax=1.5)
                 ax.axvline(x=0, ls='--', c='0.8')
                 if rescaled:
                     ax.axvline(x=1, ls='-', c='0.8')
@@ -4626,13 +4634,16 @@ class createVisualizations:
                 #    ax.set_ylim(-2,3)
                 #else:
                 #ax.set_ylim(-1.5,2.5)
-                self.layoutOfPanel(ax)  # axL[n].append(ax)
-            plt.colorbar(cax=cax)
+                if i==0:
+                    self.layoutOfPanel(ax)  # axL[n].append(ax)
+                else:
+                    self.layoutOfPanel(ax,xyInvisible=[False,True])
+            #plt.colorbar(cax)
         if rescaled:
-            fname = self.determineFileName(self.mouse, what='caTriggeredAverages3D_rescaled_%s' % caTriggeredAverages[nDays][0])
+            fname = self.determineFileName(self.mouse, what='caTriggeredAverages3D_rescaled_%s_%s' % (self.mouse,expDate))
             #plt.savefig('caTriggeredAverages_rescaled_%s.pdf' % caTriggeredAverages[nDays][0])
         else:
-            fname = self.determineFileName(self.mouse, what='caTriggeredAverages3D_%s' % caTriggeredAverages[nDays][0])
+            fname = self.determineFileName(self.mouse, what='caTriggeredAverages3D_%s_%s' % (self.mouse,expDate))
             #plt.savefig('caTriggeredAverages_%s.pdf' % caTriggeredAverages[nDays][0])  # define vertical and horizontal spacing between panels  # plt.show()
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')

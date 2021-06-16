@@ -18,7 +18,7 @@ expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selecti
 recordingsD='all910'     # 'all or 'some'
 DLCinstance = 'DLC_resnet_50_2021-Apr_PawExtraction_210122_f84Apr23shuffle2_200000'
 
-readDataAgain = False
+readDataAgain = True
 
 ###########################################
 
@@ -49,11 +49,17 @@ eSD = extractSaveData.extractSaveData(mouse)
 
 cV = createVisualizations.createVisualizations(eSD.figureLocation,mouse)
 
-if os.path.isfile(eSD.analysisLocation + '/allSingStanceDataPerSession.p'):
-    recordingsM = pickle.load( open( eSD.analysisLocation + '/allSingStanceDataPerSession.p', 'rb' ) )
+###################################
+# pickle file names
+#if expDateD == 'all910' or expDateD == 'all820':
+pickleSwingStanceFileName = eSD.analysisLocation + '/allSingStanceDataPerSession_%s.p' % expDate
+pickleAnalysisFileName = eSD.analysisLocation + '/allCorrDataPerSession_%s.p' % expDate
 
-if os.path.isfile(eSD.analysisLocation + '/allCorrDataPerSession.p') and not readDataAgain:
-    allCorrDataPerSession = pickle.load( open( eSD.analysisLocation + '/allCorrDataPerSession.p', 'rb' ) )
+if os.path.isfile(pickleSwingStanceFileName):
+    recordingsM = pickle.load(open( pickleSwingStanceFileName, 'rb' ) )
+
+if os.path.isfile(pickleAnalysisFileName) and not readDataAgain:
+    allCorrDataPerSession = pickle.load( open( pickleAnalysisFileName, 'rb' ) )
 else:
     allCorrDataPerSession = []
     caI = caImaging.caImagingSuite2p(eSD.analysisLocation, eSD.figureLocation, eSD.f)
@@ -86,7 +92,7 @@ else:
             pass
         else:
             allCorrDataPerSession.append([foldersRecordings[f][0],wheel,paws,caimg])
-    pickle.dump(allCorrDataPerSession, open(eSD.analysisLocation + '/allCorrDataPerSession.p', 'wb'))  # eSD.analysisLocation,
+    pickle.dump(allCorrDataPerSession, open(pickleAnalysisFileName, 'wb'))  # eSD.analysisLocation,
 
 #######################################################
 # remove second and third recording since rotary encoder was not working for them
@@ -105,7 +111,7 @@ for n in range(len(allCorrDataPerSession)):
 #pdb.set_trace()
 #######################################################
 # check which ROIs have been recorded across days
-# allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRois(mouse,allCorrDataPerSession,eSD.analysisLocation,refDate=3)
+#allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,refDate=3)
 
 #pdb.set_trace()
 
@@ -138,12 +144,12 @@ for n in range(len(allCorrDataPerSession)):
 
 #######################################################
 print( 'Do step triggered, paw-specific averages of the calcium signal ...')
-#caTriggeredAverages = dataAnalysis.generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,recordingsM)
-#pickle.dump(caTriggeredAverages, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'wb'))  # eSD.analysisLocation,
-caTriggeredAverages = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages.p', 'rb'))
-cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=False)
-cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,rescal=True)
-cV.generateSwingTriggeredCa3DProfilesFigure(caTriggeredAverages,rescal=True)
+caTriggeredAverages = dataAnalysis.generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,recordingsM)
+pickle.dump(caTriggeredAverages, open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages_%s.p' % expDate, 'wb'))  # eSD.analysisLocation,
+caTriggeredAverages = pickle.load(open(eSD.analysisLocation + '/caSwingPhaseTriggeredAverages_%s.p' % expDate, 'rb'))
+cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,expDate,rescal=False)
+cV.generateSwingTriggeredCaTracesFigure(caTriggeredAverages,expDate,rescal=True)
+cV.generateSwingTriggeredCa3DProfilesFigure(caTriggeredAverages,expDate,rescal=False)
 print('done')
 
 pdb.set_trace()

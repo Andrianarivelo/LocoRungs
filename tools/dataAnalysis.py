@@ -1332,8 +1332,10 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
         caSnippets = [[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)],[[] for i in range(N)]] #np.zeros((4,N,K))
         caSnippetsRescaled = [[[] for i in range(N)], [[] for i in range(N)], [[] for i in range(N)],[[] for i in range(N)]]
 
-        for nrec in range(5): # loop over the five recordings of a day
+        NRecs=len(allStepData[nDay][4])
+        for nrec in range(NRecs): # loop over the five recordings of a day
             for i in range(4): # loop over the four paws
+                #pdb.set_trace()
                 idxSwings = allStepData[nDay][4][nrec][3][i][1]
                 #print('Wow nSess',nDay,allStepData[nDay-1][0])
                 recTimes = allStepData[nDay][4][nrec][4][i][2]
@@ -1370,7 +1372,7 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
             for l in range(N): # loop over all ROIs
                 caTempArray = np.asarray(caSnippets[i][l])
                 #pdb.set_trace()
-                caSnippetsZscores = (caTempArray - np.mean(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis])/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
+                caSnippetsZscores = (caTempArray - np.mean(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]) #/np.std(caTempArray[:,preStanceMask],axis=1)[:,np.newaxis]
                 caTemp = np.mean(caSnippetsZscores,axis=0)
                 caTempSTD = np.std(caSnippetsZscores,axis=0)
                 caSnippetsArray[i,l,0,:] = caTemp
@@ -1378,7 +1380,7 @@ def generateStepTriggeredCaTraces(mouse,allCorrDataPerSession,allStepData):
                 #pdb.set_trace()
                 caTempRescaledArray = np.asarray(caSnippetsRescaled[i][l])
                 #pdb.set_trace()
-                caSnippetsRescaledZscores = (caTempRescaledArray - np.mean(caTempRescaledArray[:,preStanceRescaledMask],axis=1)[:,np.newaxis])/np.std(caTempRescaledArray[:,preStanceRescaledMask],axis=1)[:,np.newaxis]
+                caSnippetsRescaledZscores = (caTempRescaledArray - np.mean(caTempRescaledArray[:,preStanceRescaledMask],axis=1)[:,np.newaxis])# /np.std(caTempRescaledArray[:,preStanceRescaledMask],axis=1)[:,np.newaxis]
                 caTempRe = np.mean(caSnippetsRescaledZscores,axis=0)
                 caTempReSTD = np.std(caSnippetsRescaledZscores,axis=0)
                 caSnippetsRescaledArray[i,l,0,:] = caTempRe
@@ -1577,7 +1579,13 @@ def removeEmptyColumnAndRows(img):
     idxH = np.arange(len(hmask))[np.hstack((False,np.diff(hmask)>0))]
     idxV = np.arange(len(vmask))[np.hstack((False, np.diff(vmask)>0))]
     #pdb.set_trace()
-    croppedImg = img[idxV[0]:idxV[1], idxH[0]:idxH[1]]
+    if len(idxV) == 0:
+        idxV = np.array([0,np.shape(img)[0]])
+    if len(idxH) == 0:
+        idxH = np.array([0,np.shape(img)[1]])
+
+    croppedImg = img[idxV[0]:idxV[1],idxH[0]:idxH[1]]
+
     cutLengths = np.vstack((idxV,idxH))
     #pdb.set_trace()
     return cutLengths
@@ -1587,7 +1595,7 @@ def removeEmptyColumnAndRows(img):
 # remove empty columns and row - from the image registration routine
 #################################################################################
 def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementValues,figShow=False):
-
+    matplotlib.use('TkAgg')
     column1 = np.maximum(cutLengthsA[:,0],cutLengthsB[:,0])
     column2 = np.minimum(cutLengthsA[:,1],cutLengthsB[:,1])
     cutLenghts = np.column_stack((column1,column2))
@@ -1706,12 +1714,12 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
 
         ax0 = plt.subplot(gs[2])
         ax0.set_title('overlay of both images')
-        overlayBefore = cv2.addWeighted(imgA, 1, imgB, 1, 0)
+        overlayBefore = cv2.addWeighted(imgA/np.max(imgA), 1, imgB/np.max(imgB), 1, 0)
         ax0.imshow(overlayBefore)
 
         ax0 = plt.subplot(gs[3])
         ax0.set_title('overlay after alignement \nof BD-AD images', fontsize=10)
-        overlayAfter = cv2.addWeighted(imgA, 1, imgB_aligned, 1, 0)
+        overlayAfter = cv2.addWeighted(imgA/np.max(imgA), 1, imgB_aligned/np.max(imgB_aligned), 1, 0)
         ax0.imshow(overlayAfter)
 
         plt.show()
@@ -1734,6 +1742,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
     for n in range(0,ncellsRef):
         imMaskRef[:] = 0
         #if iscellBD[n][0]==1:
+        #pdb.set_trace()
         ypixRef = statRef[n]['ypix']
         xpixRef = statRef[n]['xpix']
         imMaskRef[ypixRef,xpixRef] = 1
@@ -1911,39 +1920,39 @@ def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,r
     # check for sanity
     nDays = len(allCorrDataPerSession)
 
-    refDay = allCorrDataPerSession[refDate][0]
-    print('fluo images will be aligned to recordings of :', refDay)
-    refDayCaData = allCorrDataPerSession[refDate][3][0]
-    refImg = refDayCaData[2]['meanImgE']
-    refImgCutLengths = removeEmptyColumnAndRows(refImg)
-    opsRef = refDayCaData[2]
-    statRef = refDayCaData[4]
+    #refDay = allCorrDataPerSession[refDate][0]
+    #print('fluo images will be aligned to recordings of :', refDay)
+    #refDayCaData = allCorrDataPerSession[refDate][3][0]
+    #refImg = refDayCaData[2]['meanImgE']
+    #refImgCutLengths = removeEmptyColumnAndRows(refImg)
+    #opsRef = refDayCaData[2]
+    #statRef = refDayCaData[4]
 
     # create list of recoridng day indicies
-    recDaysList = [i for i in range(nDays)]
-    movementValuesPreset = np.zeros((len(recDaysList), 2))
+    #recDaysList = [i for i in range(nDays)]
+    movementValuesPreset = np.zeros((nDays, 2))
     # movementValuesPreset[0] = np.array([-20,-47])
     movementValuesPreset[1] = np.array([143, 153])
     # movementValuesPreset[3] = np.array([-1,15])
 
     # remove day used for referencing
-    recDaysList.remove(refDate)
+    #recDaysList.remove(refDate)
     if os.path.exists(analysisLocation+'/alignmentData.p'):
         allDataRead = pickle.load(open(analysisLocation+'/alignmentData.p'))
     else:
         allDataRead = None
     allData = []
-    for nPair in range(len(allCorrDataPerSession)-1):
+    for nPair in range(nDays-1):
         nDayA = nPair
         nDayB = nPair + 1
         print(nPair, allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0])
 
-        imgA = allCorrDataPerSession[nDayA][3][0][2]['meanImgE']
+        imgA = allCorrDataPerSession[nDayA][3][0][2]['meanImg']
         cutLengthsA = removeEmptyColumnAndRows(imgA)
-        opsRefA = allCorrDataPerSession[nDayA][3][0][2]
-        statRefA = allCorrDataPerSession[nDayA][3][0][2]
+        opsA = allCorrDataPerSession[nDayA][3][0][2]
+        statA = allCorrDataPerSession[nDayA][3][0][4]
 
-        imgB = allCorrDataPerSession[nDayB][3][0][2]['meanImgE']
+        imgB = allCorrDataPerSession[nDayB][3][0][2]['meanImg']
         cutLengthsB = removeEmptyColumnAndRows(imgB)
         opsB = allCorrDataPerSession[nDayB][3][0][2]
         statB = allCorrDataPerSession[nDayB][3][0][4]
@@ -1953,11 +1962,11 @@ def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,r
         else:
             warp_matrix = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=True,)
 
-        (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],showFig=True)
-        print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statRef), len(statAlign), len(cleanedIntersectionROIs))
-        allData.append([allCorrDataPerSession[nDay][0],nDay,cutLengths,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
+        (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statA,opsA,statB,opsB,warp_matrix,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],showFig=True)
+        print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statA), len(statB), len(cleanedIntersectionROIs))
+        allData.append([allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],nDayA,nDayB,cutLengthsA,cutLengthsB,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
 
-    intersectingCellsInRefRecording = np.arange(len(statRef))
+    intersectingCellsInRefRecording = np.arange(len(statA))
     for nDay in recDaysList:
         intersectingCellsInRefRecording = np.intersect1d(intersectingCellsInRefRecording,allData[nDay][5][:,0])
         print(nDay,allCorrDataPerSession[nDay][0],intersectingCellsInRefRecording)
