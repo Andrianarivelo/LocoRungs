@@ -46,6 +46,10 @@ class h5pyTools:
         return (current_group[:-1],grpHandle)
 
     ############################################################
+    def deleteElement(self,f,elementName):
+        del f[elementName]
+
+    ############################################################
     #def list_shape(self,inputList):
     def listShape(self,lst):
         def ishape(lst):
