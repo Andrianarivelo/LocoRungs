@@ -1613,7 +1613,7 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
     #pdb.set_trace()
     # Define the motion model
     #warp_mode = cv2.MOTION_TRANSLATION  #cv2.MOTION_EUCLIDEAN # cv2.MOTION_TRANSLATION  # MOTION_EUCLIDEAN
-    warp_mode = cv2.MOTION_EUCLIDEAN #HOMOGRAPHY
+    warp_mode = cv2.MOTION_TRANSLATION #EUCLIDEAN #HOMOGRAPHY
 
     # Define 2x3 or 3x3 matrices and initialize the matrix to identity
     if warp_mode == cv2.MOTION_HOMOGRAPHY:
@@ -1758,16 +1758,19 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
             xpixAl = statAlign[m]['xpix']
             # perform homographic transform : rotation + translation
             #pdb.set_trace()
-            xpixAlPrime = np.rint(xpixAl*warp_matrix[0,0] + ypixAl*warp_matrix[0,1] - warp_matrix[0,2])
-            ypixAlPrime = np.rint(xpixAl*warp_matrix[1,0] + ypixAl*warp_matrix[1,1] - warp_matrix[1,2]) # - np.rint(warp_matrix[1,2])
-            #xpixAlPrime = np.rint((xpixAl- warp_matrix[0,2])*warp_matrix[0,0] + (ypixAl- warp_matrix[1,2])*warp_matrix[0,1])
-            #ypixAlPrime = np.rint((xpixAl- warp_matrix[0,2])*warp_matrix[1,0] + (ypixAl- warp_matrix[1,2])*warp_matrix[1,1]) # - np.rint(warp_matrix[1,2])
-            xpixAlPrime = np.array(xpixAlPrime,dtype=int)
-            ypixAlPrime = np.array(ypixAlPrime, dtype=int)
+            points = np.column_stack((ypixAl,xpixAl))
+            newPoints = np.copy(points)
+            pdb.set_trace()
+            cv2.transform(points,newPoints,warp_matrix)
+            #xpixAlPrime = np.rint(xpixAl*warp_matrix[0,0] + ypixAl*warp_matrix[0,1] - warp_matrix[0,2])
+            #ypixAlPrime = np.rint(xpixAl*warp_matrix[1,0] + ypixAl*warp_matrix[1,1] - warp_matrix[1,2]) # - np.rint(warp_matrix[1,2])
+            xpixAlPrime = np.array(newPoints[:,1],dtype=int)
+            ypixAlPrime = np.array(newPoints[:,0],dtype=int)
             # make sure pixels remain within
             xpixAlPrime2 = xpixAlPrime[(xpixAlPrime<opsAlign['Lx'])&(ypixAlPrime<opsAlign['Ly'])]
             ypixAlPrime2 = ypixAlPrime[(xpixAlPrime<opsAlign['Lx'])&(ypixAlPrime<opsAlign['Ly'])]
-            imMaskAlign[ypixAlPrime2,xpixAlPrime2] = 1
+            imMaskAlign[xpixAlPrime2,ypixAlPrime2] = 1
+            #imMaskAlign[xpixAlPrime2,ypixAlPrime2] = 1
             intersection = np.sum(np.logical_and(imMaskRef,imMaskAlign))
             eitherOr = np.sum(np.logical_or(imMaskRef,imMaskAlign))
             if intersection>0:
@@ -1923,7 +1926,7 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
 #################################################################################
 # find ROIs recorded across successive recording days
 #################################################################################
-def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
+def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,expDate):
     # check for sanity
     nDays = len(allCorrDataPerSession)
 
@@ -1944,11 +1947,11 @@ def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,r
 
     # remove day used for referencing
     #recDaysList.remove(refDate)
-    if os.path.exists(analysisLocation+'/alignmentData.p'):
-        allDataRead = pickle.load(open(analysisLocation+'/alignmentData.p'))
+    if os.path.exists(analysisLocation+'/alignmentData_%s.p' % expDate):
+        allDataRead = pickle.load(open(analysisLocation+'/alignmentData_%s.p' % expDate))
     else:
         allDataRead = None
-    allData = []
+    allDataStore = []
     for nPair in range(nDays-1):
         nDayA = nPair
         nDayB = nPair + 1
@@ -1971,8 +1974,9 @@ def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,r
 
         (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statA,opsA,statB,opsB,warp_matrix,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],showFig=True)
         print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statA), len(statB), len(cleanedIntersectionROIs))
-        allData.append([allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],nDayA,nDayB,cutLengthsA,cutLengthsB,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
+        allDataStore.append([allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],nDayA,nDayB,cutLengthsA,cutLengthsB,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
 
+    pickle.dump(allDataStore, open(analysisLocation+'/alignmentData_%s.p' % expDate))
     intersectingCellsInRefRecording = np.arange(len(statA))
     #for nDay in recDaysList:
     #    intersectingCellsInRefRecording = np.intersect1d(intersectingCellsInRefRecording,allData[nDay][5][:,0])

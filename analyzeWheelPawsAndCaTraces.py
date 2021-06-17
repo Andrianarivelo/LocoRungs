@@ -104,6 +104,7 @@ if mouse == '210122_f84':
     allCorrDataPerSession.pop(1)
     recordingsM.pop(1)
     recordingsM.pop(1)
+    del allCorrDataPerSession[0:4]
 
 for n in range(len(allCorrDataPerSession)):
     print(allCorrDataPerSession[n][0])
@@ -111,7 +112,7 @@ for n in range(len(allCorrDataPerSession)):
 #pdb.set_trace()
 #######################################################
 # check which ROIs have been recorded across days
-allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,refDate=3)
+allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate)
 
 pdb.set_trace()
 
