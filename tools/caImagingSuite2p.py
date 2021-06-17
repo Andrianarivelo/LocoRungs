@@ -47,10 +47,12 @@ class caImagingSuite2p:
                     fileIdxs = recList[recsDict[whichRecordings]]['CaImgs']
                 ll = []
                 nn = ''
+                mm = ''
                 for n in fileIdxs :
                     ll.append(tiffFiles[n])
                     nn+= str(tiffFiles[n][-5:-4])
-                specificList.append([ll,nn])
+                    mm+= str(n)
+                specificList.append([ll,nn,mm])
                 return specificList
         if whichRecordings == 'all':
             for k in recsDict:
@@ -63,10 +65,12 @@ class caImagingSuite2p:
                         fileIdxs = recList[recsDict[k]]['CaImgs']
                     ll = []
                     nn = ''
+                    mm = ''
                     for n in fileIdxs:
                         ll.append(tiffFiles[n])
                         nn += str(tiffFiles[n][-5:-4])
-                    specificList.append([ll, nn])
+                        mm += str(n)
+                    specificList.append([ll, nn, mm])
             return specificList
         # first show available tiff files with index
         print('List of available tiff files with index :')
@@ -76,10 +80,12 @@ class caImagingSuite2p:
         if len(tiffFiles)==defaultNumber:
             ll = []
             nn = ''
+            mm = ''
             for n in range(len(tiffFiles)):
                 ll.append(tiffFiles[n])
                 nn+= str(tiffFiles[n][-5:-4])
-            specificList.append([ll,nn])
+                mm+=str(n)
+            specificList.append([ll,nn,mm])
         else: # pick the lists by hand in case of more than the default number of tiff-files
             nn = ''
             listIdxs = input('Enter indices of the tiff files to be analyzed together separated by a space, different lists are separated by coma (e.g. 1 2 3 4 5, 6):')   # Python 3
@@ -88,9 +94,11 @@ class caImagingSuite2p:
                 sl = [int(s) for s in separateLists[i].split()]
                 ll = []
                 nn = ''
+                mm = ''
                 for j in sl:
                     ll.append(tiffFiles[j])
                     nn+= str(tiffFiles[j][-5:-4])
+                    mm+= str(j)
                 specificList.append([ll,nn])
         return specificList
     ############################################################

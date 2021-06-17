@@ -9,8 +9,9 @@ import tools.caImagingSuite2p as caImaging
 import os
 import pdb
 import sys
+import time
 
-mouseD = '210214_m20' # id of the mouse to analyze
+mouseD = '210122_f83' # id of the mouse to analyze
 expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='all910'     # 'all or 'some'
 
@@ -56,13 +57,18 @@ for f in range(len(foldersRecordings)):
         allTiffs.extend(tiffList)
         if not onAllData:
             for i in range(len(specificTiffLists)): # loop over the the lists of tiff files to analyze
+                suite2pFolder = eSD.analysisLocation + foldersRecordings[f][0] + '_suite2p_%s/' % specificTiffLists[i][2]
+                #oldsuite2pFolder = eSD.analysisLocation + foldersRecordings[f][0] + '_suite2p_%s/' % specificTiffLists[i][1]
                 print('analysis on :',specificTiffLists[i])
+                print('saved in ',suite2pFolder)
+                #print(commandM)
+                #os.system(commandM)
                 #
-                caI.runSuite2pPipeline(eSD.suite2pPath,recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
+                caI.runSuite2pPipeline(eSD.suite2pPath,recLocation,suite2pFolder,specificTiffLists[i][0])
                 #
-                eSD.extractAndSaveCaTimeStamps(recLocation,eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0])
+                eSD.extractAndSaveCaTimeStamps(recLocation,suite2pFolder,specificTiffLists[i][0])
                 #
-                caI.generateOverviewFigure(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[i][1],specificTiffLists[i][0],mouseD,foldersRecordings[f][0])
+                caI.generateOverviewFigure(suite2pFolder,specificTiffLists[i][0],mouseD,foldersRecordings[f][0])
                 #pdb.set_trace()
 
 # pdb.set_trace()

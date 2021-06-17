@@ -83,7 +83,13 @@ class extractSaveData:
 
         fName = self.analysisLocation + 'analysis.hdf5'
         # if os.path.isfile(fName):
-        self.f = h5py.File(fName, 'a')
+        try:
+            self.f = h5py.File(fName, 'a')
+        except FileExistsError:
+            print('hdf5 file is used by another process and cannot be accessed.')
+            sys.exit(1)
+        else:
+            pass
         self.mouse = mouse
 
         # experiments stored under this name were recorded as sequence with a certain number of repetitions
@@ -91,7 +97,12 @@ class extractSaveData:
 
     ############################################################
     def __del__(self):
-        self.f.flush()
+        try:
+            self.f.flush()
+        except:
+            pass
+        else:
+            print('hdf5 file flushed!')
         # self.f.close()
         print('on exit')
 
@@ -585,6 +596,7 @@ class extractSaveData:
     def checkForLEDPositionCoordinates(self, date, folder, recordings, r):
         # [foldersRecordings[f][0], foldersRecordings[f][2][r], 'behavior_video']
         currentGroupNames = [date, recordings[r], 'LEDinVideo']
+        #pdb.set_trace()
         (currentGroupName, currentGrpHandle) = self.h5pyTools.getH5GroupName(self.f, currentGroupNames)
         # check if coordinates for current recording exist already
         try:
