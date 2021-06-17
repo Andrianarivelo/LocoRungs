@@ -18,7 +18,7 @@ expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selecti
 recordingsD='all910'     # 'all or 'some'
 DLCinstance = 'DLC_resnet_50_2021-Apr_PawExtraction_210122_f84Apr23shuffle2_200000'
 
-readDataAgain = True
+readDataAgain = False
 
 ###########################################
 
@@ -111,9 +111,9 @@ for n in range(len(allCorrDataPerSession)):
 #pdb.set_trace()
 #######################################################
 # check which ROIs have been recorded across days
-#allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,refDate=3)
+allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,refDate=3)
 
-#pdb.set_trace()
+pdb.set_trace()
 
 #######################################################
 # print('Do regression analysis between calcium and paw speed ...')
