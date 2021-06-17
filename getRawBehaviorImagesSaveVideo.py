@@ -9,10 +9,10 @@ import pdb
 import sys
 
 
-mouseD = '210214_m15' # id of the mouse to analyze
+mouseD = '210214_m13' # id of the mouse to analyze
 #mouseD = '190108_m24'
-expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
-recordings='some'     # 'all or 'some'
+expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+recordings='all910'     # 'all or 'some'
 
 
 # in case mouse, and date were specified as input arguments
