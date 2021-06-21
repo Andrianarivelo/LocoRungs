@@ -501,7 +501,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     if pc == 'behaviorPC':
         illumLEDcontrolThreshold = LEDVideoThreshold**4.49185827 # mapping, i.e. exponent, from tools/fitOfIlluminationValues
     elif pc == '2photonPC':
-        illumLEDcontrolThreshold = LEDVideoThreshold**2.61290794 # 2pinvivo
+        illumLEDcontrolThreshold = 0.3 #LEDVideoThreshold**2.61290794 # 2pinvivo
 
     print('thresholds : ',LEDVideoThreshold, illumLEDcontrolThreshold)
     #LEDVideoThreshold = 0.8
@@ -604,7 +604,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             idxFirstFrameRec+=1         # increase that
         for j in range(10):
             videoRoiWOEX = videoRoi[mask][j:]
-            if np.all(videoRoiWOEX[:20] == illumLEDcontrolBin[:20]): # note that illumLEDcontrolBin already accounts for a recording duing stat of rec, this frame is removed
+            if np.all(videoRoiWOEX[:20] == illumLEDcontrolBin[:20]): # note that illumLEDcontrolBin already accounts for a recording during stat of rec, this frame is removed
                 missedFramesBegin = j
                 break
     if (idxFirstFrameRec == missedFramesBegin) or (missedFramesBegin == 0):
@@ -1613,7 +1613,7 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
     #pdb.set_trace()
     # Define the motion model
     #warp_mode = cv2.MOTION_TRANSLATION  #cv2.MOTION_EUCLIDEAN # cv2.MOTION_TRANSLATION  # MOTION_EUCLIDEAN
-    warp_mode = cv2.MOTION_TRANSLATION #EUCLIDEAN #HOMOGRAPHY
+    warp_mode = cv2.MOTION_AFFINE #EUCLIDEAN #HOMOGRAPHY
 
     # Define 2x3 or 3x3 matrices and initialize the matrix to identity
     if warp_mode == cv2.MOTION_HOMOGRAPHY:
@@ -1758,18 +1758,21 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
             xpixAl = statAlign[m]['xpix']
             # perform homographic transform : rotation + translation
             #pdb.set_trace()
-            points = np.column_stack((ypixAl,xpixAl))
+            points = np.column_stack((xpixAl,ypixAl))
             newPoints = np.copy(points)
-            pdb.set_trace()
-            cv2.transform(points,newPoints,warp_matrix)
-            #xpixAlPrime = np.rint(xpixAl*warp_matrix[0,0] + ypixAl*warp_matrix[0,1] - warp_matrix[0,2])
-            #ypixAlPrime = np.rint(xpixAl*warp_matrix[1,0] + ypixAl*warp_matrix[1,1] - warp_matrix[1,2]) # - np.rint(warp_matrix[1,2])
-            xpixAlPrime = np.array(newPoints[:,1],dtype=int)
-            ypixAlPrime = np.array(newPoints[:,0],dtype=int)
+            #pdb.set_trace()
+            warp_matrix_inverse = np.copy(warp_matrix)
+            cv2.invertAffineTransform(warp_matrix,warp_matrix_inverse)
+            #newPoints = cv2.transform(points,warp_matrix_inverse)
+            xpixAlPrime = np.rint(xpixAl*warp_matrix_inverse[0,0] + ypixAl*warp_matrix_inverse[0,1] + warp_matrix_inverse[0,2])
+            ypixAlPrime = np.rint(xpixAl*warp_matrix_inverse[1,0] + ypixAl*warp_matrix_inverse[1,1] + warp_matrix_inverse[1,2]) # - np.rint(warp_matrix[1,2])
+            xpixAlPrime = np.array(xpixAlPrime,dtype=int)
+            ypixAlPrime = np.array(ypixAlPrime,dtype=int)
+            #pdb.set_trace()
             # make sure pixels remain within
             xpixAlPrime2 = xpixAlPrime[(xpixAlPrime<opsAlign['Lx'])&(ypixAlPrime<opsAlign['Ly'])]
             ypixAlPrime2 = ypixAlPrime[(xpixAlPrime<opsAlign['Lx'])&(ypixAlPrime<opsAlign['Ly'])]
-            imMaskAlign[xpixAlPrime2,ypixAlPrime2] = 1
+            imMaskAlign[ypixAlPrime2,xpixAlPrime2] = 1
             #imMaskAlign[xpixAlPrime2,ypixAlPrime2] = 1
             intersection = np.sum(np.logical_and(imMaskRef,imMaskAlign))
             eitherOr = np.sum(np.logical_or(imMaskRef,imMaskAlign))
@@ -1821,22 +1824,26 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
         ax0 = fig.add_subplot(3, 2, 3)  #############################
         ax0.set_title('ROIs in reference image')
         imRef = np.zeros((opsRef['Ly'], opsRef['Lx']))
+        imRefB = np.zeros((opsRef['Ly'], opsRef['Lx']))
 
         for n in range(0, ncellsRef):
             ypixR = statRef[n]['ypix']
             xpixR = statRef[n]['xpix']
             imRef[ypixR, xpixR] = n + 1
+            imRefB[ypixR, xpixR] = 1
 
         ax0.imshow(imRef, cmap='gist_ncar')
 
         ax0 = fig.add_subplot(3, 2, 4)  #############################
         ax0.set_title('ROIs in aligned image')
         imAlign = np.zeros((opsAlign['Ly'], opsAlign['Lx']))
+        imAlignB = np.zeros((opsAlign['Ly'], opsAlign['Lx']))
 
         for n in range(0, ncellsAlign):
             ypixA = statAlign[n]['ypix']
             xpixA = statAlign[n]['xpix']
             imAlign[ypixA, xpixA] = n + 1
+            imAlignB[ypixA, xpixA] = 2
 
         ax0.imshow(imAlign, cmap='gist_ncar')
 
@@ -1855,6 +1862,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
             imAlign[ypixA, xpixA] = 2
 
         overlayBothROIs1 = cv2.addWeighted(imRef, 1, imAlign, 1, 0)
+        #overlayBothROIs1B = cv2.addWeighted(imRefB, 1, imAlignB, 1, 0)
         ax0.imshow(overlayBothROIs1)
 
         ax0 = fig.add_subplot(3, 2, 6)  #############################
@@ -1967,17 +1975,18 @@ def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,e
         opsB = allCorrDataPerSession[nDayB][3][0][2]
         statB = allCorrDataPerSession[nDayB][3][0][4]
 
-        if allDataRead is not None:
-            warp_matrix = allDataRead[nPair][3]
+        if (allDataRead is not None) and (allDataRead[nPair][0]==allCorrDataPerSession[nDayA][0]) and (allDataRead[nPair][1]==allCorrDataPerSession[nDayB][0]):
+            print('warp_matrix for current pair of recordings exists and will be used')
+            warp_matrix = allDataRead[nPair][6]
         else:
-            warp_matrix = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=True,)
+            warp_matrix = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=False)
 
-        (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statA,opsA,statB,opsB,warp_matrix,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],showFig=True)
+        (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statA,opsA,statB,opsB,warp_matrix,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],showFig=False)
         print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statA), len(statB), len(cleanedIntersectionROIs))
         allDataStore.append([allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],nDayA,nDayB,cutLengthsA,cutLengthsB,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
 
     pickle.dump(allDataStore, open(analysisLocation+'/alignmentData_%s.p' % expDate))
-    intersectingCellsInRefRecording = np.arange(len(statA))
+    #intersectingCellsInRefRecording = np.arange(len(statA))
     #for nDay in recDaysList:
     #    intersectingCellsInRefRecording = np.intersect1d(intersectingCellsInRefRecording,allData[nDay][5][:,0])
     #    print(nDay,allCorrDataPerSession[nDay][0],intersectingCellsInRefRecording)
