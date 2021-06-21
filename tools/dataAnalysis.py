@@ -1649,8 +1649,10 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
         else:
             warp_matrix[0, 2] = shiftx  # -20.
             warp_matrix[1, 2] = shifty  # -40.
-
-        (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_modes[w], criteria, inputMask = None, gaussFiltSize=5)
+        try:
+            (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_modes[w], criteria, inputMask = None, gaussFiltSize=5)
+        except TypeError:
+            (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_modes[w], criteria, inputMask = None)
 
         warpResults.append([w,warp_modes[w],warp_matrix,cc])
         corrMax.append(cc)
