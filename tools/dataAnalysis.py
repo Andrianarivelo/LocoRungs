@@ -1594,7 +1594,7 @@ def removeEmptyColumnAndRows(img):
 #################################################################################
 # remove empty columns and row - from the image registration routine
 #################################################################################
-def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementValues,figShow=False,figDir=figLocation):
+def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementValues,figShow=False,figDir=''):
     matplotlib.use('TkAgg')
     column1 = np.maximum(cutLengthsA[:,0],cutLengthsB[:,0])
     column2 = np.minimum(cutLengthsA[:,1],cutLengthsB[:,1])
@@ -1728,14 +1728,14 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
         ax0.imshow(overlayAfter)
 
         #plt.show()
-        plt.savefig(figLocation + 'ImageAlignment_%s-%s.pdf' % (refDate,otherDate))  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
+        plt.savefig(figDir + 'ImageAlignment_%s-%s.pdf' % (refDate,otherDate))  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
 
     return warp_matrix
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
 #################################################################################
-def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,showFig=False,figDir=figLocation):
+def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,showFig=False,figDir=''):
     ncellsRef= len(statRef)
     ncellsAlign = len(statAlign)
 
@@ -1873,7 +1873,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
 
         ax0.hist(interFractions1, bins=15)
 
-        plt.savefig(figLocation + 'ROIalignment_%s-%s.pdf' % (refDate, otherDate))
+        plt.savefig(figDir + 'ROIalignment_%s-%s.pdf' % (refDate, otherDate))
         #plt.show()
 
     return (cleanedIntersectionROIs,intersectionROIsA)
