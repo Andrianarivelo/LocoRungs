@@ -1614,6 +1614,7 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
     # Define the motion model
     #warp_mode = cv2.MOTION_TRANSLATION  #cv2.MOTION_EUCLIDEAN # cv2.MOTION_TRANSLATION  # MOTION_EUCLIDEAN
     warp_mode = cv2.MOTION_AFFINE #EUCLIDEAN #HOMOGRAPHY
+    warp_modes = [cv2.MOTION_AFFINE,cv2.MOTION_EUCLIDEAN,cv2.MOTION_TRANSLATION]
 
     # Define 2x3 or 3x3 matrices and initialize the matrix to identity
     if warp_mode == cv2.MOTION_HOMOGRAPHY:
@@ -1621,21 +1622,12 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
     else:
         warp_matrix = np.eye(2, 3, dtype=np.float32)
 
-    #warp_matrix1[0, 2] = aS.xOffset
-    #warp_matrix1[1, 2] = aS.yOffset
-    if (movementValues[0]!=0) and (movementValues[1]!=0):
-        warp_matrix[0, 2] = movementValues[0] #-20.
-        warp_matrix[1, 2] = movementValues[1] #-40.
-    else:
-        warp_matrix[0, 2] = shiftx #-20.
-        warp_matrix[1, 2] = shifty #-40.
-
     # Specify the number of iterations.
-    number_of_iterations = 100000;
+    number_of_iterations = 1000
 
     # Specify the threshold of the increment
     # in the correlation coefficient between two iterations
-    termination_eps = 1e-10;
+    termination_eps = 1e-10
 
     # Define termination criteria
     criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, number_of_iterations, termination_eps)
@@ -1645,10 +1637,33 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
     imA_u8 = (((imgA-np.min(imgA))/(np.max(imgA)-np.min(imgA)))*255).astype(np.uint8) #cv2.cvtColor(imgA,cv2.COLOR_BGR2GRAY)
     imB_u8 = (((imgB-np.min(imgB))/(np.max(imgB)-np.min(imgB)))*255).astype(np.uint8)
     #pdb.set_trace()
-    (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_mode, criteria, inputMask = None, gaussFiltSize=5)
+    warpResults = []
+    corrMax = []
+    for w in range(len(warp_modes)):
+        print('testing ', warp_modes[w])
+        # warp_matrix1[0, 2] = aS.xOffset
+        # warp_matrix1[1, 2] = aS.yOffset
+        if (movementValues[0] != 0) and (movementValues[1] != 0):
+            warp_matrix[0, 2] = movementValues[0]  # -20.
+            warp_matrix[1, 2] = movementValues[1]  # -40.
+        else:
+            warp_matrix[0, 2] = shiftx  # -20.
+            warp_matrix[1, 2] = shifty  # -40.
+
+        (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_modes[w], criteria, inputMask = None, gaussFiltSize=5)
+
+        warpResults.append([w,warp_modes[w],warp_matrix,cc])
+        corrMax.append(cc)
+        #if cc>0.8:
+        #    break
+    print(warpResults)
+    corrMax = np.asarray(corrMax)
+    maxCorr = np.argmax(corrMax)
+    cc = warpResults[maxCorr][3]
+    warp_matrix = warpResults[maxCorr][2]
     #except:
-    print('findTransformECC output : ',cc,warp_matrixRet)
-    print('find image transformation did not converge')
+    #print('findTransformECC output : ',cc,warp_matrixRet)
+    #print('find image transformation did not converge')
     warp_matrixRet = np.copy(warp_matrix)
     #cc = None
     #else:
@@ -1730,7 +1745,7 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
         #plt.show()
         plt.savefig(figDir + 'ImageAlignment_%s-%s.pdf' % (refDate,otherDate))  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
 
-    return warp_matrix
+    return (warp_matrixRet,cc)
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
@@ -1916,12 +1931,12 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
         if allDataRead is not None:
             warp_matrix = allDataRead[nDay][3]
         else:
-            warp_matrix = alignTwoImages(refImg,refImgCutLengths,img,cutLengths,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],movementValuesPreset[nDay],figShow=True,)
+            (warp_matrix,cc) = alignTwoImages(refImg,refImgCutLengths,img,cutLengths,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],movementValuesPreset[nDay],figShow=True,)
         opsAlign  = allCorrDataPerSession[nDay][3][0][2]
         statAlign = allCorrDataPerSession[nDay][3][0][4]
         (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],showFig=True)
         print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statRef), len(statAlign), len(cleanedIntersectionROIs))
-        allData.append([allCorrDataPerSession[nDay][0],nDay,cutLengths,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
+        allData.append([allCorrDataPerSession[nDay][0],nDay,cutLengths,warp_matrix,cc,cleanedIntersectionROIs,intersectionROIsA])
 
     intersectingCellsInRefRecording = np.arange(len(statRef))
     for nDay in recDaysList:
@@ -1935,31 +1950,17 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
 #################################################################################
 # find ROIs recorded across successive recording days
 #################################################################################
-def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,expDate,figLocation):
+def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,expDate,figLocation, allDataRead=None):
     # check for sanity
     nDays = len(allCorrDataPerSession)
-
-    #refDay = allCorrDataPerSession[refDate][0]
-    #print('fluo images will be aligned to recordings of :', refDay)
-    #refDayCaData = allCorrDataPerSession[refDate][3][0]
-    #refImg = refDayCaData[2]['meanImgE']
-    #refImgCutLengths = removeEmptyColumnAndRows(refImg)
-    #opsRef = refDayCaData[2]
-    #statRef = refDayCaData[4]
 
     # create list of recoridng day indicies
     #recDaysList = [i for i in range(nDays)]
     movementValuesPreset = np.zeros((nDays, 2))
     # movementValuesPreset[0] = np.array([-20,-47])
-    movementValuesPreset[1] = np.array([143, 153])
+    # movementValuesPreset[1] = np.array([143, 153])
     # movementValuesPreset[3] = np.array([-1,15])
 
-    # remove day used for referencing
-    #recDaysList.remove(refDate)
-    if os.path.exists(analysisLocation+'/alignmentData_%s.p' % expDate):
-        allDataRead = pickle.load(open(analysisLocation+'/alignmentData_%s.p' % expDate))
-    else:
-        allDataRead = None
     allDataStore = []
     for nPair in range(nDays-1):
         nDayA = nPair
@@ -1979,22 +1980,20 @@ def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,e
         if (allDataRead is not None) and (allDataRead[nPair][0]==allCorrDataPerSession[nDayA][0]) and (allDataRead[nPair][1]==allCorrDataPerSession[nDayB][0]):
             print('warp_matrix for current pair of recordings exists and will be used')
             warp_matrix = allDataRead[nPair][6]
+            cc = allDataRead[nPair][7]
         else:
-            warp_matrix = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=True,figDir=figLocation)
+            (warp_matrix,cc) = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=True,figDir=figLocation)
 
         (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statA,opsA,statB,opsB,warp_matrix,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],showFig=True,figDir=figLocation)
         print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statA), len(statB), len(cleanedIntersectionROIs))
-        allDataStore.append([allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],nDayA,nDayB,cutLengthsA,cutLengthsB,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
+        allDataStore.append([allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],nDayA,nDayB,cutLengthsA,cutLengthsB,warp_matrix,cc,cleanedIntersectionROIs,intersectionROIsA])
 
-    pickle.dump(allDataStore, open(analysisLocation+'/alignmentData_%s.p' % expDate, 'wb'))
     #intersectingCellsInRefRecording = np.arange(len(statA))
     #for nDay in recDaysList:
     #    intersectingCellsInRefRecording = np.intersect1d(intersectingCellsInRefRecording,allData[nDay][5][:,0])
     #    print(nDay,allCorrDataPerSession[nDay][0],intersectingCellsInRefRecording)
-
-    pdb.set_trace()
-
-    return 0
+    #pdb.set_trace()
+    return allDataStore
 
 
 #################################################################################
