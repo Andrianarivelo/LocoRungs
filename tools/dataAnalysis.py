@@ -1594,7 +1594,7 @@ def removeEmptyColumnAndRows(img):
 #################################################################################
 # remove empty columns and row - from the image registration routine
 #################################################################################
-def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementValues,figShow=False):
+def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementValues,figShow=False,figDir=figLocation):
     matplotlib.use('TkAgg')
     column1 = np.maximum(cutLengthsA[:,0],cutLengthsB[:,0])
     column2 = np.minimum(cutLengthsA[:,1],cutLengthsB[:,1])
@@ -1727,15 +1727,15 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
         overlayAfter = cv2.addWeighted(imgA/np.max(imgA), 1, imgB_aligned/np.max(imgB_aligned), 1, 0)
         ax0.imshow(overlayAfter)
 
-        plt.show()
-        #plt.savefig(figOutDir + 'ImageAlignment_%s.pdf' % aS.animalID)  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
+        #plt.show()
+        plt.savefig(figLocation + 'ImageAlignment_%s-%s.pdf' % (refDate,otherDate))  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
 
     return warp_matrix
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
 #################################################################################
-def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,showFig=False):
+def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,showFig=False,figDir=figLocation):
     ncellsRef= len(statRef)
     ncellsAlign = len(statAlign)
 
@@ -1873,7 +1873,8 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
 
         ax0.hist(interFractions1, bins=15)
 
-        plt.show()
+        plt.savefig(figLocation + 'ROIalignment_%s-%s.pdf' % (refDate, otherDate))
+        #plt.show()
 
     return (cleanedIntersectionROIs,intersectionROIsA)
     #pickle.dump(intersectionROIs, open( dataOutDir + 'ROIintersections_%s.p' % aS.animalID, 'wb' ) )
@@ -1934,7 +1935,7 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
 #################################################################################
 # find ROIs recorded across successive recording days
 #################################################################################
-def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,expDate):
+def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,expDate,figLocation):
     # check for sanity
     nDays = len(allCorrDataPerSession)
 
@@ -1979,13 +1980,13 @@ def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,e
             print('warp_matrix for current pair of recordings exists and will be used')
             warp_matrix = allDataRead[nPair][6]
         else:
-            warp_matrix = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=False)
+            warp_matrix = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=True,figDir=figLocation)
 
-        (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statA,opsA,statB,opsB,warp_matrix,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],showFig=False)
+        (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statA,opsA,statB,opsB,warp_matrix,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],showFig=True,figDir=figLocation)
         print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statA), len(statB), len(cleanedIntersectionROIs))
         allDataStore.append([allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],nDayA,nDayB,cutLengthsA,cutLengthsB,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
 
-    pickle.dump(allDataStore, open(analysisLocation+'/alignmentData_%s.p' % expDate))
+    pickle.dump(allDataStore, open(analysisLocation+'/alignmentData_%s.p' % expDate, 'wb'))
     #intersectingCellsInRefRecording = np.arange(len(statA))
     #for nDay in recDaysList:
     #    intersectingCellsInRefRecording = np.intersect1d(intersectingCellsInRefRecording,allData[nDay][5][:,0])

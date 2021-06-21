@@ -112,7 +112,7 @@ for n in range(len(allCorrDataPerSession)):
 #pdb.set_trace()
 #######################################################
 # check which ROIs have been recorded across days
-allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate)
+allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation)
 
 pdb.set_trace()
 
