@@ -104,7 +104,7 @@ if mouse == '210122_f84':
     allCorrDataPerSession.pop(1)
     recordingsM.pop(1)
     recordingsM.pop(1)
-    del allCorrDataPerSession[0:4]
+    #del allCorrDataPerSession[0:4]
 
 for n in range(len(allCorrDataPerSession)):
     print(allCorrDataPerSession[n][0])
