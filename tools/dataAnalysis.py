@@ -1997,6 +1997,38 @@ def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,e
     #pdb.set_trace()
     return allDataStore
 
+#################################################################################
+# calculate correlations between ca-imaging, wheel speed and paw speed
+#################################################################################
+def roisRecordedAllDays(allData):
+    def getMatchingPairs(aD):
+        ROIpairs = []
+        for i in range(len(aD)):
+            ROIpairs.append(aD[i][:2])
+        ROIpairs = np.asarray(ROIpairs)
+        return ROIpairs
+
+    #pdb.set_trace()
+    Npairs = len(allData)
+    dat  = []
+    matchingRoisBefore = getMatchingPairs(allData[0][8])
+    for n in range(Npairs-1):
+        print(allData[n][0],allData[n+1][1],allData[n+1][7])
+        data = allData[n]
+        matchingRoisAfter = getMatchingPairs(allData[n+1][8])
+        idxRemaining = np.intersect1d(matchingRoisBefore[:,1],matchingRoisAfter[:,0])
+
+        idxRemainingBefore = [key for key,val in enumerate(matchingRoisBefore[:,1]) if val in idxRemaining]
+        idxRemainingAfter = [key for key,val in enumerate(matchingRoisAfter[:,0]) if val in idxRemaining]
+        BeforeAlsoAfter = matchingRoisBefore[idxRemainingBefore]
+        AfterAlsoBefore = matchingRoisAfter[idxRemainingAfter]
+
+        dat.append([n,matchingRoisBefore,matchingRoisAfter,idxRemaining,BeforeAlsoAfter,AfterAlsoBefore])
+        print('ROIS remaining before and after : ', len(idxRemaining))
+        matchingRoisBefore = np.copy(AfterAlsoBefore)
+        #pdb.set_trace()
+
+    pdb.set_trace()
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed

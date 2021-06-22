@@ -112,11 +112,11 @@ for n in range(len(allCorrDataPerSession)):
 #pdb.set_trace()
 #######################################################
 # check which ROIs have been recorded across days
-#allCorrDataPerSessionOrderedRead = pickle.load(open(eSD.analysisLocation + '/imageAlignmentData_%s.p' % expDate, 'rb'))
+allCorrDataPerSessionOrdered = pickle.load(open(eSD.analysisLocation + '/imageAlignmentData_%s.p' % expDate, 'rb'))
 #allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation,allDataRead=allCorrDataPerSessionOrderedRead)
-allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation)
-pickle.dump(allCorrDataPerSessionOrdered, open(eSD.analysisLocation+'/imageAlignmentData_%s.p' % expDate, 'wb'))
-
+#allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation)
+#pickle.dump(allCorrDataPerSessionOrdered, open(eSD.analysisLocation+'/imageAlignmentData_%s.p' % expDate, 'wb'))
+dataAnalysis.roisRecordedAllDays(allCorrDataPerSessionOrdered)
 pdb.set_trace()
 
 #######################################################

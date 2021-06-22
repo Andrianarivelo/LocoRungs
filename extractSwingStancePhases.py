@@ -16,10 +16,10 @@ import h5py
 import scipy.stats as stats
 
 
-mouseD = '210122_f84' # id of the mouse to analyze
+mouseD = '210214_m15' # id of the mouse to analyze
 expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordingsD='all910'     # 'all or 'some'
-DLCinstance = 'DLC_resnet_50_2021-Apr_PawExtraction_210122_f84Apr23shuffle2_200000'
+DLCinstance = 'DLC_resnet_50_2021Jun_PawExtraction_m15Jun16shuffle3_200000'
 
 readDataAgain = True
 
@@ -82,7 +82,7 @@ else:
                 rungMotion.append([mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],rungPositions])
 
             if rotaryExistence and camExistence:
-                (swingP,forFit) = dataAnalysis.findStancePhases(tracks[-1],pawTracks[-1],rungMotion[-1],showFigFit=False,showFigPaw=False)
+                (swingP,forFit) = dataAnalysis.findStancePhases(tracks[-1],pawTracks[-1],rungMotion[-1],showFigFit=True,showFigPaw=True)
                 #pdb.set_trace()
                 print(len(swingP[0][1]),len(swingP[1][1]),len(swingP[2][1]),len(swingP[3][1]))
                 swingPhases.append([mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],swingP,forFit])
