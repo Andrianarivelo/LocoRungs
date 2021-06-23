@@ -862,7 +862,11 @@ class extractSaveData:
             ops = ops.item()
             nframes = ops['nframes']
             meanImg = ops['meanImg']
-            meanImgE = ops['meanImgE']
+            try:
+                meanImgE = ops['meanImgE']
+            except KeyError:
+                print('no enhanced image available ... using normal image')
+                meanImgE = np.copy(meanImg)
             # pdb.set_trace()
             return (nframes, meanImg, meanImgE, zF, timeStamps)
         else:

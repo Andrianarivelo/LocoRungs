@@ -1740,7 +1740,7 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
         ax0.imshow(overlayBefore)
 
         ax0 = plt.subplot(gs[3])
-        ax0.set_title('overlay after alignement \nof BD-AD images', fontsize=10)
+        ax0.set_title('overlay after alignement c = %s \nof BD-AD images' % np.round(cc,4), fontsize=10)
         overlayAfter = cv2.addWeighted(imgA/np.max(imgA), 1, imgB_aligned/np.max(imgB_aligned), 1, 0)
         ax0.imshow(overlayAfter)
 
@@ -2013,7 +2013,7 @@ def roisRecordedAllDays(allData):
     dat  = []
     matchingRoisBefore = getMatchingPairs(allData[0][8])
     for n in range(Npairs-1):
-        print(allData[n][0],allData[n+1][1],allData[n+1][7])
+        print(allData[n][0],allData[n][1],allData[n+1][0],allData[n+1][1],allData[n][7],allData[n+1][7])
         data = allData[n]
         matchingRoisAfter = getMatchingPairs(allData[n+1][8])
         idxRemaining = np.intersect1d(matchingRoisBefore[:,1],matchingRoisAfter[:,0])
