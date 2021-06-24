@@ -1650,10 +1650,14 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
         else:
             warp_matrix[0, 2] = shiftx  # -20.
             warp_matrix[1, 2] = shifty  # -40.
-        try:
-            (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_modes[w], criteria, inputMask = None, gaussFiltSize=5)
-        except TypeError:
+        #try:
+        #    (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_modes[w], criteria, inputMask = None, gaussFiltSize=5)
+        #except TypeError:
+        try :
             (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_modes[w], criteria, inputMask = None)
+        except:
+            cc = -1
+            warp_matrixRet = warp_matrix
 
         warpResults.append([w,warp_modes[w],warp_matrix,cc])
         corrMax.append(cc)
@@ -1949,6 +1953,42 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
     pdb.set_trace()
 
     return 0
+
+
+#################################################################################
+# correlates mean fluo images recorded across successive recording days
+#################################################################################
+def findMeanImageOverlay(mouse, allCorrDataPerSession, analysisLocation, expDate, figLocation, allDataRead=None):
+    nDays = len(allCorrDataPerSession)
+    movementValuesPreset = np.zeros((nDays, 2))
+    allCorrData = []
+    corrMatrix = np.zeros((nDays,nDays))
+    nPair = 0
+    for nDayA in range(nDays - 1):
+        for nDayB in range(nDayA+1,nDays):
+            print(nDayA,nDayB, allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0])
+
+            imgA = allCorrDataPerSession[nDayA][3][0][2]['meanImg']
+            cutLengthsA = removeEmptyColumnAndRows(imgA)
+            opsA = allCorrDataPerSession[nDayA][3][0][2]
+            statA = allCorrDataPerSession[nDayA][3][0][4]
+
+            imgB = allCorrDataPerSession[nDayB][3][0][2]['meanImg']
+            cutLengthsB = removeEmptyColumnAndRows(imgB)
+            opsB = allCorrDataPerSession[nDayB][3][0][2]
+            statB = allCorrDataPerSession[nDayB][3][0][4]
+
+            if (allDataRead is not None) and (allDataRead[nPair][0]==allCorrDataPerSession[nDayA][0]) and (allDataRead[nPair][1]==allCorrDataPerSession[nDayB][0]):
+                print('warp_matrix for current pair of recordings exists and will be used')
+                warp_matrix = allDataRead[nPair][6]
+                cc = allDataRead[nPair][7]
+            else:
+                (warp_matrix,cc) = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=True,figDir=figLocation)
+            corrMatrix[nDayA,nDayB] = cc
+            allCorrData.append([allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0], nDayA, nDayB, cutLengthsA, cutLengthsB, warp_matrix, cc])
+            nPair+=1
+
+    return allCorrData
 
 #################################################################################
 # find ROIs recorded across successive recording days

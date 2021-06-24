@@ -114,7 +114,9 @@ pdb.set_trace()
 # check which ROIs have been recorded across days
 
 #allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation,allDataRead=allCorrDataPerSessionOrderedRead)
-# allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation)
+allCorrDataPerSessionOrdered = dataAnalysis.findMeanImageOverlay(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation)
+pdb.set_trace()
+allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation)
 # pickle.dump(allCorrDataPerSessionOrdered, open(eSD.analysisLocation+'/imageAlignmentData_%s.p' % expDate, 'wb'))
 # allCorrDataPerSessionOrdered = pickle.load(open(eSD.analysisLocation + '/imageAlignmentData_%s.p' % expDate, 'rb'))
 # dataAnalysis.roisRecordedAllDays(allCorrDataPerSessionOrdered)
