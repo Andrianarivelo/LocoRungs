@@ -82,7 +82,7 @@ else:
                 rungMotion.append([mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],rungPositions])
 
             if rotaryExistence and camExistence:
-                (swingP,forFit) = dataAnalysis.findStancePhases(tracks[-1],pawTracks[-1],rungMotion[-1],showFigFit=True,showFigPaw=True)
+                (swingP,forFit) = dataAnalysis.findStancePhases(tracks[-1],pawTracks[-1],rungMotion[-1],showFigFit=False,showFigPaw=False)
                 #pdb.set_trace()
                 print(len(swingP[0][1]),len(swingP[1][1]),len(swingP[2][1]),len(swingP[3][1]))
                 swingPhases.append([mouse,foldersRecordings[f][0],foldersRecordings[f][2][r],swingP,forFit])

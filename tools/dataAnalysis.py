@@ -501,7 +501,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     if pc == 'behaviorPC':
         illumLEDcontrolThreshold = LEDVideoThreshold**4.49185827 # mapping, i.e. exponent, from tools/fitOfIlluminationValues
     elif pc == '2photonPC':
-        illumLEDcontrolThreshold = 0.3 #LEDVideoThreshold**2.61290794 # 2pinvivo
+        illumLEDcontrolThreshold = LEDVideoThreshold**2.61290794 # 2pinvivo
 
     print('thresholds : ',LEDVideoThreshold, illumLEDcontrolThreshold)
     #LEDVideoThreshold = 0.8
@@ -2254,7 +2254,7 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
     ##############################################################################################################
     # determine regions during which the speed is different for more than xLength values #########################
     #stanceDistances = [[10, 40],[10,40],[-4,40],[-4,40]]
-    stanceDistances = [[-10, 20], [-10, 20], [-20, 20], [-20, 20]]
+    stanceDistances = [[-4, 20], [-4, 20], [-20, 20], [-10, 20]]
     swingPhases = []
 
     for i in range(4):

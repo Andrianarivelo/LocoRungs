@@ -13,10 +13,10 @@ import tools.parameters as pas
 
 ###########################################
 
-mouseD = '210122_f84' # id of the mouse to analyze
+mouseD = '210214_m15' # id of the mouse to analyze
 expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordingsD='all910'     # 'all or 'some'
-DLCinstance = 'DLC_resnet_50_2021-Apr_PawExtraction_210122_f84Apr23shuffle2_200000'
+DLCinstance = 'DLC_resnet_50_2021Jun_PawExtraction_m15Jun16shuffle3_200000'
 
 readDataAgain = False
 
@@ -85,7 +85,7 @@ else:
         if caImgExistence: # (Fluo,nRois,ops,frameNumbers)
             specificTiffLists = caI.decideWhichTiffFilesToUse(recLocation, tiffList, eSD.expDict[foldersRecordings[f][1]], recordings)
             #pdb.set_trace()
-            (Fluo,nRois,ops,timeStamps,stat) =  eSD.getCaImagingRoiData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[0][1],tiffList)
+            (Fluo,nRois,ops,timeStamps,stat) =  eSD.getCaImagingRoiData(eSD.analysisLocation+foldersRecordings[f][0]+'_suite2p_%s/' % specificTiffLists[0][2],tiffList)
             caimg.append([Fluo,nRois,ops,timeStamps,stat])
         # combine all recordings from a session only if all three data-sets were recorded
         if (not wheel) and (not paws) and (not caimg):
@@ -109,7 +109,7 @@ if mouse == '210122_f84':
 for n in range(len(allCorrDataPerSession)):
     print(allCorrDataPerSession[n][0])
 
-#pdb.set_trace()
+pdb.set_trace()
 #######################################################
 # check which ROIs have been recorded across days
 allCorrDataPerSessionOrdered = pickle.load(open(eSD.analysisLocation + '/imageAlignmentData_%s.p' % expDate, 'rb'))

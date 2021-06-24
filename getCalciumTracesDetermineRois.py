@@ -12,7 +12,7 @@ import sys
 import time
 
 mouseD = '210122_f83' # id of the mouse to analyze
-expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
+expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='all910'     # 'all or 'some'
 
 onAllData = False
