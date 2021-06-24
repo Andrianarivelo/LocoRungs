@@ -10,19 +10,19 @@ import pdb
 import numpy as np
 import sys
 
-mouseD = '210214_m18'
+mouseD = '210126_f70'
 #mouseD = '201017_m99' #'200801_m58' # id of the mouse to analyze
 #mouseD = '190108_m24'
 expDateD = 'some'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordings='some'     # 'all or 'some'
 
 # further analaysis parameter
-assumePerfectRecording = True  # that means a recording without any flash-back - or double frames
-startRecording = None # each session/day per animal is composed of 5 recordings, this index allows chose with which recording to start, default is 0
+assumePerfectRecording = False  # that means a recording without any flash-back - or double frames
+startRecording = 4 # each session/day per animal is composed of 5 recordings, this index allows chose with which recording to start, default is 0
 endRecording = None # in case only specify recording will be analyzed, otherwise set to None
-DetermineAgainLEDcoordinates = False # whether or not to determine LED coordinates even though they exist already for current or previous recording
+DetermineAgainLEDcoordinates = True # whether or not to determine LED coordinates even though they exist already for current or previous recording
 DetermineAgainErronousFrames = False # whether or not to determine errnonous frames even though the are already exist for current recording
-recordingWithTail = True
+recordingWithTail = False
 
 
 # in case mouse, and date were specified as input arguments

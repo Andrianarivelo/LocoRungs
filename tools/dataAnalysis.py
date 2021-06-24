@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.cm as cm
 import matplotlib
-matplotlib.use('WXAgg')
+matplotlib.use('TKAgg')
 
 
 def getSpeed(angles,times,circumsphere,minSpacing):
@@ -272,6 +272,7 @@ def determineFrameTimes(exposureArray,arrayTimes,frames,rec=None):
 
 #################################################################################
 def generatePlotWithSTD(data,std=[2,3,4],names = None):
+    matplotlib.use('TkAgg')
     nData = len(data)
     fig = plt.figure()
     for i in range(nData):
@@ -555,12 +556,14 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
     oldI = -1
     exceptionsInFrameCount = []
     idxToExclude = ledVideoRoi[5]
+    #idxToExclude = np.append(idxToExclude,7570)
+    #pdb.set_trace()
     for i in range(nFrames):
         if i not in idxToExclude:
             matchBool = np.all(np.equal(binNumberInFrame[i],binNumbers),axis=1) # which of the boolean number corresponds to the current frame pattern : return is a boolean list from 0 to 8 with one TRUE entry
             matchFrameN = np.arange(len(binNumbers))[matchBool][0]   # converts the boolean list into the index corresponding to the match
             frameDiff = matchFrameN - frameNBefore  # difference in count to previous frame
-            if frameDiff < 0: # else : negative difference indicates that the counter restarted
+            if frameDiff <= 0: # else : negative difference indicates that the counter restarted
                 frameDiff+=7
             if (frameDiff != 1) and (frameDiff != -6):
                 print(i,oldI,i-oldI,matchFrameN,frameNBefore,frameDiff,binNumberInFrame[i],binNumberInFrame[i-1])
