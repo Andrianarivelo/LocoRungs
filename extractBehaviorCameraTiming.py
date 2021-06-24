@@ -22,7 +22,7 @@ startRecording = None # each session/day per animal is composed of 5 recordings,
 endRecording = None # in case only specify recording will be analyzed, otherwise set to None
 DetermineAgainLEDcoordinates = False # whether or not to determine LED coordinates even though they exist already for current or previous recording
 DetermineAgainErronousFrames = False # whether or not to determine errnonous frames even though the are already exist for current recording
-recordingWithTail = False
+recordingWithTail = True
 
 
 # in case mouse, and date were specified as input arguments
