@@ -1659,8 +1659,8 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
             print('findTransformECC did not converge')
             cc = -1
             warp_matrixRet = warp_matrix
-        print(warp_matrixRet,warp_matrix)
-        warpResults.append([w,warp_modes[w],np.copy(warp_matrixRet),np.copy(cc)])
+        #print(warp_matrixRet,warp_matrix)
+        warpResults.append([w,warp_modes[w],np.copy(warp_matrixRet),np.copy(cc)[0]])
         corrMax.append(cc)
         #if cc>0.8:
         #    break
@@ -1752,13 +1752,14 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
 
         #plt.show()
         plt.savefig(figDir + 'ImageAlignment_%s-%s.pdf' % (refDate,otherDate))  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
+        plt.clf()
 
     return (warp_matrix_max,cc_max)
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
 #################################################################################
-def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,showFig=False,figDir=''):
+def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,saveFig=False,figDir=''):
     ncellsRef= len(statRef)
     ncellsAlign = len(statAlign)
 
@@ -1826,7 +1827,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
     #pdb.set_trace()
     intersectionROIsA = np.delete(intersectionROIsA,removeIndicies,axis=0)
     #pdb.set_trace()
-    if showFig:
+    if saveFig:
         imRef = opsRef['meanImg']
         imAlign = opsAlign['meanImg']
         ##################################################################
@@ -1898,6 +1899,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
 
         plt.savefig(figDir + 'ROIalignment_%s-%s.pdf' % (refDate, otherDate))
         #plt.show()
+        plt.clf()
 
     return (cleanedIntersectionROIs,intersectionROIsA)
     #pickle.dump(intersectionROIs, open( dataOutDir + 'ROIintersections_%s.p' % aS.animalID, 'wb' ) )
@@ -1957,9 +1959,9 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
 
 
 #################################################################################
-# correlates mean fluo images recorded across successive recording days
+# correlates mean fluo images recorded all possible recording day combinations
 #################################################################################
-def findMeanImageOverlay(mouse, allCorrDataPerSession, analysisLocation, expDate, figLocation, allDataRead=None,saveFigure=True):
+def findOverlayMatchingRoisAllDayCombinations(mouse, allCorrDataPerSession, analysisLocation, expDate, figLocation, allDataRead=None,saveFigure=True):
     nDays = len(allCorrDataPerSession)
     movementValuesPreset = np.zeros((nDays*nDays, 2))
     allCorrData = []
@@ -1986,9 +1988,10 @@ def findMeanImageOverlay(mouse, allCorrDataPerSession, analysisLocation, expDate
             else:
                 (warp_matrix,cc) = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figSave=saveFigure,figDir=figLocation)
             #corrMatrix[nDayA,nDayB] = cc
-            allCorrData.append([allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0], nDayA, nDayB, cutLengthsA, cutLengthsB, warp_matrix, cc])
+            (cleanedIntersectionROIs, intersectionROIsA) = alignROIsCheckOverlap(statA, opsA, statB, opsB, warp_matrix, allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0],figSave=saveFigure, figDir=figLocation)
+            print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statA), len(statB), len(cleanedIntersectionROIs))
+            allCorrData.append([allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0], nDayA, nDayB, cutLengthsA, cutLengthsB, warp_matrix, cc,cleanedIntersectionROIs, intersectionROIsA])
             nPair+=1
-
     return allCorrData
 
 #################################################################################
@@ -2040,7 +2043,7 @@ def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,e
     return allDataStore
 
 #################################################################################
-# calculate correlations between ca-imaging, wheel speed and paw speed
+# check which ROIs were recoreded across recordings days
 #################################################################################
 def roisRecordedAllDays(allData):
     def getMatchingPairs(aD):

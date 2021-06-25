@@ -113,13 +113,10 @@ pdb.set_trace()
 #######################################################
 # check which ROIs have been recorded across days
 
-#allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation,allDataRead=allCorrDataPerSessionOrderedRead)
-allCorrData = dataAnalysis.findMeanImageOverlay(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation,saveFigure=True)
-pickle.dump(allCorrData, open(eSD.analysisLocation+'/imageAlignmentDataAllPairs_%s.p' % expDate, 'wb'))
+allCorrData = dataAnalysis.findOverlayMatchingRoisAllDayCombinations(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation,saveFigure=True)
+pickle.dump(allCorrData, open(eSD.analysisLocation+'/imageROIAlignmentDataAllPairs_%s.p' % expDate, 'wb'))
 pdb.set_trace()
-allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation)
-# pickle.dump(allCorrDataPerSessionOrdered, open(eSD.analysisLocation+'/imageAlignmentData_%s.p' % expDate, 'wb'))
-# allCorrDataPerSessionOrdered = pickle.load(open(eSD.analysisLocation + '/imageAlignmentData_%s.p' % expDate, 'rb'))
+allCorrData = pickle.load(open(eSD.analysisLocation+'/imageROIAlignmentDataAllPairs_%s.p' % expDate, 'rb'))
 # dataAnalysis.roisRecordedAllDays(allCorrDataPerSessionOrdered)
 # pdb.set_trace()
 
