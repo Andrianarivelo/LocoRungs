@@ -113,10 +113,11 @@ pdb.set_trace()
 #######################################################
 # check which ROIs have been recorded across days
 
-allCorrData = dataAnalysis.findOverlayMatchingRoisAllDayCombinations(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation,saveFigure=True)
-pickle.dump(allCorrData, open(eSD.analysisLocation+'/imageROIAlignmentDataAllPairs_%s.p' % expDate, 'wb'))
-pdb.set_trace()
-allCorrData = pickle.load(open(eSD.analysisLocation+'/imageROIAlignmentDataAllPairs_%s.p' % expDate, 'rb'))
+#allAlignData = dataAnalysis.findOverlayMatchingRoisAllDayCombinations(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation,saveFigure=True)
+#pickle.dump(allAlignData, open(eSD.analysisLocation+'/imageROIAlignmentDataAllPairs_%s.p' % expDate, 'wb'))
+#pdb.set_trace()
+allAlignData = pickle.load(open(eSD.analysisLocation+'/imageROIAlignmentDataAllPairs_%s.p' % expDate, 'rb'))
+cV.generateOverviewFigureROIImageAlignment(mouse,allCorrDataPerSession,allAlignData,expDate,eSD.figureLocation)
 # dataAnalysis.roisRecordedAllDays(allCorrDataPerSessionOrdered)
 # pdb.set_trace()
 

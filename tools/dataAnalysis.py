@@ -1752,7 +1752,7 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
 
         #plt.show()
         plt.savefig(figDir + 'ImageAlignment_%s-%s.pdf' % (refDate,otherDate))  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
-        plt.clf()
+        plt.close()
 
     return (warp_matrix_max,cc_max)
 
@@ -1899,7 +1899,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
 
         plt.savefig(figDir + 'ROIalignment_%s-%s.pdf' % (refDate, otherDate))
         #plt.show()
-        plt.clf()
+        plt.close()
 
     return (cleanedIntersectionROIs,intersectionROIsA)
     #pickle.dump(intersectionROIs, open( dataOutDir + 'ROIintersections_%s.p' % aS.animalID, 'wb' ) )
@@ -1990,7 +1990,7 @@ def findOverlayMatchingRoisAllDayCombinations(mouse, allCorrDataPerSession, anal
             #corrMatrix[nDayA,nDayB] = cc
             (cleanedIntersectionROIs, intersectionROIsA) = alignROIsCheckOverlap(statA, opsA, statB, opsB, warp_matrix, allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0],figSave=saveFigure, figDir=figLocation)
             print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statA), len(statB), len(cleanedIntersectionROIs))
-            allCorrData.append([allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0], nDayA, nDayB, cutLengthsA, cutLengthsB, warp_matrix, cc,cleanedIntersectionROIs, intersectionROIsA])
+            allCorrData.append([allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0], nDayA, nDayB, cutLengthsA, cutLengthsB, warp_matrix, cc,cleanedIntersectionROIs, intersectionROIsA,statA,statB])
             nPair+=1
     return allCorrData
 

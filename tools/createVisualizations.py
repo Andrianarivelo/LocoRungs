@@ -4933,3 +4933,87 @@ class createVisualizations:
         #plt.savefig('caTriggeredAverages_%s.pdf' % caTriggeredAverages[nDays][0])  # define vertical and horizontal spacing between panels  # plt.show()
         # plt.savefig(fname + '.png')
         plt.savefig(fname + '.pdf')
+
+    ##################################################################################################################
+    ## generate figure to visualize image and ROI alignment
+    ##################################################################################################################
+    # cV.generateOverviewFigureROIImageAlignment(mouse,allCorrDataPerSession,allAlignData,expDate,eSD.figureLocation)
+    def generateOverviewFigureROIImageAlignment(self,mouse,allCorrDataPerSession,allAlignData,expDate,figureLocation):
+        nDays = len(allCorrDataPerSession)
+        days = np.charray(nDays)
+        for n in range(nDays):
+            days[n] = allCorrDataPerSession[n][0]
+
+        corrMatrix = np.zeros((nDays,nDays))
+        allOverlayData = [[None]*nDays,[None]*nDays]
+        nPair = 0
+        for nDayA in range(nDays - 1):
+            for nDayB in range(nDayA + 1, nDays):
+                print(nDayA, nDayB, allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0])
+                if (allCorrDataPerSession[nDayA][0] == allAlignData[nPair][0]) and (allCorrDataPerSession[nDayB][0] == allAlignData[nPair][1]):
+                    corrMatrix[nDayA,nDayB] = allAlignData[nPair][7]
+                    allOverlayData[nDayA,nDayB] = [allAlignData[nPair][7],len(allAlignData[nPair][8])]
+                    nPair+=1
+
+        # figure #################################
+        fig_width = 16 # width in inches
+        fig_height = 9  # height in inches
+        fig_size = [fig_width, fig_height]
+        params = {'axes.labelsize': 12, 'axes.titlesize': 12, 'font.size': 11, 'xtick.labelsize': 11, 'ytick.labelsize': 11, 'figure.figsize': fig_size, 'savefig.dpi': 600,
+                  'axes.linewidth': 1.3, 'ytick.major.size': 4,  # major tick size in points
+                  'xtick.major.size': 4  # major tick size in points
+                  # 'edgecolor' : None
+                  # 'xtick.major.size' : 2,
+                  # 'ytick.major.size' : 2,
+                  }
+        rcParams.update(params)
+
+        # set sans-serif font to Arial
+        rcParams['font.sans-serif'] = 'Arial'
+
+        # create figure instance
+        fig = plt.figure()
+
+        # define sub-panel grid and possibly width and height ratios
+        gs = gridspec.GridSpec(1, 2,  # ,
+                               # width_ratios=[1.2,1]
+                               # height_ratios=[10,4]
+                               )
+        # define vertical and horizontal spacing between panels
+        gs.update(wspace=0.25, hspace=0.4)
+
+        # possibly change outer margins of the figure
+        plt.subplots_adjust(left=0.05, right=0.96, top=0.96, bottom=0.04)
+
+        # sub-panel enumerations
+        #plt.figtext(0.06, 0.96, '%s recording, %s ROIs' % (caTriggeredAverages[nDays][0], dims[1]), clip_on=False, color='black', size=14)
+        # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
+
+        ax0 = plt.subplot(gs[0])
+        ax0.set_title('Image overlay correlations')
+        c0 = ax0.pcolormesh(corrMatrix, edgecolors='w', linewidths=1 ,vmin=0, vmax=1)
+        ax0.set_xticks(np.arange(nDays))
+        ax0.set_yticks(np.arange(nDays))
+        ax0.set_xticklabels(days)
+        ax0.set_yticklabels(days)
+        plt.setp(ax0.get_xticklabels(), rotation=45, ha="right",rotation_mode="anchor")
+
+        fig.colorbar(c0, ax=ax0)
+
+        ax1 = plt.subplot(gs[1])
+
+        ax1.set_title('Image overlay data')
+        c0 = ax1.pcolormesh(corrMatrix, edgecolors='w', linewidths=1, vmin=0, vmax=1)
+        ax1.set_xticks(np.arange(nDays))
+        ax1.set_yticks(np.arange(nDays))
+        ax1.set_xticklabels(days)
+        ax1.set_yticklabels(days)
+        plt.setp(ax1.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+        for i in range(nDays):
+            for j in range(nDays):
+                text = ax1.text(j, i, '%s \n%s' % (allOverlayData[i, j][0], allOverlayData[i, j][1]),ha="center", va="center", color="w")
+
+        # save figure
+        fname = self.determineFileName(self.mouse, 'ImageROIoverlayOverview' , what=mouse)
+
+        plt.savefig(fname + '.pdf')
