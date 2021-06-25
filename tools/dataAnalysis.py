@@ -1659,8 +1659,8 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
             print('findTransformECC did not converge')
             cc = -1
             warp_matrixRet = warp_matrix
-
-        warpResults.append([w,warp_modes[w],warp_matrixRet,cc])
+        print(warp_matrixRet,warp_matrix)
+        warpResults.append([w,warp_modes[w],np.copy(warp_matrixRet),np.copy(cc)])
         corrMax.append(cc)
         #if cc>0.8:
         #    break
@@ -1961,9 +1961,9 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
 #################################################################################
 def findMeanImageOverlay(mouse, allCorrDataPerSession, analysisLocation, expDate, figLocation, allDataRead=None,saveFigure=True):
     nDays = len(allCorrDataPerSession)
-    movementValuesPreset = np.zeros((nDays, 2))
+    movementValuesPreset = np.zeros((nDays*nDays, 2))
     allCorrData = []
-    corrMatrix = np.zeros((nDays,nDays))
+    #corrMatrix = np.zeros((nDays,nDays))
     nPair = 0
     for nDayA in range(nDays - 1):
         for nDayB in range(nDayA+1,nDays):
@@ -1985,11 +1985,11 @@ def findMeanImageOverlay(mouse, allCorrDataPerSession, analysisLocation, expDate
                 cc = allDataRead[nPair][7]
             else:
                 (warp_matrix,cc) = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figSave=saveFigure,figDir=figLocation)
-            corrMatrix[nDayA,nDayB] = cc
+            #corrMatrix[nDayA,nDayB] = cc
             allCorrData.append([allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0], nDayA, nDayB, cutLengthsA, cutLengthsB, warp_matrix, cc])
             nPair+=1
 
-    return (allCorrData,corrMatrix)
+    return allCorrData
 
 #################################################################################
 # find ROIs recorded across successive recording days
