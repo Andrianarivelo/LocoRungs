@@ -105,7 +105,7 @@ if mouse == '210122_f84':
     recordingsM.pop(1)
     recordingsM.pop(1)
     #del allCorrDataPerSession[0:4]
-
+print()
 for n in range(len(allCorrDataPerSession)):
     print(allCorrDataPerSession[n][0])
 
@@ -114,7 +114,7 @@ pdb.set_trace()
 # check which ROIs have been recorded across days
 
 #allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation,allDataRead=allCorrDataPerSessionOrderedRead)
-allCorrDataPerSessionOrdered = dataAnalysis.findMeanImageOverlay(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation)
+(allCorrDataPerSessionOrdered,corrMatrix) = dataAnalysis.findMeanImageOverlay(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation)
 pdb.set_trace()
 allCorrDataPerSessionOrdered = dataAnalysis.findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,eSD.analysisLocation,expDate,eSD.figureLocation)
 # pickle.dump(allCorrDataPerSessionOrdered, open(eSD.analysisLocation+'/imageAlignmentData_%s.p' % expDate, 'wb'))

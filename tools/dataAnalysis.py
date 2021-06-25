@@ -1656,22 +1656,23 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
         try :
             (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_modes[w], criteria, inputMask = None)
         except:
+            print('findTransformECC did not converge')
             cc = -1
             warp_matrixRet = warp_matrix
 
-        warpResults.append([w,warp_modes[w],warp_matrix,cc])
+        warpResults.append([w,warp_modes[w],warp_matrixRet,cc])
         corrMax.append(cc)
         #if cc>0.8:
         #    break
     print(warpResults)
     corrMax = np.asarray(corrMax)
     maxCorr = np.argmax(corrMax)
-    cc = warpResults[maxCorr][3]
-    warp_matrix = warpResults[maxCorr][2]
+    cc_max = warpResults[maxCorr][3]
+    warp_matrix_max = warpResults[maxCorr][2]
     #except:
     #print('findTransformECC output : ',cc,warp_matrixRet)
     #print('find image transformation did not converge')
-    warp_matrixRet = np.copy(warp_matrix)
+    #warp_matrixRet = np.copy(warp_matrix_max)
     #cc = None
     #else:
         #pass
@@ -1679,12 +1680,12 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
 
     if warp_mode == cv2.MOTION_HOMOGRAPHY:
         # Use warpPerspective for Homography
-        imgB_aligned = cv2.warpPerspective(imgB, warp_matrixRet, (sz[1], sz[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+        imgB_aligned = cv2.warpPerspective(imgB, warp_matrix_max, (sz[1], sz[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
     else:
         # Use warpAffine for Translation, Euclidean and Affine
-        imgB_aligned = cv2.warpAffine(imgB, warp_matrixRet, (sz[1], sz[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP);
+        imgB_aligned = cv2.warpAffine(imgB, warp_matrix_max, (sz[1], sz[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP);
 
-    print('result of image alignment-> warp-matrix  and correlation coefficient : ', warp_matrixRet, cc)
+    print('result of image alignment-> warp-matrix  and correlation coefficient : ', warp_matrix_max, cc_max)
 
     if figShow :
         ##################################################################
@@ -1745,14 +1746,14 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
         ax0.imshow(overlayBefore)
 
         ax0 = plt.subplot(gs[3])
-        ax0.set_title('overlay after alignement c = %s \nof BD-AD images' % np.round(cc,4), fontsize=10)
+        ax0.set_title('overlay after alignement c = %s \nof BD-AD images' % np.round(cc_max,4), fontsize=10)
         overlayAfter = cv2.addWeighted(imgA/np.max(imgA), 1, imgB_aligned/np.max(imgB_aligned), 1, 0)
         ax0.imshow(overlayAfter)
 
         #plt.show()
         plt.savefig(figDir + 'ImageAlignment_%s-%s.pdf' % (refDate,otherDate))  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
 
-    return (warp_matrixRet,cc)
+    return (warp_matrix_max,cc_max)
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
@@ -1988,7 +1989,7 @@ def findMeanImageOverlay(mouse, allCorrDataPerSession, analysisLocation, expDate
             allCorrData.append([allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0], nDayA, nDayB, cutLengthsA, cutLengthsB, warp_matrix, cc])
             nPair+=1
 
-    return allCorrData
+    return (allCorrData,corrMatrix)
 
 #################################################################################
 # find ROIs recorded across successive recording days
