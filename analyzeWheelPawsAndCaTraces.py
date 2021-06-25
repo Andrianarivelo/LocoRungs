@@ -119,7 +119,8 @@ pdb.set_trace()
 allAlignData = pickle.load(open(eSD.analysisLocation+'/imageROIAlignmentDataAllPairs_%s.p' % expDate, 'rb'))
 cV.generateOverviewFigureROIImageAlignment(mouse,allCorrDataPerSession,allAlignData,expDate,eSD.figureLocation)
 # dataAnalysis.roisRecordedAllDays(allCorrDataPerSessionOrdered)
-# pdb.set_trace()
+
+pdb.set_trace()
 
 #######################################################
 # print('Do regression analysis between calcium and paw speed ...')
