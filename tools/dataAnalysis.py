@@ -1759,7 +1759,7 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
 #################################################################################
-def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,saveFig=False,figDir=''):
+def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,figSave=False,figDir=''):
     ncellsRef= len(statRef)
     ncellsAlign = len(statAlign)
 
@@ -1827,7 +1827,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
     #pdb.set_trace()
     intersectionROIsA = np.delete(intersectionROIsA,removeIndicies,axis=0)
     #pdb.set_trace()
-    if saveFig:
+    if figSave:
         imRef = opsRef['meanImg']
         imAlign = opsAlign['meanImg']
         ##################################################################
