@@ -1660,7 +1660,7 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
             cc = -1
             warp_matrixRet = warp_matrix
         #print(warp_matrixRet,warp_matrix)
-        warpResults.append([w,warp_modes[w],np.copy(warp_matrixRet),np.copy(cc)[0]])
+        warpResults.append([w,warp_modes[w],np.copy(warp_matrixRet),np.copy(cc)])
         corrMax.append(cc)
         #if cc>0.8:
         #    break
