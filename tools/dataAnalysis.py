@@ -1595,7 +1595,7 @@ def removeEmptyColumnAndRows(img):
 #################################################################################
 # remove empty columns and row - from the image registration routine
 #################################################################################
-def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementValues,figShow=False,figDir=''):
+def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementValues,figSave=False,figDir=''):
     matplotlib.use('TkAgg')
     column1 = np.maximum(cutLengthsA[:,0],cutLengthsB[:,0])
     column2 = np.minimum(cutLengthsA[:,1],cutLengthsB[:,1])
@@ -1687,7 +1687,7 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
 
     print('result of image alignment-> warp-matrix  and correlation coefficient : ', warp_matrix_max, cc_max)
 
-    if figShow :
+    if figSave :
         ##################################################################
         # Show final results
         # figure #################################
@@ -1959,7 +1959,7 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
 #################################################################################
 # correlates mean fluo images recorded across successive recording days
 #################################################################################
-def findMeanImageOverlay(mouse, allCorrDataPerSession, analysisLocation, expDate, figLocation, allDataRead=None):
+def findMeanImageOverlay(mouse, allCorrDataPerSession, analysisLocation, expDate, figLocation, allDataRead=None,saveFigure=True):
     nDays = len(allCorrDataPerSession)
     movementValuesPreset = np.zeros((nDays, 2))
     allCorrData = []
@@ -1984,7 +1984,7 @@ def findMeanImageOverlay(mouse, allCorrDataPerSession, analysisLocation, expDate
                 warp_matrix = allDataRead[nPair][6]
                 cc = allDataRead[nPair][7]
             else:
-                (warp_matrix,cc) = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=True,figDir=figLocation)
+                (warp_matrix,cc) = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figSave=saveFigure,figDir=figLocation)
             corrMatrix[nDayA,nDayB] = cc
             allCorrData.append([allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0], nDayA, nDayB, cutLengthsA, cutLengthsB, warp_matrix, cc])
             nPair+=1
