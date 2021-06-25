@@ -4945,7 +4945,7 @@ class createVisualizations:
             days[n] = allCorrDataPerSession[n][0][:-4]
         print(days)
         corrMatrix = np.zeros((nDays,nDays))
-        allOverlayData = np.zeros((nDays,nDays,2))
+        allOverlayData = np.zeros((nDays,nDays,4))
         nPair = 0
         for nDayA in range(nDays - 1):
             for nDayB in range(nDayA + 1, nDays):
@@ -4954,7 +4954,8 @@ class createVisualizations:
                     corrMatrix[nDays-1-nDayA,nDayB] = allAlignData[nPair][7]
                     allOverlayData[nDays-1-nDayA,nDayB,0] = allAlignData[nPair][7]
                     allOverlayData[nDays-1-nDayA,nDayB,1] = len(allAlignData[nPair][8])
-                    
+                    allOverlayData[nDays-1-nDayA, nDayB, 2] = len(allAlignData[nPair][9])
+                    allOverlayData[nDays-1-nDayA, nDayB, 3] = len(allAlignData[nPair][10])
                     nPair+=1
 
         # figure #################################
@@ -4988,7 +4989,7 @@ class createVisualizations:
         plt.subplots_adjust(left=0.1, right=0.95, top=0.92, bottom=0.2)
 
         # sub-panel enumerations
-        #plt.figtext(0.06, 0.96, '%s recording, %s ROIs' % (caTriggeredAverages[nDays][0], dims[1]), clip_on=False, color='black', size=14)
+        plt.figtext(0.06, 0.96, '%s image alignment, ROI overlay' % (self.mouse), clip_on=False, color='black', size=14)
         # plt.figtext(0.06, 0.92, 'A',clip_on=False,color='black', weight='bold',size=22)
 
         ax0 = plt.subplot(gs[0])
@@ -5014,7 +5015,7 @@ class createVisualizations:
         for i in range(nDays):
             for j in range(nDays):
                 if allOverlayData[i, j][1] > 0:
-                    text = ax1.text(j+0.5, i+0.5, '%s \n%s' % (np.round(allOverlayData[i, j][0],3), int(allOverlayData[i, j][1])), fontsize=9, ha="center", va="center", color="w")
+                    text = ax1.text(j+0.5, i+0.5, '%s \n(%s %s) %s' % (np.round(allOverlayData[i, j][0],3), int(allOverlayData[i, j][2]),int(allOverlayData[i, j][3]), int(allOverlayData[i, j][1])), fontsize=8, ha="center", va="center", color="w")
 
         # save figure
         fname = self.determineFileName(self.mouse, 'ImageROIoverlayOverview')

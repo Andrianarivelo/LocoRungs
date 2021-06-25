@@ -1800,7 +1800,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
             #imMaskAlign[xpixAlPrime2,ypixAlPrime2] = 1
             intersection = np.sum(np.logical_and(imMaskRef,imMaskAlign))
             eitherOr = np.sum(np.logical_or(imMaskRef,imMaskAlign))
-            if intersection>0:
+            if intersection>0.2:
                 #print(n,m,intersection,eitherOr,intersection/eitherOr)
                 intersectionROIs.append([n,m,xpixRef,ypixRef,xpixAlPrime2,ypixAlPrime2,intersection,eitherOr,intersection/eitherOr])
                 intersectionROIsA.append([n,m,intersection,eitherOr,intersection/eitherOr])
