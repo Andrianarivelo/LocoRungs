@@ -12,11 +12,10 @@ import pickle
 import os
 import pdb
 
-
 mouseD = '210214_m15'
-expDateD = 'some' # specific date e.g. '180214', 'some' for manual selection, 'all' for all, 'all910' for all recordings at 910 nm
-recordingsD='some' # 'all or 'some' or 'all910', or index of the recoding - e.g. 0,1 - when running analysis for a specific day
-DLCinstance = '2021Jun_clarisseTest2-Clarisse-2021-06-15'
+expDateD = 'all910' # specific date e.g. '180214', 'some' for manual selection, 'all' for all, 'all910' for all recordings at 910 nm
+recordingsD='all910' # 'all or 'some' or 'all910', or index of the recoding - e.g. 0,1 - when running analysis for a specific day
+DLCinstance = 'DLC_resnet_50_2021Jun_PawExtraction_m15Jun16shuffle3_200000'
 
 readDataAgain = True
 

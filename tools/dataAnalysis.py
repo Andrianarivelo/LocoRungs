@@ -272,6 +272,7 @@ def determineFrameTimes(exposureArray,arrayTimes,frames,rec=None):
 
 #################################################################################
 def generatePlotWithSTD(data,std=[2,3,4],names = None):
+    matplotlib.use('TkAgg')
     nData = len(data)
     fig = plt.figure()
     for i in range(nData):
@@ -604,7 +605,7 @@ def determineFrameTimesBasedOnLED(ledVideoRoi, cameraExposure, ledDAQc, pc, verb
             idxFirstFrameRec+=1         # increase that
         for j in range(10):
             videoRoiWOEX = videoRoi[mask][j:]
-            if np.all(videoRoiWOEX[:20] == illumLEDcontrolBin[:20]): # note that illumLEDcontrolBin already accounts for a recording duing stat of rec, this frame is removed
+            if np.all(videoRoiWOEX[:20] == illumLEDcontrolBin[:20]): # note that illumLEDcontrolBin already accounts for a recording during stat of rec, this frame is removed
                 missedFramesBegin = j
                 break
     if (idxFirstFrameRec == missedFramesBegin) or (missedFramesBegin == 0):
@@ -1594,7 +1595,7 @@ def removeEmptyColumnAndRows(img):
 #################################################################################
 # remove empty columns and row - from the image registration routine
 #################################################################################
-def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementValues,figShow=False):
+def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementValues,figSave=False,figDir=''):
     matplotlib.use('TkAgg')
     column1 = np.maximum(cutLengthsA[:,0],cutLengthsB[:,0])
     column2 = np.minimum(cutLengthsA[:,1],cutLengthsB[:,1])
@@ -1613,7 +1614,8 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
     #pdb.set_trace()
     # Define the motion model
     #warp_mode = cv2.MOTION_TRANSLATION  #cv2.MOTION_EUCLIDEAN # cv2.MOTION_TRANSLATION  # MOTION_EUCLIDEAN
-    warp_mode = cv2.MOTION_EUCLIDEAN #HOMOGRAPHY
+    warp_mode = cv2.MOTION_AFFINE #EUCLIDEAN #HOMOGRAPHY
+    warp_modes = [cv2.MOTION_AFFINE,cv2.MOTION_EUCLIDEAN,cv2.MOTION_TRANSLATION]
 
     # Define 2x3 or 3x3 matrices and initialize the matrix to identity
     if warp_mode == cv2.MOTION_HOMOGRAPHY:
@@ -1621,21 +1623,12 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
     else:
         warp_matrix = np.eye(2, 3, dtype=np.float32)
 
-    #warp_matrix1[0, 2] = aS.xOffset
-    #warp_matrix1[1, 2] = aS.yOffset
-    if (movementValues[0]!=0) and (movementValues[1]!=0):
-        warp_matrix[0, 2] = movementValues[0] #-20.
-        warp_matrix[1, 2] = movementValues[1] #-40.
-    else:
-        warp_matrix[0, 2] = shiftx #-20.
-        warp_matrix[1, 2] = shifty #-40.
-
     # Specify the number of iterations.
-    number_of_iterations = 100000;
+    number_of_iterations = 1000
 
     # Specify the threshold of the increment
     # in the correlation coefficient between two iterations
-    termination_eps = 1e-10;
+    termination_eps = 1e-10
 
     # Define termination criteria
     criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, number_of_iterations, termination_eps)
@@ -1645,11 +1638,41 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
     imA_u8 = (((imgA-np.min(imgA))/(np.max(imgA)-np.min(imgA)))*255).astype(np.uint8) #cv2.cvtColor(imgA,cv2.COLOR_BGR2GRAY)
     imB_u8 = (((imgB-np.min(imgB))/(np.max(imgB)-np.min(imgB)))*255).astype(np.uint8)
     #pdb.set_trace()
-    (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_mode, criteria, inputMask = None, gaussFiltSize=5)
+    warpResults = []
+    corrMax = []
+    for w in range(len(warp_modes)):
+        print('testing ', warp_modes[w])
+        # warp_matrix1[0, 2] = aS.xOffset
+        # warp_matrix1[1, 2] = aS.yOffset
+        if (movementValues[0] != 0) and (movementValues[1] != 0):
+            warp_matrix[0, 2] = movementValues[0]  # -20.
+            warp_matrix[1, 2] = movementValues[1]  # -40.
+        else:
+            warp_matrix[0, 2] = shiftx  # -20.
+            warp_matrix[1, 2] = shifty  # -40.
+        #try:
+        #    (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_modes[w], criteria, inputMask = None, gaussFiltSize=5)
+        #except TypeError:
+        try :
+            (cc, warp_matrixRet) = cv2.findTransformECC(imA_u8, imB_u8, warp_matrix, warp_modes[w], criteria, inputMask = None)
+        except:
+            print('findTransformECC did not converge')
+            cc = -1
+            warp_matrixRet = warp_matrix
+        #print(warp_matrixRet,warp_matrix)
+        warpResults.append([w,warp_modes[w],np.copy(warp_matrixRet),np.copy(cc)])
+        corrMax.append(cc)
+        #if cc>0.8:
+        #    break
+    print(warpResults)
+    corrMax = np.asarray(corrMax)
+    maxCorr = np.argmax(corrMax)
+    cc_max = warpResults[maxCorr][3]
+    warp_matrix_max = warpResults[maxCorr][2]
     #except:
-    print('findTransformECC output : ',cc,warp_matrixRet)
-    print('find image transformation did not converge')
-    warp_matrixRet = np.copy(warp_matrix)
+    #print('findTransformECC output : ',cc,warp_matrixRet)
+    #print('find image transformation did not converge')
+    #warp_matrixRet = np.copy(warp_matrix_max)
     #cc = None
     #else:
         #pass
@@ -1657,14 +1680,14 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
 
     if warp_mode == cv2.MOTION_HOMOGRAPHY:
         # Use warpPerspective for Homography
-        imgB_aligned = cv2.warpPerspective(imgB, warp_matrixRet, (sz[1], sz[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+        imgB_aligned = cv2.warpPerspective(imgB, warp_matrix_max, (sz[1], sz[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
     else:
         # Use warpAffine for Translation, Euclidean and Affine
-        imgB_aligned = cv2.warpAffine(imgB, warp_matrixRet, (sz[1], sz[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP);
+        imgB_aligned = cv2.warpAffine(imgB, warp_matrix_max, (sz[1], sz[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP);
 
-    print('result of image alignment-> warp-matrix  and correlation coefficient : ', warp_matrixRet, cc)
+    print('result of image alignment-> warp-matrix  and correlation coefficient : ', warp_matrix_max, cc_max)
 
-    if figShow :
+    if figSave :
         ##################################################################
         # Show final results
         # figure #################################
@@ -1723,19 +1746,20 @@ def alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,refDate,otherDate,movementV
         ax0.imshow(overlayBefore)
 
         ax0 = plt.subplot(gs[3])
-        ax0.set_title('overlay after alignement \nof BD-AD images', fontsize=10)
+        ax0.set_title('overlay after alignement c = %s \nof BD-AD images' % np.round(cc_max,4), fontsize=10)
         overlayAfter = cv2.addWeighted(imgA/np.max(imgA), 1, imgB_aligned/np.max(imgB_aligned), 1, 0)
         ax0.imshow(overlayAfter)
 
-        plt.show()
-        #plt.savefig(figOutDir + 'ImageAlignment_%s.pdf' % aS.animalID)  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
+        #plt.show()
+        plt.savefig(figDir + 'ImageAlignment_%s-%s.pdf' % (refDate,otherDate))  # plt.savefig(figOutDir+'ImageAlignment_%s.png' % aS.animalID)  # plt.show()
+        plt.close()
 
-    return warp_matrix
+    return (warp_matrix_max,cc_max)
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
 #################################################################################
-def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,showFig=False):
+def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,otherDate,figSave=False,figDir=''):
     ncellsRef= len(statRef)
     ncellsAlign = len(statAlign)
 
@@ -1758,19 +1782,25 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
             xpixAl = statAlign[m]['xpix']
             # perform homographic transform : rotation + translation
             #pdb.set_trace()
-            xpixAlPrime = np.rint(xpixAl*warp_matrix[0,0] + ypixAl*warp_matrix[0,1] - warp_matrix[0,2])
-            ypixAlPrime = np.rint(xpixAl*warp_matrix[1,0] + ypixAl*warp_matrix[1,1] - warp_matrix[1,2]) # - np.rint(warp_matrix[1,2])
-            #xpixAlPrime = np.rint((xpixAl- warp_matrix[0,2])*warp_matrix[0,0] + (ypixAl- warp_matrix[1,2])*warp_matrix[0,1])
-            #ypixAlPrime = np.rint((xpixAl- warp_matrix[0,2])*warp_matrix[1,0] + (ypixAl- warp_matrix[1,2])*warp_matrix[1,1]) # - np.rint(warp_matrix[1,2])
+            points = np.column_stack((xpixAl,ypixAl))
+            newPoints = np.copy(points)
+            #pdb.set_trace()
+            warp_matrix_inverse = np.copy(warp_matrix)
+            cv2.invertAffineTransform(warp_matrix,warp_matrix_inverse)
+            #newPoints = cv2.transform(points,warp_matrix_inverse)
+            xpixAlPrime = np.rint(xpixAl*warp_matrix_inverse[0,0] + ypixAl*warp_matrix_inverse[0,1] + warp_matrix_inverse[0,2])
+            ypixAlPrime = np.rint(xpixAl*warp_matrix_inverse[1,0] + ypixAl*warp_matrix_inverse[1,1] + warp_matrix_inverse[1,2]) # - np.rint(warp_matrix[1,2])
             xpixAlPrime = np.array(xpixAlPrime,dtype=int)
-            ypixAlPrime = np.array(ypixAlPrime, dtype=int)
+            ypixAlPrime = np.array(ypixAlPrime,dtype=int)
+            #pdb.set_trace()
             # make sure pixels remain within
             xpixAlPrime2 = xpixAlPrime[(xpixAlPrime<opsAlign['Lx'])&(ypixAlPrime<opsAlign['Ly'])]
             ypixAlPrime2 = ypixAlPrime[(xpixAlPrime<opsAlign['Lx'])&(ypixAlPrime<opsAlign['Ly'])]
             imMaskAlign[ypixAlPrime2,xpixAlPrime2] = 1
+            #imMaskAlign[xpixAlPrime2,ypixAlPrime2] = 1
             intersection = np.sum(np.logical_and(imMaskRef,imMaskAlign))
             eitherOr = np.sum(np.logical_or(imMaskRef,imMaskAlign))
-            if intersection>0:
+            if intersection>0.2:
                 #print(n,m,intersection,eitherOr,intersection/eitherOr)
                 intersectionROIs.append([n,m,xpixRef,ypixRef,xpixAlPrime2,ypixAlPrime2,intersection,eitherOr,intersection/eitherOr])
                 intersectionROIsA.append([n,m,intersection,eitherOr,intersection/eitherOr])
@@ -1797,7 +1827,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
     #pdb.set_trace()
     intersectionROIsA = np.delete(intersectionROIsA,removeIndicies,axis=0)
     #pdb.set_trace()
-    if showFig:
+    if figSave:
         imRef = opsRef['meanImg']
         imAlign = opsAlign['meanImg']
         ##################################################################
@@ -1818,22 +1848,26 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
         ax0 = fig.add_subplot(3, 2, 3)  #############################
         ax0.set_title('ROIs in reference image')
         imRef = np.zeros((opsRef['Ly'], opsRef['Lx']))
+        imRefB = np.zeros((opsRef['Ly'], opsRef['Lx']))
 
         for n in range(0, ncellsRef):
             ypixR = statRef[n]['ypix']
             xpixR = statRef[n]['xpix']
             imRef[ypixR, xpixR] = n + 1
+            imRefB[ypixR, xpixR] = 1
 
         ax0.imshow(imRef, cmap='gist_ncar')
 
         ax0 = fig.add_subplot(3, 2, 4)  #############################
         ax0.set_title('ROIs in aligned image')
         imAlign = np.zeros((opsAlign['Ly'], opsAlign['Lx']))
+        imAlignB = np.zeros((opsAlign['Ly'], opsAlign['Lx']))
 
         for n in range(0, ncellsAlign):
             ypixA = statAlign[n]['ypix']
             xpixA = statAlign[n]['xpix']
             imAlign[ypixA, xpixA] = n + 1
+            imAlignB[ypixA, xpixA] = 2
 
         ax0.imshow(imAlign, cmap='gist_ncar')
 
@@ -1852,6 +1886,7 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
             imAlign[ypixA, xpixA] = 2
 
         overlayBothROIs1 = cv2.addWeighted(imRef, 1, imAlign, 1, 0)
+        #overlayBothROIs1B = cv2.addWeighted(imRefB, 1, imAlignB, 1, 0)
         ax0.imshow(overlayBothROIs1)
 
         ax0 = fig.add_subplot(3, 2, 6)  #############################
@@ -1862,7 +1897,9 @@ def alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,refDate,
 
         ax0.hist(interFractions1, bins=15)
 
-        plt.show()
+        plt.savefig(figDir + 'ROIalignment_%s-%s.pdf' % (refDate, otherDate))
+        #plt.show()
+        plt.close()
 
     return (cleanedIntersectionROIs,intersectionROIsA)
     #pickle.dump(intersectionROIs, open( dataOutDir + 'ROIintersections_%s.p' % aS.animalID, 'wb' ) )
@@ -1904,12 +1941,12 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
         if allDataRead is not None:
             warp_matrix = allDataRead[nDay][3]
         else:
-            warp_matrix = alignTwoImages(refImg,refImgCutLengths,img,cutLengths,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],movementValuesPreset[nDay],figShow=True,)
+            (warp_matrix,cc) = alignTwoImages(refImg,refImgCutLengths,img,cutLengths,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],movementValuesPreset[nDay],figShow=True,)
         opsAlign  = allCorrDataPerSession[nDay][3][0][2]
         statAlign = allCorrDataPerSession[nDay][3][0][4]
         (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statRef,opsRef,statAlign,opsAlign,warp_matrix,allCorrDataPerSession[refDate][0],allCorrDataPerSession[nDay][0],showFig=True)
         print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statRef), len(statAlign), len(cleanedIntersectionROIs))
-        allData.append([allCorrDataPerSession[nDay][0],nDay,cutLengths,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
+        allData.append([allCorrDataPerSession[nDay][0],nDay,cutLengths,warp_matrix,cc,cleanedIntersectionROIs,intersectionROIsA])
 
     intersectingCellsInRefRecording = np.arange(len(statRef))
     for nDay in recDaysList:
@@ -1920,35 +1957,58 @@ def findMatchingRois(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
 
     return 0
 
+
+#################################################################################
+# correlates mean fluo images recorded all possible recording day combinations
+#################################################################################
+def findOverlayMatchingRoisAllDayCombinations(mouse, allCorrDataPerSession, analysisLocation, expDate, figLocation, allDataRead=None,saveFigure=True):
+    nDays = len(allCorrDataPerSession)
+    movementValuesPreset = np.zeros((nDays*nDays, 2))
+    allCorrData = []
+    #corrMatrix = np.zeros((nDays,nDays))
+    nPair = 0
+    for nDayA in range(nDays - 1):
+        for nDayB in range(nDayA+1,nDays):
+            print(nDayA,nDayB, allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0])
+
+            imgA = allCorrDataPerSession[nDayA][3][0][2]['meanImg']
+            cutLengthsA = removeEmptyColumnAndRows(imgA)
+            opsA = allCorrDataPerSession[nDayA][3][0][2]
+            statA = allCorrDataPerSession[nDayA][3][0][4]
+
+            imgB = allCorrDataPerSession[nDayB][3][0][2]['meanImg']
+            cutLengthsB = removeEmptyColumnAndRows(imgB)
+            opsB = allCorrDataPerSession[nDayB][3][0][2]
+            statB = allCorrDataPerSession[nDayB][3][0][4]
+
+            if (allDataRead is not None) and (allDataRead[nPair][0]==allCorrDataPerSession[nDayA][0]) and (allDataRead[nPair][1]==allCorrDataPerSession[nDayB][0]):
+                print('warp_matrix for current pair of recordings exists and will be used')
+                warp_matrix = allDataRead[nPair][6]
+                cc = allDataRead[nPair][7]
+            else:
+                (warp_matrix,cc) = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figSave=saveFigure,figDir=figLocation)
+            #corrMatrix[nDayA,nDayB] = cc
+            (cleanedIntersectionROIs, intersectionROIsA) = alignROIsCheckOverlap(statA, opsA, statB, opsB, warp_matrix, allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0],figSave=saveFigure, figDir=figLocation)
+            print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statA), len(statB), len(cleanedIntersectionROIs))
+            allCorrData.append([allCorrDataPerSession[nDayA][0], allCorrDataPerSession[nDayB][0], nDayA, nDayB, cutLengthsA, cutLengthsB, warp_matrix, cc,cleanedIntersectionROIs, intersectionROIsA,statA,statB])
+            nPair+=1
+    return allCorrData
+
 #################################################################################
 # find ROIs recorded across successive recording days
 #################################################################################
-def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,refDate=0):
+def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,expDate,figLocation, allDataRead=None):
     # check for sanity
     nDays = len(allCorrDataPerSession)
-
-    #refDay = allCorrDataPerSession[refDate][0]
-    #print('fluo images will be aligned to recordings of :', refDay)
-    #refDayCaData = allCorrDataPerSession[refDate][3][0]
-    #refImg = refDayCaData[2]['meanImgE']
-    #refImgCutLengths = removeEmptyColumnAndRows(refImg)
-    #opsRef = refDayCaData[2]
-    #statRef = refDayCaData[4]
 
     # create list of recoridng day indicies
     #recDaysList = [i for i in range(nDays)]
     movementValuesPreset = np.zeros((nDays, 2))
     # movementValuesPreset[0] = np.array([-20,-47])
-    movementValuesPreset[1] = np.array([143, 153])
+    # movementValuesPreset[1] = np.array([143, 153])
     # movementValuesPreset[3] = np.array([-1,15])
 
-    # remove day used for referencing
-    #recDaysList.remove(refDate)
-    if os.path.exists(analysisLocation+'/alignmentData.p'):
-        allDataRead = pickle.load(open(analysisLocation+'/alignmentData.p'))
-    else:
-        allDataRead = None
-    allData = []
+    allDataStore = []
     for nPair in range(nDays-1):
         nDayA = nPair
         nDayB = nPair + 1
@@ -1964,24 +2024,56 @@ def findMatchingRoisSuccessivDays(mouse,allCorrDataPerSession,analysisLocation,r
         opsB = allCorrDataPerSession[nDayB][3][0][2]
         statB = allCorrDataPerSession[nDayB][3][0][4]
 
-        if allDataRead is not None:
-            warp_matrix = allDataRead[nPair][3]
+        if (allDataRead is not None) and (allDataRead[nPair][0]==allCorrDataPerSession[nDayA][0]) and (allDataRead[nPair][1]==allCorrDataPerSession[nDayB][0]):
+            print('warp_matrix for current pair of recordings exists and will be used')
+            warp_matrix = allDataRead[nPair][6]
+            cc = allDataRead[nPair][7]
         else:
-            warp_matrix = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=True,)
+            (warp_matrix,cc) = alignTwoImages(imgA,cutLengthsA,imgB,cutLengthsB,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],movementValuesPreset[nPair],figShow=True,figDir=figLocation)
 
-        (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statA,opsA,statB,opsB,warp_matrix,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],showFig=True)
+        (cleanedIntersectionROIs,intersectionROIsA) = alignROIsCheckOverlap(statA,opsA,statB,opsB,warp_matrix,allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],showFig=True,figDir=figLocation)
         print('Number of ROIs in Ref and aligned images, intersection ROIs :', len(statA), len(statB), len(cleanedIntersectionROIs))
-        allData.append([allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],nDayA,nDayB,cutLengthsA,cutLengthsB,warp_matrix,cleanedIntersectionROIs,intersectionROIsA])
+        allDataStore.append([allCorrDataPerSession[nDayA][0],allCorrDataPerSession[nDayB][0],nDayA,nDayB,cutLengthsA,cutLengthsB,warp_matrix,cc,cleanedIntersectionROIs,intersectionROIsA])
 
-    intersectingCellsInRefRecording = np.arange(len(statA))
+    #intersectingCellsInRefRecording = np.arange(len(statA))
     #for nDay in recDaysList:
     #    intersectingCellsInRefRecording = np.intersect1d(intersectingCellsInRefRecording,allData[nDay][5][:,0])
     #    print(nDay,allCorrDataPerSession[nDay][0],intersectingCellsInRefRecording)
+    #pdb.set_trace()
+    return allDataStore
+
+#################################################################################
+# check which ROIs were recoreded across recordings days
+#################################################################################
+def roisRecordedAllDays(allData):
+    def getMatchingPairs(aD):
+        ROIpairs = []
+        for i in range(len(aD)):
+            ROIpairs.append(aD[i][:2])
+        ROIpairs = np.asarray(ROIpairs)
+        return ROIpairs
+
+    #pdb.set_trace()
+    Npairs = len(allData)
+    dat  = []
+    matchingRoisBefore = getMatchingPairs(allData[0][8])
+    for n in range(Npairs-1):
+        print(allData[n][0],allData[n][1],allData[n+1][0],allData[n+1][1],allData[n][7],allData[n+1][7])
+        data = allData[n]
+        matchingRoisAfter = getMatchingPairs(allData[n+1][8])
+        idxRemaining = np.intersect1d(matchingRoisBefore[:,1],matchingRoisAfter[:,0])
+
+        idxRemainingBefore = [key for key,val in enumerate(matchingRoisBefore[:,1]) if val in idxRemaining]
+        idxRemainingAfter = [key for key,val in enumerate(matchingRoisAfter[:,0]) if val in idxRemaining]
+        BeforeAlsoAfter = matchingRoisBefore[idxRemainingBefore]
+        AfterAlsoBefore = matchingRoisAfter[idxRemainingAfter]
+
+        dat.append([n,matchingRoisBefore,matchingRoisAfter,idxRemaining,BeforeAlsoAfter,AfterAlsoBefore])
+        print('ROIS remaining before and after : ', len(idxRemaining))
+        matchingRoisBefore = np.copy(AfterAlsoBefore)
+        #pdb.set_trace()
 
     pdb.set_trace()
-
-    return 0
-
 
 #################################################################################
 # calculate correlations between ca-imaging, wheel speed and paw speed
@@ -2207,7 +2299,7 @@ def findStancePhases(tracks, pawTracks,rungMotion,showFigFit=False,showFigPaw=Fa
     ##############################################################################################################
     # determine regions during which the speed is different for more than xLength values #########################
     #stanceDistances = [[10, 40],[10,40],[-4,40],[-4,40]]
-    stanceDistances = [[-10, 20], [-10, 20], [-20, 20], [-20, 20]]
+    stanceDistances = [[-4, 20], [-4, 20], [-20, 20], [-10, 20]]
     swingPhases = []
 
     for i in range(4):

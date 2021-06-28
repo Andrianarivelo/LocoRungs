@@ -16,10 +16,10 @@ import h5py
 import scipy.stats as stats
 
 
-mouseD = '210122_f84' # id of the mouse to analyze
+mouseD = '210214_m15' # id of the mouse to analyze
 expDateD = 'all910'     # specific date e.g. '180214', 'some' for manual selection or 'all'
 recordingsD='all910'     # 'all or 'some'
-DLCinstance = 'DLC_resnet_50_2021-Apr_PawExtraction_210122_f84Apr23shuffle2_200000'
+DLCinstance = 'DLC_resnet_50_2021Jun_PawExtraction_m15Jun16shuffle3_200000'
 
 readDataAgain = True
 
